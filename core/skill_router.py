@@ -24,6 +24,15 @@ INTENT_PATTERNS = {
         r"\bprovisão\b", r"\bfluxo.*caixa\b", r"\bdinheiro\b", r"\breceita\b",
         r"\bdespesa\b", r"\brelatorio.*financ", r"\bfinanceiro"
     ],
+    "noticias": [
+        r"\bnotic[íi]as\b", r"\bbriefing\b", r"\bmatinal\b", r"\bbom dia\b",
+        r"\bnews\b", r"\bmanchet", r"\bo que aconteceu", r"\resumo do dia"
+    ],
+    "agenda": [
+        r"\bagend", r"\bcompromisso", r"\breuni[aã]o\b", r"\bmarcar\b",
+        r"\bagendar\b", r"\bcalend", r"\bamanhã\b.*tenho", r"\bhoje.*tenho",
+        r"\btenho.*hoje", r"\bpr[oó]ximos.*compromisso"
+    ],
 }
 
 
@@ -55,6 +64,20 @@ class SkillRouter:
         try:
             from skills.financeiro_skill import FinanceiroSkill
             skills["financeiro"] = FinanceiroSkill()
+        except Exception:
+            pass
+
+        # Builtin: noticias
+        try:
+            from skills.noticias_skill import NoticiasSkill
+            skills["noticias"] = NoticiasSkill()
+        except Exception:
+            pass
+
+        # Builtin: agenda
+        try:
+            from skills.agenda_skill import AgendaSkill
+            skills["agenda"] = AgendaSkill()
         except Exception:
             pass
 

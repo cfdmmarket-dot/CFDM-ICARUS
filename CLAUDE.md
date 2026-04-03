@@ -71,7 +71,7 @@ Assistente pessoal de IA integrado ao ecossistema CFDM Holding:
 
 ---
 
-## Versão Atual: v1.1.0
+## Versão Atual: v1.2.0
 
 ### Features Confirmadas
 - [x] v1.0.0 — Motor principal (IcarusCore), SkillRouter, MemoryManager, ContextEngine
@@ -93,9 +93,10 @@ Assistente pessoal de IA integrado ao ecossistema CFDM Holding:
 - [x] v1.1.0 — _Planejamento_/ — 23 arquivos SYNCTHING como referência
 
 ### Features Pendentes (próximas)
+- [x] v1.2.0 — Skill de notícias matinal (RSS nativo, sem dependências)
+- [x] v1.2.0 — Skill de agenda local (memory/agenda.json)
 - [ ] v1.2.0 — Wake word "ICARUS" (escuta contínua via Whisper)
-- [ ] v1.2.0 — Skill de notícias matinal (RSS + síntese)
-- [ ] v1.2.0 — Skill de agenda (Google Calendar API)
+- [ ] v1.3.0 — Skill de agenda Google Calendar API
 - [ ] v1.3.0 — Dashboard React estilo JARVIS (WebSocket)
 - [ ] v1.3.0 — Mapa visual de agentes (nós com status)
 - [ ] v1.4.0 — Integração CFDMNote via WebSocket local

@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.icarus_core import IcarusCore, ICARUS_PERSONA
 
-app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.1.0")
+app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.2.0")
 
 # Instância global do ICARUS
 icarus = IcarusCore()
