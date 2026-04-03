@@ -1421,9 +1421,11 @@
     </div>
     <div class="orb-transcript" id="orbTranscript"></div>
     <div class="orb-info" id="orbInfo">DIGA "ICARUS" PARA ATIVAR · ESC PARA FECHAR</div>
-    <div style="display:flex;gap:10px;margin-top:20px">
+    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center">
         <button class="orb-close-btn" id="orbPttBtn" onpointerdown="orbPTTStart()" onpointerup="orbPTTStop()" onpointercancel="orbPTTStop()"
             style="border-color:var(--green);color:var(--green)">[ 🎤 SEGURAR PARA FALAR ]</button>
+        <button class="orb-close-btn" id="orbAutoBtn" onclick="toggleConversationMode()"
+            style="border-color:var(--accent);color:var(--accent)">[ ♾ AUTO ]</button>
         <button class="orb-close-btn" onclick="setVoiceMode(false)">[ FECHAR ]</button>
     </div>
 </div>
@@ -2266,10 +2268,19 @@
         row.className = `msg-row ${role}`;
 
         const initial = role === 'assistant' ? 'I' : '◈';
+        const speakBtn = role === 'assistant'
+            ? `<button onclick="speakTTS(this.closest('.msg-body').querySelector('.msg-bubble').textContent)"
+                title="Ouvir resposta"
+                style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:13px;padding:0 4px;line-height:1;transition:color 0.12s"
+                onmouseenter="this.style.color='var(--accent)'" onmouseleave="this.style.color='var(--text-faint)'">🔊</button>`
+            : '';
         row.innerHTML = `
             <div class="msg-avatar">${initial}</div>
             <div class="msg-body">
-                <div class="msg-meta">${role === 'assistant' ? 'ICARUS' : 'Você'} · ${nowTime()}</div>
+                <div class="msg-meta" style="display:flex;align-items:center;gap:6px">
+                    <span>${role === 'assistant' ? 'ICARUS' : 'Você'} · ${nowTime()}</span>
+                    ${speakBtn}
+                </div>
                 <div class="msg-bubble">${esc(text)}</div>
             </div>`;
 
@@ -3126,8 +3137,10 @@
             orb.className = '';
             stopVoiceRecog();
             stopTTS();
+            stopAutoListen();
             voiceAwake = false;
             whisperMode = false;
+            conversationMode = false;
         }
     }
 
@@ -3247,12 +3260,15 @@
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-                mediaRecorder = new MediaRecorder(stream, {mimeType: 'audio/webm'});
+                const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4']
+                    .find(m => MediaRecorder.isTypeSupported(m)) || '';
+                mediaRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+                const actualMime = mediaRecorder.mimeType || 'audio/webm';
                 mediaRecorder.ondataavailable = ev => { if (ev.data.size > 0) audioChunks.push(ev.data); };
                 mediaRecorder.onstop = async () => {
                     stream.getTracks().forEach(t => t.stop());
                     orbSetState('process', '', 'TRANSCREVENDO...');
-                    const blob = new Blob(audioChunks, {type: 'audio/webm'});
+                    const blob = new Blob(audioChunks, {type: actualMime});
                     try {
                         const resp = await fetch('/voice/transcribe', {
                             method: 'POST',
@@ -3321,33 +3337,63 @@
 
         if (voiceMode) {
             setTimeout(() => {
-                orbSetState('wake', '', 'DIGA "ICARUS" PARA ATIVAR');
-                startWakeWordLoop();
-            }, 600);
+                if (whisperMode) {
+                    // Modo Whisper: volta para PTT
+                    orbSetState('wake', '', '🎤 SEGURE O ORB PARA FALAR NOVAMENTE');
+                } else {
+                    // Modo Web Speech: reinicia wake word loop
+                    orbSetState('wake', '', 'DIGA "ICARUS" PARA ATIVAR');
+                    startWakeWordLoop();
+                }
+            }, 800);
         }
+    }
+
+    // ── TTS — pré-carrega vozes ───────────────────────────
+    let _cachedVoice = null;
+
+    function loadTTSVoice() {
+        const lang = localStorage.getItem('icarus_voiceLang') || 'pt-BR';
+        const voices = speechSynthesis.getVoices();
+        if (!voices.length) return null;
+        // 1. voz masculina PT
+        let v = voices.find(vv => vv.lang.startsWith('pt') && vv.name.toLowerCase().includes('male'));
+        // 2. qualquer voz PT
+        if (!v) v = voices.find(vv => vv.lang.startsWith('pt'));
+        // 3. qualquer voz do idioma configurado
+        if (!v) v = voices.find(vv => vv.lang.startsWith(lang.substring(0,2)));
+        // 4. primeira disponível
+        if (!v && voices.length) v = voices[0];
+        _cachedVoice = v || null;
+        return _cachedVoice;
+    }
+
+    if (window.speechSynthesis) {
+        speechSynthesis.onvoiceschanged = loadTTSVoice;
+        loadTTSVoice(); // tenta na carga inicial
     }
 
     function speakTTS(text) {
         return new Promise(resolve => {
             if (!ttsEnabled || !window.speechSynthesis) { resolve(); return; }
             stopTTS();
-            // Limpa markdown e encurta se muito longo
             const clean = text
                 .replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s/g,'')
-                .replace(/`[^`]+`/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
-                .substring(0, 500);
+                .replace(/`[^`]+`/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+                .replace(/\n{2,}/g,' — ').replace(/\n/g,' ')
+                .substring(0, 600);
+            if (!clean.trim()) { resolve(); return; }
             const utt = new SpeechSynthesisUtterance(clean);
             utt.lang = localStorage.getItem('icarus_voiceLang') || 'pt-BR';
-            utt.rate = 1.05;
-            utt.pitch = 0.95;
-            // Prefere voz masculina PT
-            const voices = speechSynthesis.getVoices();
-            const ptVoice = voices.find(v =>
-                v.lang.startsWith('pt') && v.name.toLowerCase().includes('male')
-            ) || voices.find(v => v.lang.startsWith('pt')) || null;
-            if (ptVoice) utt.voice = ptVoice;
+            utt.rate = parseFloat(localStorage.getItem('icarus_ttsRate') || '1.05');
+            utt.pitch = parseFloat(localStorage.getItem('icarus_ttsPitch') || '0.95');
+            const voice = _cachedVoice || loadTTSVoice();
+            if (voice) utt.voice = voice;
             utt.onend = resolve;
-            utt.onerror = resolve;
+            utt.onerror = () => resolve();
+            // Chrome bug: às vezes speechSynthesis trava — workaround
+            const timeout = setTimeout(() => { stopTTS(); resolve(); }, 15000);
+            utt.onend = () => { clearTimeout(timeout); resolve(); };
             speechSynthesis.speak(utt);
         });
     }
@@ -3383,12 +3429,15 @@
             audioChunks = [];
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-                mediaRecorder = new MediaRecorder(stream, {mimeType:'audio/webm'});
+                const mimeType2 = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4']
+                    .find(m=>MediaRecorder.isTypeSupported(m)) || '';
+                mediaRecorder = new MediaRecorder(stream, mimeType2 ? {mimeType:mimeType2} : {});
+                const actualMime2 = mediaRecorder.mimeType || 'audio/webm';
                 mediaRecorder.ondataavailable = ev => { if(ev.data.size>0) audioChunks.push(ev.data); };
                 mediaRecorder.onstop = async () => {
                     stream.getTracks().forEach(t=>t.stop());
                     orbSetState('process','','TRANSCREVENDO COM WHISPER...');
-                    const blob = new Blob(audioChunks,{type:'audio/webm'});
+                    const blob = new Blob(audioChunks,{type:actualMime2});
                     try {
                         const resp = await fetch('/voice/transcribe',{
                             method:'POST', headers:{'Content-Type':'audio/webm'}, body:blob
@@ -3417,6 +3466,152 @@
         document.getElementById('orbPttBtn').style.background='';
         if(mediaRecorder && mediaRecorder.state==='recording') mediaRecorder.stop();
         else if(isRecording) recognition?.stop();
+    }
+
+    // ── Modo conversacional automático ───────────────────
+    let conversationMode = false;
+    let convRecorder = null;
+    let convChunks = [];
+    let convStream = null;
+
+    function toggleConversationMode() {
+        conversationMode = !conversationMode;
+        const btn = document.getElementById('orbAutoBtn');
+        if (conversationMode) {
+            btn.style.background = 'rgba(0,212,255,0.15)';
+            btn.textContent = '[ ♾ AUTO ON ]';
+            btn.style.color = 'var(--green)';
+            btn.style.borderColor = 'var(--green)';
+            speakTTS('Modo conversacional ativado. Pode falar.').then(() => startAutoListen());
+        } else {
+            btn.style.background = '';
+            btn.textContent = '[ ♾ AUTO ]';
+            btn.style.color = 'var(--accent)';
+            btn.style.borderColor = 'var(--accent)';
+            stopAutoListen();
+            orbSetState('wake', '', '🎤 SEGURE PARA FALAR · ♾ AUTO DESLIGADO');
+        }
+    }
+
+    function startAutoListen() {
+        if (!conversationMode || !voiceMode) return;
+        stopAutoListen();
+        convChunks = [];
+
+        navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+            convStream = stream;
+            const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
+                .find(m => MediaRecorder.isTypeSupported(m)) || '';
+            convRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+            const mime = convRecorder.mimeType || 'audio/webm';
+
+            convRecorder.ondataavailable = ev => { if(ev.data.size > 0) convChunks.push(ev.data); };
+            convRecorder.onstop = async () => {
+                if (!conversationMode || !voiceMode) return;
+                if (!convChunks.length) { startAutoListen(); return; }
+                orbSetState('process', '', 'PROCESSANDO...');
+                const blob = new Blob(convChunks, {type: mime});
+                convChunks = [];
+                try {
+                    const resp = await fetch('/voice/transcribe', {
+                        method: 'POST', headers: {'Content-Type': mime}, body: blob
+                    });
+                    const td = await resp.json();
+                    if (td.text && td.text.trim().length > 2) {
+                        orbSetState('listen', td.text, 'ENTENDIDO');
+                        await processConvCommand(td.text);
+                    } else {
+                        orbSetState('wake', '', '🎤 OUVINDO... (SILÊNCIO DETECTADO)');
+                        setTimeout(() => conversationMode && voiceMode && startAutoListen(), 500);
+                    }
+                } catch(e) {
+                    orbSetState('wake', '', 'ERRO — TENTANDO NOVAMENTE...');
+                    setTimeout(() => conversationMode && voiceMode && startAutoListen(), 1000);
+                }
+            };
+
+            orbSetState('listen', '', '🔴 OUVINDO... FALE AGORA');
+            convRecorder.start();
+
+            // Detecta silêncio via AudioContext
+            const ctx = new AudioContext();
+            const src = ctx.createMediaStreamSource(stream);
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 512;
+            src.connect(analyser);
+            const buf = new Uint8Array(analyser.fftSize);
+
+            let silenceMs = 0;
+            let speakingDetected = false;
+            const MAX_SILENCE = 1800; // ms de silêncio após fala para cortar
+            const MAX_RECORD = 15000; // max 15s
+
+            const checkSilence = setInterval(() => {
+                if (!conversationMode || !voiceMode) {
+                    clearInterval(checkSilence); ctx.close(); return;
+                }
+                analyser.getByteTimeDomainData(buf);
+                const volume = Math.max(...buf) - 128;
+                if (volume > 8) {
+                    speakingDetected = true;
+                    silenceMs = 0;
+                } else if (speakingDetected) {
+                    silenceMs += 100;
+                    if (silenceMs >= MAX_SILENCE) {
+                        clearInterval(checkSilence);
+                        ctx.close();
+                        if (convRecorder && convRecorder.state === 'recording') convRecorder.stop();
+                        if (convStream) { convStream.getTracks().forEach(t=>t.stop()); convStream = null; }
+                    }
+                }
+            }, 100);
+
+            // Timeout máximo
+            setTimeout(() => {
+                clearInterval(checkSilence);
+                try { ctx.close(); } catch(e) {}
+                if (convRecorder && convRecorder.state === 'recording') convRecorder.stop();
+                if (convStream) { convStream.getTracks().forEach(t=>t.stop()); convStream = null; }
+            }, MAX_RECORD);
+
+        }).catch(() => {
+            orbSetState('wake', '', 'ERRO NO MICROFONE');
+            conversationMode = false;
+        });
+    }
+
+    function stopAutoListen() {
+        if (convRecorder && convRecorder.state === 'recording') {
+            try { convRecorder.stop(); } catch(e) {}
+        }
+        if (convStream) { convStream.getTracks().forEach(t=>t.stop()); convStream = null; }
+        convRecorder = null;
+        convChunks = [];
+    }
+
+    async function processConvCommand(cmd) {
+        orbSetState('process', cmd, 'PROCESSANDO...');
+        appendMsg('user', cmd);
+        try {
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: cmd})
+            });
+            const data = await res.json();
+            const reply = data.response || 'Sem resposta';
+            removeTyping();
+            appendMsg('assistant', reply);
+            orbSetState('speak', '', 'FALANDO...');
+            await speakTTS(reply);
+        } catch(e) {
+            orbSetState('wake', '', 'ERRO — TENTANDO NOVAMENTE');
+        }
+        // Volta a ouvir automaticamente
+        if (conversationMode && voiceMode) {
+            orbSetState('listen', '', '🔴 OUVINDO PRÓXIMA PERGUNTA...');
+            setTimeout(() => startAutoListen(), 400);
+        }
     }
 
     // ── Boot sequence ────────────────────────────────────
