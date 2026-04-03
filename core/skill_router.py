@@ -9,13 +9,11 @@ from pathlib import Path
 # Mapeamento de palavras-chave → intenção
 INTENT_PATTERNS = {
     "tarefa": [r"\btarefa\b", r"\btodo\b", r"\badiciona\b.*tarefa", r"\bcria.*tarefa", r"\blembra.*de"],
-    "pesquisa": [r"\bpesquis", r"\bbusca", r"\bprocura", r"\bo que é\b", r"\bcomo funciona"],
     "resumo": [r"\bresum", r"\bsumari", r"\bsinteti"],
-    "calendario": [r"\bagend", r"\bcalend", r"\breunião\b", r"\bhorário", r"\bamanhã\b", r"\bhoje\b"],
     "notas": [r"\bnota\b", r"\banota", r"\bsalva", r"\bdocumenta"],
     "projeto": [r"\bprojeto\b", r"\bstatus.*projeto", r"\bprojeto.*status"],
-    "nexus": [r"\bagente\b", r"\bnexus\b", r"\bcrew\b", r"\btriplex"],
-    "codigo": [r"\bcódigo\b", r"\bscript\b", r"\bpython\b", r"\bprograma"],
+    "nexus": [r"\bagente\b", r"\bnexus\b", r"\bcrew\b", r"\btriplex", r"\bexecutar agente\b"],
+    "codigo": [r"\bcódigo\b", r"\bscript\b", r"\bprograma"],
     "traducao": [r"\btraduz", r"\btranslat"],
     "escrita": [r"\bescreve\b", r"\bcria.*texto", r"\bredigir", r"\bcopywrite"],
     "financeiro": [
@@ -32,6 +30,29 @@ INTENT_PATTERNS = {
         r"\bagend", r"\bcompromisso", r"\breuni[aã]o\b", r"\bmarcar\b",
         r"\bagendar\b", r"\bcalend", r"\bamanhã\b.*tenho", r"\bhoje.*tenho",
         r"\btenho.*hoje", r"\bpr[oó]ximos.*compromisso"
+    ],
+    # ── Novas skills ──────────────────────────────────────
+    "sistema": [
+        r"\bque horas\b", r"\bhoras s[aã]o\b", r"\bque hora\b", r"\bhora atual\b",
+        r"\bque dia\b", r"\bdata de hoje\b", r"\bdia [eé] hoje\b",
+        r"\bscreenshot\b", r"\bcaptura de tela\b", r"\btirar foto da tela\b", r"\bprint da tela\b",
+        r"\btocar m[uú]sica\b", r"\bparar m[uú]sica\b", r"\bplay m[uú]sica\b", r"\bliga a m[uú]sica\b",
+        r"\bvolume\b",
+        r"\bpiada\b", r"\bconta uma piada\b",
+        r"\babrir\b", r"\babre\b", r"\babra\b", r"\blançar\b", r"\biniciar\b",
+    ],
+    "busca": [
+        r"\bo que [eé]\b", r"\bo que s[aã]o\b", r"\bquem foi\b", r"\bquem [eé]\b",
+        r"\bme fala sobre\b", r"\bwikip[eé]dia\b",
+        r"\btempo em\b", r"\bclima em\b", r"\btemperatura em\b", r"\bprevis[aã]o do tempo\b",
+        r"\bpesquisar\b", r"\bbuscar no google\b", r"\bgooglar\b",
+    ],
+    "rpi": [
+        r"\bligar luz\b", r"\bdesligar luz\b", r"\bacender luz\b", r"\bapagar luz\b",
+        r"\bar.condicionado\b", r"\bventilador\b", r"\bcampainha\b",
+        r"\bgpio\b", r"\braspberry\b", r"\btomada\b",
+        r"\bligar .*(sala|quarto|cozinha|banheiro)\b",
+        r"\bdesligar .*(sala|quarto|cozinha|banheiro)\b",
     ],
 }
 
@@ -78,6 +99,27 @@ class SkillRouter:
         try:
             from skills.agenda_skill import AgendaSkill
             skills["agenda"] = AgendaSkill()
+        except Exception:
+            pass
+
+        # Builtin: sistema (OS automations)
+        try:
+            from skills.sistema_skill import Skill as SistemaSkill
+            skills["sistema"] = SistemaSkill()
+        except Exception:
+            pass
+
+        # Builtin: busca (Wikipedia + clima + Google)
+        try:
+            from skills.busca_skill import Skill as BuscaSkill
+            skills["busca"] = BuscaSkill()
+        except Exception:
+            pass
+
+        # Builtin: rpi (GPIO — só ativo em Raspberry Pi)
+        try:
+            from skills.rpi_skill import Skill as RpiSkill
+            skills["rpi"] = RpiSkill()
         except Exception:
             pass
 

@@ -1,0 +1,11 @@
+{
+  "_comment": "Pinos GPIO BCM do Raspberry Pi — edite conforme sua fiação",
+  "_doc": "Relé LOW=ligado ou HIGH=ligado depende do módulo. Padrão aqui: HIGH=ligado",
+  "luz_sala": 17,
+  "luz_quarto": 27,
+  "ar_condicionado": 22,
+  "ventilador": 24,
+  "campainha": 23,
+  "tomada_1": 25,
+  "tomada_2": 26
+}

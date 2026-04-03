@@ -1,0 +1,24 @@
+[Unit]
+Description=ICARUS AI Assistant — CFDM Holding
+Documentation=https://github.com/cfdmmarket-dot/CFDM-ICARUS
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/Proj-CFDM-ICARUS_
+Environment="DISPLAY=:0"
+Environment="HOME=/home/pi"
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStartPre=/bin/sleep 5
+ExecStart=/bin/bash /home/pi/Proj-CFDM-ICARUS_/icarus-rpi.sh
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=icarus
+
+[Install]
+WantedBy=multi-user.target

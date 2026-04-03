@@ -12,7 +12,7 @@ from .skill_router import SkillRouter
 from .context_engine import ContextEngine
 
 
-ICARUS_VERSION = "1.3.0"
+ICARUS_VERSION = "1.4.0"
 
 COMMANDS_PATH = Path(__file__).parent.parent / "config" / "commands.json"
 
