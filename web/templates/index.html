@@ -2426,7 +2426,18 @@
         recognition.onerror = (e) => {
             isRecording = false;
             micBtn.classList.remove('recording');
-            if (e.error !== 'no-speech') appendMsg('assistant', `⚠ Erro no microfone: ${e.error}`);
+            chatInput.placeholder = 'Mensagem para ICARUS...';
+            document.getElementById('micLevelInputBar').style.display = 'none';
+            stopInputMicLevel();
+            if (e.error === 'network') {
+                appendMsg('assistant',
+                    '⚠ Microfone via browser requer internet (Google Speech API).\n' +
+                    'Use o botão 🎙 MODO VOZ → segure "SEGURAR PARA FALAR" — funciona offline com Whisper local.');
+            } else if (e.error === 'not-allowed') {
+                appendMsg('assistant', '⚠ Permissão de microfone negada. Clique no cadeado na barra do Chrome → Permitir microfone.');
+            } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
+                appendMsg('assistant', `⚠ Microfone: ${e.error}`);
+            }
         };
 
         recognition.start();
@@ -2848,15 +2859,29 @@
         orbWave.style.display = (state === 'listen' || state === 'speak') ? 'flex' : 'none';
     }
 
-    function setVoiceMode(on) {
+    async function setVoiceMode(on) {
         voiceMode = on;
         const btn = document.getElementById('tbVoiceMode');
         if (on) {
             btn.classList.add('voice-on');
             btn.textContent = '🔴 VOZ ON';
-            orbSetState('wake', '', 'DIGA "ICARUS" PARA ATIVAR · ESC PARA FECHAR');
             orb.classList.add('active');
-            startWakeWordLoop();
+            orbSetState('wake', '', 'VERIFICANDO ENGINE DE VOZ...');
+
+            // Verifica Whisper no servidor — se disponível, usa PTT offline
+            const status = await fetch('/voice/status').then(r=>r.json()).catch(()=>null);
+            const hasWhisper = status && (status.engines?.faster_whisper || status.engines?.whisper);
+
+            if (hasWhisper) {
+                const eng = status.engines?.faster_whisper ? 'faster-whisper' : 'whisper';
+                orbSetState('wake', '', `OFFLINE · ${eng.toUpperCase()} · SEGURE PARA FALAR`);
+                whisperMode = true;
+            } else {
+                // Tenta Web Speech como última opção
+                orbSetState('wake', '', 'DIGA "ICARUS" PARA ATIVAR · ESC PARA FECHAR');
+                whisperMode = false;
+                startWakeWordLoop();
+            }
         } else {
             btn.classList.remove('voice-on');
             btn.textContent = '🎙 MODO VOZ';
@@ -2864,6 +2889,7 @@
             stopVoiceRecog();
             stopTTS();
             voiceAwake = false;
+            whisperMode = false;
         }
     }
 
