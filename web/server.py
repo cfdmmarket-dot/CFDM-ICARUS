@@ -5,6 +5,8 @@ ICARUS Web Server — Interface web do assistente pessoal
 import sys
 import json
 import datetime
+import logging
+from collections import deque
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -15,6 +17,25 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.icarus_core import IcarusCore, ICARUS_PERSONA
 
 app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.2.0")
+
+# Buffer circular de logs (últimas 200 entradas)
+LOG_BUFFER: deque = deque(maxlen=200)
+_server_start = datetime.datetime.now()
+
+class BufferHandler(logging.Handler):
+    def emit(self, record):
+        LOG_BUFFER.append({
+            "time": datetime.datetime.now().strftime("%H:%M:%S"),
+            "level": record.levelname,
+            "msg": self.format(record)
+        })
+
+_buf_handler = BufferHandler()
+_buf_handler.setFormatter(logging.Formatter("%(name)s — %(message)s"))
+logging.getLogger("uvicorn.access").addHandler(_buf_handler)
+logging.getLogger("icarus").addHandler(_buf_handler)
+_icarus_log = logging.getLogger("icarus")
+_icarus_log.setLevel(logging.INFO)
 
 # Instância global do ICARUS
 icarus = IcarusCore()
@@ -34,7 +55,14 @@ async def chat(request: Request):
     if not user_input:
         return JSONResponse({"error": "Mensagem vazia"}, status_code=400)
 
+    _icarus_log.info(f"INPUT → {user_input[:80]}")
     response = icarus.process(user_input)
+    _icarus_log.info(f"OUTPUT → {str(response)[:80]}")
+    LOG_BUFFER.append({
+        "time": datetime.datetime.now().strftime("%H:%M:%S"),
+        "level": "CHAT",
+        "msg": f"USER: {user_input[:60]} | ICARUS: {str(response)[:60]}"
+    })
 
     return {
         "response": response,
@@ -115,6 +143,69 @@ async def add_task(request: Request):
 async def complete_task(task_id: int):
     icarus.memory.complete_task(task_id)
     return {"message": f"Tarefa #{task_id} concluída"}
+
+
+@app.get("/system")
+async def system_stats():
+    """CPU, RAM, disco e uptime do servidor"""
+    stats = {
+        "uptime": str(datetime.datetime.now() - _server_start).split(".")[0],
+        "python": sys.version.split()[0],
+        "cpu_percent": None,
+        "ram_total_mb": None,
+        "ram_used_mb": None,
+        "ram_percent": None,
+        "disk_used_gb": None,
+        "disk_total_gb": None,
+        "disk_percent": None,
+    }
+    try:
+        import psutil
+        stats["cpu_percent"] = psutil.cpu_percent(interval=0.2)
+        vm = psutil.virtual_memory()
+        stats["ram_total_mb"] = round(vm.total / 1024**2)
+        stats["ram_used_mb"] = round(vm.used / 1024**2)
+        stats["ram_percent"] = vm.percent
+        dk = psutil.disk_usage("/")
+        stats["disk_used_gb"] = round(dk.used / 1024**3, 1)
+        stats["disk_total_gb"] = round(dk.total / 1024**3, 1)
+        stats["disk_percent"] = dk.percent
+    except ImportError:
+        stats["error"] = "psutil não instalado — pip install psutil"
+    return stats
+
+
+@app.get("/logs")
+async def get_logs(n: int = 50):
+    """Últimas N entradas do log do servidor"""
+    entries = list(LOG_BUFFER)[-n:]
+    return {"logs": entries, "total": len(LOG_BUFFER)}
+
+
+@app.get("/nexus/agents")
+async def nexus_agents_proxy():
+    """Proxy para buscar agentes do Cfdm Nexus"""
+    import urllib.request
+    try:
+        with urllib.request.urlopen("http://localhost:8000/agents", timeout=3) as r:
+            return json.loads(r.read())
+    except Exception:
+        return {"agents": [], "total": 0, "error": "Nexus offline"}
+
+
+@app.get("/scripts")
+async def list_scripts():
+    """Lista scripts disponíveis em scripts/"""
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    scripts = []
+    if scripts_dir.exists():
+        for f in sorted(scripts_dir.glob("*.py")):
+            scripts.append({
+                "name": f.stem,
+                "file": f.name,
+                "size_kb": round(f.stat().st_size / 1024, 1)
+            })
+    return {"scripts": scripts, "total": len(scripts)}
 
 
 if __name__ == "__main__":

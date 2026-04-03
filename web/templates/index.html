@@ -8,24 +8,24 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            /* Palette — dark navy inspired by CfdmNote/KeePassXC */
-            --bg-base:    #1a1d2e;
-            --bg-panel:   #22263a;
-            --bg-card:    #2a2f47;
-            --bg-hover:   #323759;
-            --bg-input:   #1e2235;
-            --accent:     #4f8ef7;
-            --accent-dim: rgba(79,142,247,0.12);
-            --accent2:    #7c5cbf;
+            /* Palette — dark navy + green accent */
+            --bg-base:    #151a1e;
+            --bg-panel:   #1c2228;
+            --bg-card:    #232c34;
+            --bg-hover:   #2a3540;
+            --bg-input:   #181f26;
+            --accent:     #3ecf76;
+            --accent-dim: rgba(62,207,118,0.12);
+            --accent2:    #2da860;
             --gold:       #e6a817;
-            --green:      #3cb371;
-            --green-dim:  rgba(60,179,113,0.12);
+            --green:      #3ecf76;
+            --green-dim:  rgba(62,207,118,0.12);
             --red:        #e05555;
-            --text:       #e2e6f8;
-            --text-dim:   #a8adc8;
-            --text-faint: #7b80a0;
-            --border:     #363a56;
-            --border-acc: #4f6ab0;
+            --text:       #dde4e0;
+            --text-dim:   #9aada2;
+            --text-faint: #637068;
+            --border:     #2a3540;
+            --border-acc: #2d7a52;
             --radius:     6px;
             --radius-lg:  10px;
         }
@@ -1009,17 +1009,19 @@
 
     <div class="toolbar-sep"></div>
 
-    <button class="tb-btn active" onclick="setView('chat')">💬 Chat</button>
+    <button class="tb-btn active" id="tbChat" onclick="setView('chat')">💬 Chat</button>
     <button class="tb-btn" onclick="setView('tasks')">✅ Tarefas</button>
-    <button class="tb-btn" onclick="setView('memory')">🧠 Memória</button>
-    <button class="tb-btn" onclick="sendCmd('/status')">⚡ Status</button>
-    <button class="tb-btn" onclick="sendCmd('/agentes')">🤖 Agentes</button>
+    <button class="tb-btn" onclick="openModal('modalAgentes')">🤖 Agentes</button>
+    <button class="tb-btn" onclick="openModal('modalComandos')">⌨ Comandos</button>
+    <button class="tb-btn" onclick="openModal('modalLogs')">🖥 Logs</button>
+    <button class="tb-btn" onclick="openModal('modalSistema')">📊 Sistema</button>
 
     <div class="toolbar-right">
         <button class="tb-btn" onclick="openModal('modalManual')" title="Manual de referência rápida">📖 Manual</button>
+        <button class="tb-btn" onclick="openModal('modalFerramentas')" title="Ferramentas">🔧 Ferramentas</button>
         <button class="tb-btn" onclick="openModal('modalSettings')" title="Configurações">⚙ Config</button>
         <div class="toolbar-sep"></div>
-        <a href="http://localhost:8000" target="_blank" class="tb-btn">🌐 Cfdm Nexus</a>
+        <a href="http://localhost:8000" target="_blank" class="tb-btn">🌐 Nexus</a>
         <div class="status-pill">
             <div class="status-dot" id="statusDot"></div>
             <span id="statusText">Online</span>
@@ -1117,16 +1119,20 @@
         </div>
 
         <div class="input-bar">
+            <div id="micLevelInputBar" style="display:none;height:3px;background:var(--bg-input);border-radius:2px;margin-bottom:6px;overflow:hidden">
+                <div id="micLevelInputFill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.08s"></div>
+            </div>
             <div class="input-row">
                 <textarea id="chatInput" rows="1" placeholder="Mensagem para ICARUS... (Enter para enviar, Shift+Enter para nova linha)"
                     onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
                 <div class="input-actions">
                     <button class="input-btn" title="Adicionar tarefa rápida" onclick="addTaskQuick()">✅</button>
+                    <button class="input-btn" title="Comandos rápidos" onclick="openModal('modalComandos')">⌨</button>
                     <button class="input-btn" id="micBtn" title="Falar com ICARUS (voz)" onclick="toggleVoice()">🎤</button>
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">▶</button>
                 </div>
             </div>
-            <div class="input-hint">Enter para enviar · Shift+Enter nova linha · /ajuda para comandos</div>
+            <div class="input-hint">Enter para enviar · Shift+Enter nova linha · 🎤 voz · ⌨ comandos</div>
         </div>
     </div>
 
@@ -1137,6 +1143,7 @@
             <div class="view-tabs">
                 <button class="view-tab active" onclick="switchPanel('info')">Info</button>
                 <button class="view-tab" onclick="switchPanel('tasks')">Tasks</button>
+                <button class="view-tab" onclick="switchPanel('sys')">CPU</button>
             </div>
         </div>
 
@@ -1211,9 +1218,257 @@
                 </div>
             </div>
 
+            <!-- System panel -->
+            <div id="panelSys" style="display:none">
+                <div class="panel-section">
+                    <div class="panel-section-title">CPU / RAM</div>
+                    <div class="info-row">
+                        <span class="info-label">CPU</span>
+                        <span class="info-value" id="sysCpu">—</span>
+                    </div>
+                    <div style="height:5px;background:var(--bg-input);border-radius:3px;margin:2px 0 8px;overflow:hidden">
+                        <div id="sysCpuBar" style="height:100%;width:0%;background:var(--accent);border-radius:3px;transition:width 0.4s"></div>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">RAM</span>
+                        <span class="info-value" id="sysRam">—</span>
+                    </div>
+                    <div style="height:5px;background:var(--bg-input);border-radius:3px;margin:2px 0 8px;overflow:hidden">
+                        <div id="sysRamBar" style="height:100%;width:0%;background:var(--accent2);border-radius:3px;transition:width 0.4s"></div>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Disco</span>
+                        <span class="info-value" id="sysDisk">—</span>
+                    </div>
+                    <div style="height:5px;background:var(--bg-input);border-radius:3px;margin:2px 0 8px;overflow:hidden">
+                        <div id="sysDiskBar" style="height:100%;width:0%;background:var(--gold);border-radius:3px;transition:width 0.4s"></div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <div class="panel-section-title">Servidor</div>
+                    <div class="info-row">
+                        <span class="info-label">Uptime</span>
+                        <span class="info-value green" id="sysUptime">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Python</span>
+                        <span class="info-value" id="sysPython">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Porta</span>
+                        <span class="info-value">8001</span>
+                    </div>
+                    <button class="btn-sm" style="margin-top:6px;width:100%" onclick="loadSystemStats()">↺ Atualizar</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
+</div>
+
+<!-- ── Modal: Agentes ──────────────────────────────────────── -->
+<div class="modal-overlay" id="modalAgentes" onclick="closeModalOutside(event,'modalAgentes')">
+<div class="modal" style="width:680px">
+    <div class="modal-header">
+        <div class="modal-title">🤖 Agentes — Cfdm Nexus</div>
+        <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" id="agentSearch" placeholder="Buscar agente..." oninput="filterAgents(this.value)"
+                style="height:26px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:11.5px;outline:none;width:160px">
+            <select id="agentFilter" onchange="filterAgents(document.getElementById('agentSearch').value)"
+                style="height:26px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 6px;font-size:11.5px;outline:none">
+                <option value="">Todos os setores</option>
+                <option value="cto">CTO — Tecnologia</option>
+                <option value="cmo">CMO — Marketing</option>
+                <option value="cfo">CFO — Financeiro</option>
+                <option value="cdo">CDO — Dados</option>
+                <option value="ai">IA Especializados</option>
+                <option value="core">Core / Orquestração</option>
+                <option value="vendas">Vendas</option>
+                <option value="operacoes">Operações</option>
+            </select>
+            <button class="modal-close" onclick="closeModal('modalAgentes')">✕</button>
+        </div>
+    </div>
+    <div class="modal-body" style="gap:8px">
+        <div id="agentGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
+            <div style="color:var(--text-faint);font-size:12px;grid-column:1/-1;padding:8px">Carregando agentes...</div>
+        </div>
+    </div>
+    <div style="padding:10px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <span style="font-size:11.5px;color:var(--text-faint)" id="agentCount2">— agentes</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn-sm" onclick="sendQuick('listar agentes nexus');closeModal('modalAgentes')">Ver no chat</button>
+            <button class="btn-sm primary" onclick="invokeAgentVoice()">🎤 Invocar por voz</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ── Modal: Comandos ─────────────────────────────────────── -->
+<div class="modal-overlay" id="modalComandos" onclick="closeModalOutside(event,'modalComandos')">
+<div class="modal" style="width:580px">
+    <div class="modal-header">
+        <div class="modal-title">⌨ Comandos Rápidos</div>
+        <button class="modal-close" onclick="closeModal('modalComandos')">✕</button>
+    </div>
+    <div class="modal-body" style="gap:14px">
+        <input type="text" id="cmdSearch" placeholder="Filtrar comandos..." oninput="filterCmds(this.value)"
+            style="height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none;width:100%;transition:border-color 0.15s"
+            onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+        <div id="cmdList" style="display:flex;flex-direction:column;gap:4px"></div>
+    </div>
+</div>
+</div>
+
+<!-- ── Modal: Logs ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="modalLogs" onclick="closeModalOutside(event,'modalLogs')">
+<div class="modal" style="width:700px">
+    <div class="modal-header">
+        <div class="modal-title">🖥 Terminal de Logs — ICARUS</div>
+        <div style="display:flex;gap:6px;align-items:center">
+            <button class="btn-sm" onclick="clearLogDisplay()">Limpar</button>
+            <button class="btn-sm primary" id="logAutoBtn" onclick="toggleLogAuto()">⏸ Pausar</button>
+            <button class="modal-close" onclick="closeModal('modalLogs')">✕</button>
+        </div>
+    </div>
+    <div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+        <div id="logTerminal" style="
+            flex:1;overflow-y:auto;padding:12px 14px;
+            background:#0d1117;font-family:monospace;font-size:11.5px;
+            color:#c9d1d9;line-height:1.6;min-height:340px;max-height:440px">
+            <div style="color:#3ecf76">ICARUS Terminal — aguardando logs...</div>
+        </div>
+    </div>
+    <div style="padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--text-faint)" id="logCount">0 entradas</span>
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--accent)" id="logDot" style="animation:pulse 2s infinite"></div>
+        <span style="font-size:11px;color:var(--accent)" id="logStatus">Live</span>
+    </div>
+</div>
+</div>
+
+<!-- ── Modal: Sistema ──────────────────────────────────────── -->
+<div class="modal-overlay" id="modalSistema" onclick="closeModalOutside(event,'modalSistema')">
+<div class="modal" style="width:500px">
+    <div class="modal-header">
+        <div class="modal-title">📊 Status do Sistema</div>
+        <div style="display:flex;gap:6px">
+            <button class="btn-sm" onclick="loadSystemStats()">↺ Atualizar</button>
+            <button class="modal-close" onclick="closeModal('modalSistema')">✕</button>
+        </div>
+    </div>
+    <div class="modal-body">
+        <div class="modal-section">
+            <div class="modal-section-title">Hardware</div>
+            <div class="setting-row">
+                <span class="setting-label">CPU</span>
+                <span class="info-value" id="mSysCpu">verificando...</span>
+            </div>
+            <div style="height:8px;background:var(--bg-input);border-radius:4px;overflow:hidden;margin:-6px 0 6px">
+                <div id="mSysCpuBar" style="height:100%;width:0%;background:var(--accent);border-radius:4px;transition:width 0.5s"></div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">RAM</span>
+                <span class="info-value" id="mSysRam">verificando...</span>
+            </div>
+            <div style="height:8px;background:var(--bg-input);border-radius:4px;overflow:hidden;margin:-6px 0 6px">
+                <div id="mSysRamBar" style="height:100%;width:0%;background:var(--accent2);border-radius:4px;transition:width 0.5s"></div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Disco /</span>
+                <span class="info-value" id="mSysDisk">verificando...</span>
+            </div>
+            <div style="height:8px;background:var(--bg-input);border-radius:4px;overflow:hidden;margin:-6px 0 6px">
+                <div id="mSysDiskBar" style="height:100%;width:0%;background:var(--gold);border-radius:4px;transition:width 0.5s"></div>
+            </div>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Servidor ICARUS</div>
+            <div class="setting-row"><span class="setting-label">Uptime</span><span class="info-value green" id="mSysUptime">—</span></div>
+            <div class="setting-row"><span class="setting-label">Python</span><span class="info-value" id="mSysPython">—</span></div>
+            <div class="setting-row"><span class="setting-label">Porta</span><span class="info-value">8001</span></div>
+            <div class="setting-row"><span class="setting-label">Versão</span><span class="info-value accent">v1.2.0</span></div>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Ecossistema</div>
+            <div class="setting-row"><span class="setting-label">Cfdm Nexus</span><span class="info-value" id="mSysNexus">—</span></div>
+            <div class="setting-row"><span class="setting-label">CfdmNote</span><span class="info-value">Bridge v1.4.0 (futuro)</span></div>
+        </div>
+        <div style="padding-top:4px;font-size:11px;color:var(--text-faint)">⚠ Instale psutil para métricas completas: <code style="color:var(--accent)">pip install psutil</code></div>
+    </div>
+</div>
+</div>
+
+<!-- ── Modal: Ferramentas ──────────────────────────────────── -->
+<div class="modal-overlay" id="modalFerramentas" onclick="closeModalOutside(event,'modalFerramentas')">
+<div class="modal" style="width:600px">
+    <div class="modal-header">
+        <div class="modal-title">🔧 Ferramentas — ICARUS</div>
+        <button class="modal-close" onclick="closeModal('modalFerramentas')">✕</button>
+    </div>
+    <div class="modal-body" style="gap:14px">
+        <div class="manual-tabs" id="ferrTabs">
+            <button class="manual-tab active" onclick="switchFerr('scripts')">Scripts</button>
+            <button class="manual-tab" onclick="switchFerr('notas')">Notas</button>
+            <button class="manual-tab" onclick="switchFerr('manutencao')">Manutenção</button>
+        </div>
+
+        <!-- Scripts -->
+        <div class="manual-page active" id="ferrPage-scripts">
+            <div style="font-size:11.5px;color:var(--text-faint);margin-bottom:4px">Scripts disponíveis em /scripts/</div>
+            <div id="scriptsList" style="display:flex;flex-direction:column;gap:4px">Carregando...</div>
+        </div>
+
+        <!-- Notas -->
+        <div class="manual-page" id="ferrPage-notas">
+            <div style="padding:12px;background:var(--bg-card);border-radius:var(--radius);font-size:12.5px;color:var(--text-dim)">
+                📝 <b>CfdmNote</b> — Integração via WebSocket planejada para v1.4.0.<br><br>
+                Por enquanto, use o ICARUS para criar notas rápidas no chat:<br>
+                <span style="color:var(--accent)">"salvar nota: [conteúdo]"</span><br>
+                <span style="color:var(--accent)">"ver minhas notas"</span>
+            </div>
+            <div style="margin-top:8px">
+                <div class="modal-section-title" style="margin-bottom:6px">Notas rápidas (sessão)</div>
+                <div id="quickNotesList" style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto"></div>
+                <div style="display:flex;gap:6px;margin-top:8px">
+                    <input type="text" id="quickNoteInput" placeholder="Nova nota rápida..."
+                        style="flex:1;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"
+                        onkeypress="if(event.key==='Enter')addQuickNote()">
+                    <button class="btn-sm primary" onclick="addQuickNote()">+ Nota</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manutenção -->
+        <div class="manual-page" id="ferrPage-manutencao">
+            <div class="cmd-group">
+                <div class="cmd-group-title">Sistema ICARUS</div>
+                <div class="cmd-item" style="cursor:pointer" onclick="sendCmd('/status');closeModal('modalFerramentas')">
+                    <span class="cmd-key">Status</span><span class="cmd-desc">Ver status completo do ICARUS</span>
+                </div>
+                <div class="cmd-item" style="cursor:pointer" onclick="clearChat();closeModal('modalFerramentas')">
+                    <span class="cmd-key">Limpar chat</span><span class="cmd-desc">Apagar conversa atual</span>
+                </div>
+                <div class="cmd-item" style="cursor:pointer" onclick="loadSystemStats();openModal('modalSistema');closeModal('modalFerramentas')">
+                    <span class="cmd-key">CPU/RAM</span><span class="cmd-desc">Abrir monitor de sistema</span>
+                </div>
+                <div class="cmd-item" style="cursor:pointer" onclick="openModal('modalLogs');closeModal('modalFerramentas')">
+                    <span class="cmd-key">Logs</span><span class="cmd-desc">Abrir terminal de logs</span>
+                </div>
+            </div>
+            <div class="cmd-group" style="margin-top:8px">
+                <div class="cmd-group-title">Cascata de Menus</div>
+                <div class="cmd-item" style="cursor:pointer" onclick="openAllMenus()">
+                    <span class="cmd-key">Abrir todos</span><span class="cmd-desc">Expandir todos os menus (cascata)</span>
+                </div>
+                <div class="cmd-item" style="cursor:pointer" onclick="closeAllMenus()">
+                    <span class="cmd-key">Fechar todos</span><span class="cmd-desc">Recolher todos os menus abertos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
 <!-- ── Modal: Configurações ─────────────────────────────────── -->
@@ -1618,10 +1873,12 @@
         currentPanel = p;
         document.getElementById('panelInfo').style.display = p === 'info' ? '' : 'none';
         document.getElementById('panelTasks').style.display = p === 'tasks' ? '' : 'none';
+        document.getElementById('panelSys').style.display = p === 'sys' ? '' : 'none';
         document.querySelectorAll('.view-tab').forEach((t, i) => {
-            t.classList.toggle('active', (i === 0 && p === 'info') || (i === 1 && p === 'tasks'));
+            t.classList.toggle('active', (i===0&&p==='info')||(i===1&&p==='tasks')||(i===2&&p==='sys'));
         });
         if (p === 'tasks') loadTasks();
+        if (p === 'sys') loadSystemStats();
     }
 
     // ── Tasks ─────────────────────────────────────────────
@@ -1782,6 +2039,8 @@
             micBtn.classList.add('recording');
             micBtn.title = 'Gravando... (clique para parar)';
             chatInput.placeholder = '🎤 Ouvindo...';
+            document.getElementById('micLevelInputBar').style.display = '';
+            startInputMicLevel();
         };
 
         recognition.onresult = (e) => {
@@ -1795,7 +2054,10 @@
             micBtn.classList.remove('recording');
             micBtn.title = 'Falar com ICARUS (voz)';
             chatInput.placeholder = 'Mensagem para ICARUS... (Enter para enviar, Shift+Enter para nova linha)';
-            if (chatInput.value.trim()) sendMessage();
+            document.getElementById('micLevelInputBar').style.display = 'none';
+            stopInputMicLevel();
+            const autoSend = document.getElementById('autoSendVoice');
+            if (chatInput.value.trim() && (!autoSend || autoSend.checked)) sendMessage();
         };
 
         recognition.onerror = (e) => {
@@ -1807,13 +2069,275 @@
         recognition.start();
     }
 
+    // ── Comandos database ────────────────────────────────
+    const CMDS_DB = [
+        {cat:"Sistema",    key:"/status",                    desc:"Status completo do ICARUS"},
+        {cat:"Sistema",    key:"/agentes",                   desc:"Listar agentes Nexus no chat"},
+        {cat:"Sistema",    key:"/modos",                     desc:"Listar 28 modos operacionais"},
+        {cat:"Sistema",    key:"/modo",                      desc:"Ver modo ativo atual"},
+        {cat:"Sistema",    key:"/ajuda",                     desc:"Ajuda geral"},
+        {cat:"Sistema",    key:"/memoria",                   desc:"Ver memórias salvas"},
+        {cat:"Tarefas",    key:"minhas tarefas",             desc:"Listar tarefas pendentes"},
+        {cat:"Tarefas",    key:"adiciona tarefa: ",          desc:"Criar nova tarefa"},
+        {cat:"Tarefas",    key:"concluir tarefa 1",          desc:"Marcar tarefa como concluída"},
+        {cat:"Modos",      key:"ativar modo FOCO",           desc:"Deep work, sem distrações"},
+        {cat:"Modos",      key:"ativar modo MORNING",        desc:"Rotina matinal"},
+        {cat:"Modos",      key:"ativar modo FINANCAS",       desc:"Sentinela financeiro"},
+        {cat:"Modos",      key:"ativar modo CRIATIVO",       desc:"Brainstorm criativo"},
+        {cat:"Modos",      key:"ativar modo MESTRE DOS MAGOS", desc:"GOD MODE — análise 360°"},
+        {cat:"Modos",      key:"desativar modo",             desc:"Desativar modo atual"},
+        {cat:"Notícias",   key:"briefing matinal",           desc:"Resumo do dia (HN/TechCrunch/G1)"},
+        {cat:"Notícias",   key:"notícias de tecnologia",     desc:"HN + TechCrunch RSS"},
+        {cat:"Notícias",   key:"notícias de IA",             desc:"The Verge AI + MIT Tech"},
+        {cat:"Notícias",   key:"notícias do brasil",         desc:"G1 RSS"},
+        {cat:"Agenda",     key:"agenda de hoje",             desc:"Compromissos do dia"},
+        {cat:"Agenda",     key:"agenda de amanhã",           desc:"Compromissos de amanhã"},
+        {cat:"Agenda",     key:"próximos compromissos",      desc:"Agenda 7 dias"},
+        {cat:"Agenda",     key:"agendar reunião amanhã às 14h", desc:"Criar compromisso"},
+        {cat:"Agenda",     key:"cancelar evento 1",          desc:"Cancelar compromisso pelo ID"},
+        {cat:"Financeiro", key:"visão geral financeira",     desc:"Saldo e alertas"},
+        {cat:"Financeiro", key:"contas a vencer",            desc:"Vencimentos próximos"},
+        {cat:"Voz",        key:"testar voz",                 desc:"ICARUS fala frase de teste"},
+        {cat:"Voz",        key:"falar olá mundo",            desc:"ICARUS lê texto em voz"},
+        {cat:"Voz",        key:"status de voz",              desc:"Status TTS/STT"},
+        {cat:"Agentes",    key:"convocar agente de marketing", desc:"Busca agente por especialidade"},
+        {cat:"Agentes",    key:"montar equipe para projeto X", desc:"Cria equipe de agentes"},
+    ];
+
+    function renderCmds(list) {
+        const cats = [...new Set(list.map(c => c.cat))];
+        return cats.map(cat => `
+            <div style="margin-bottom:8px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:4px">${cat}</div>
+                ${list.filter(c=>c.cat===cat).map(c=>`
+                <div class="cmd-item" style="cursor:pointer" onclick="pasteCmd('${c.key.replace(/'/g,"\\'")}')">
+                    <span class="cmd-key">${c.key}</span>
+                    <span class="cmd-desc">${c.desc}</span>
+                </div>`).join('')}
+            </div>`).join('');
+    }
+
+    function filterCmds(q) {
+        const list = q ? CMDS_DB.filter(c =>
+            c.key.toLowerCase().includes(q.toLowerCase()) ||
+            c.desc.toLowerCase().includes(q.toLowerCase()) ||
+            c.cat.toLowerCase().includes(q.toLowerCase())
+        ) : CMDS_DB;
+        document.getElementById('cmdList').innerHTML = renderCmds(list);
+    }
+
+    function pasteCmd(cmd) {
+        chatInput.value = cmd;
+        autoResize(chatInput);
+        closeModal('modalComandos');
+        if (!cmd.endsWith(' ') && !cmd.endsWith(':')) sendMessage();
+        else chatInput.focus();
+    }
+
+    // ── Agents modal ─────────────────────────────────────
+    let _allAgents = [];
+
+    async function loadAgents() {
+        const grid = document.getElementById('agentGrid');
+        try {
+            const r = await fetch('/agents');
+            const d = await r.json();
+            _allAgents = d.agents || [];
+            renderAgents(_allAgents);
+        } catch(e) {
+            grid.innerHTML = '<div style="color:var(--text-faint);font-size:12px;grid-column:1/-1">Nexus offline — inicie em localhost:8000</div>';
+        }
+    }
+
+    function renderAgents(agents) {
+        const grid = document.getElementById('agentGrid');
+        document.getElementById('agentCount2').textContent = agents.length + ' agentes';
+        if (!agents.length) {
+            grid.innerHTML = '<div style="color:var(--text-faint);font-size:12px;grid-column:1/-1">Nenhum agente encontrado</div>';
+            return;
+        }
+        grid.innerHTML = agents.map(a => `
+            <div onclick="invokeAgent('${(a.nome||a.name||'').replace(/'/g,"\\'")}','${(a.setor||a.sector||'').replace(/'/g,"\\'")}');closeModal('modalAgentes')"
+                style="padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.12s"
+                onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="font-size:12px;font-weight:600;color:var(--text)">${a.nome||a.name||'—'}</div>
+                <div style="font-size:10.5px;color:var(--accent);margin-top:2px">${a.setor||a.sector||a.role||'—'}</div>
+            </div>`).join('');
+    }
+
+    function filterAgents(q) {
+        const sector = document.getElementById('agentFilter').value;
+        let list = _allAgents;
+        if (sector) list = list.filter(a => (a.setor||a.sector||a.category||'').toLowerCase().includes(sector));
+        if (q) list = list.filter(a =>
+            (a.nome||a.name||'').toLowerCase().includes(q.toLowerCase()) ||
+            (a.setor||a.sector||'').toLowerCase().includes(q.toLowerCase())
+        );
+        renderAgents(list);
+    }
+
+    function invokeAgent(name, sector) {
+        const msg = `executar agente ${name}: realize uma análise e me apresente suas capacidades`;
+        sendQuick(msg);
+    }
+
+    function invokeAgentVoice() {
+        closeModal('modalAgentes');
+        chatInput.value = 'convocar agente ';
+        chatInput.focus();
+        toggleVoice();
+    }
+
+    // ── Logs terminal ─────────────────────────────────────
+    let logAutoRefresh = true;
+    let logInterval = null;
+
+    function toggleLogAuto() {
+        logAutoRefresh = !logAutoRefresh;
+        const btn = document.getElementById('logAutoBtn');
+        const dot = document.getElementById('logDot');
+        const status = document.getElementById('logStatus');
+        if (logAutoRefresh) {
+            btn.textContent = '⏸ Pausar';
+            dot.style.background = 'var(--accent)';
+            status.textContent = 'Live';
+        } else {
+            btn.textContent = '▶ Retomar';
+            dot.style.background = 'var(--text-faint)';
+            status.textContent = 'Pausado';
+        }
+    }
+
+    function clearLogDisplay() {
+        document.getElementById('logTerminal').innerHTML = '<div style="color:#3ecf76">Log limpo — ' + new Date().toLocaleTimeString('pt-BR') + '</div>';
+    }
+
+    async function fetchLogs() {
+        if (!logAutoRefresh) return;
+        try {
+            const r = await fetch('/logs?n=80');
+            const d = await r.json();
+            const term = document.getElementById('logTerminal');
+            const levelColor = {INFO:'#58a6ff', CHAT:'#3ecf76', WARNING:'#e6a817', ERROR:'#e05555', DEBUG:'#8b90ad'};
+            term.innerHTML = d.logs.map(l => {
+                const col = levelColor[l.level] || '#c9d1d9';
+                return `<div><span style="color:#4a5568">${l.time}</span> <span style="color:${col};font-weight:600">[${l.level}]</span> <span>${l.msg}</span></div>`;
+            }).join('');
+            term.scrollTop = term.scrollHeight;
+            document.getElementById('logCount').textContent = d.total + ' entradas';
+        } catch(e) {}
+    }
+
+    // ── System stats ──────────────────────────────────────
+    async function loadSystemStats() {
+        try {
+            const r = await fetch('/system');
+            const d = await r.json();
+
+            const setBar = (barId, pct) => {
+                const bar = document.getElementById(barId);
+                if (bar) bar.style.width = (pct||0) + '%';
+            };
+            const setText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+
+            // Painel lateral
+            setText('sysCpu',    d.cpu_percent != null ? d.cpu_percent + '%' : (d.error||'—'));
+            setText('sysRam',    d.ram_used_mb != null ? `${d.ram_used_mb}MB / ${d.ram_total_mb}MB (${d.ram_percent}%)` : '—');
+            setText('sysDisk',   d.disk_used_gb != null ? `${d.disk_used_gb}GB / ${d.disk_total_gb}GB (${d.disk_percent}%)` : '—');
+            setText('sysUptime', d.uptime || '—');
+            setText('sysPython', d.python || '—');
+            setBar('sysCpuBar',  d.cpu_percent);
+            setBar('sysRamBar',  d.ram_percent);
+            setBar('sysDiskBar', d.disk_percent);
+
+            // Modal sistema
+            setText('mSysCpu',    d.cpu_percent != null ? d.cpu_percent + '%' : (d.error||'psutil não instalado'));
+            setText('mSysRam',    d.ram_used_mb != null ? `${d.ram_used_mb} MB / ${d.ram_total_mb} MB (${d.ram_percent}%)` : '—');
+            setText('mSysDisk',   d.disk_used_gb != null ? `${d.disk_used_gb} GB / ${d.disk_total_gb} GB (${d.disk_percent}%)` : '—');
+            setText('mSysUptime', d.uptime || '—');
+            setText('mSysPython', d.python || '—');
+            setBar('mSysCpuBar',  d.cpu_percent);
+            setBar('mSysRamBar',  d.ram_percent);
+            setBar('mSysDiskBar', d.disk_percent);
+        } catch(e) {}
+    }
+
+    // ── Scripts ───────────────────────────────────────────
+    async function loadScripts() {
+        try {
+            const r = await fetch('/scripts');
+            const d = await r.json();
+            const el = document.getElementById('scriptsList');
+            if (!d.scripts.length) { el.innerHTML = '<div style="color:var(--text-faint);font-size:12px">Nenhum script encontrado em /scripts/</div>'; return; }
+            el.innerHTML = d.scripts.map(s => `
+                <div class="cmd-item" style="cursor:pointer" onclick="sendQuick('executar script ${s.name}');closeModal('modalFerramentas')">
+                    <span class="cmd-key">${s.file}</span>
+                    <span class="cmd-desc">${s.name.replace(/_/g,' ')} · ${s.size_kb}KB</span>
+                </div>`).join('');
+        } catch(e) {}
+    }
+
+    // ── Ferramentas tabs ──────────────────────────────────
+    function switchFerr(tab) {
+        const tabs = ['scripts','notas','manutencao'];
+        document.querySelectorAll('#ferrTabs .manual-tab').forEach((t,i) =>
+            t.classList.toggle('active', tabs[i]===tab));
+        document.querySelectorAll('[id^="ferrPage-"]').forEach(p =>
+            p.classList.toggle('active', p.id==='ferrPage-'+tab));
+        if (tab==='scripts') loadScripts();
+    }
+
+    // ── Notas rápidas ─────────────────────────────────────
+    let _quickNotes = [];
+    function addQuickNote() {
+        const inp = document.getElementById('quickNoteInput');
+        const txt = inp.value.trim();
+        if (!txt) return;
+        _quickNotes.push({text: txt, time: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
+        inp.value = '';
+        renderQuickNotes();
+    }
+    function renderQuickNotes() {
+        const el = document.getElementById('quickNotesList');
+        if (!_quickNotes.length) { el.innerHTML = '<div style="color:var(--text-faint);font-size:11.5px">Nenhuma nota ainda</div>'; return; }
+        el.innerHTML = _quickNotes.map((n,i) => `
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:5px 6px;background:var(--bg-card);border-radius:var(--radius)">
+                <span style="color:var(--text-faint);font-size:10px;flex-shrink:0;margin-top:2px">${n.time}</span>
+                <span style="font-size:12px;color:var(--text);flex:1">${n.text}</span>
+                <span style="cursor:pointer;color:var(--text-faint);font-size:12px" onclick="_quickNotes.splice(${i},1);renderQuickNotes()">✕</span>
+            </div>`).join('');
+    }
+
+    // ── Cascata ───────────────────────────────────────────
+    const ALL_MODALS = ['modalAgentes','modalComandos','modalLogs','modalSistema','modalFerramentas','modalManual','modalSettings'];
+    function openAllMenus() {
+        closeModal('modalFerramentas');
+        let delay = 0;
+        ALL_MODALS.forEach(id => {
+            setTimeout(() => openModal(id), delay);
+            delay += 120;
+        });
+    }
+    function closeAllMenus() {
+        ALL_MODALS.forEach(id => closeModal(id));
+    }
+
     // ── Modals ───────────────────────────────────────────
     function openModal(id) {
         document.getElementById(id).classList.add('open');
+        if (id === 'modalAgentes') loadAgents();
+        if (id === 'modalComandos') { filterCmds(''); document.getElementById('cmdSearch').value = ''; }
+        if (id === 'modalLogs') { fetchLogs(); if (!logInterval) logInterval = setInterval(fetchLogs, 2000); }
+        if (id === 'modalSistema') loadSystemStats();
+        if (id === 'modalFerramentas') { switchFerr('scripts'); renderQuickNotes(); }
     }
     function closeModal(id) {
         document.getElementById(id).classList.remove('open');
         stopMicTest();
+        if (id === 'modalLogs' && logInterval) { clearInterval(logInterval); logInterval = null; }
     }
     function closeModalOutside(e, id) {
         if (e.target.id === id) closeModal(id);
@@ -1899,15 +2423,51 @@
         if (btn) { btn.textContent = 'Testar mic'; btn.classList.remove('primary'); }
     }
 
+    // ── Mic level no input bar ────────────────────────────
+    let _inputMicStream = null, _inputMicCtx = null, _inputMicAnalyser = null, _inputMicFrame = null;
+
+    async function startInputMicLevel() {
+        try {
+            _inputMicStream = await navigator.mediaDevices.getUserMedia({audio:true});
+            _inputMicCtx = new AudioContext();
+            const src = _inputMicCtx.createMediaStreamSource(_inputMicStream);
+            _inputMicAnalyser = _inputMicCtx.createAnalyser();
+            _inputMicAnalyser.fftSize = 128;
+            src.connect(_inputMicAnalyser);
+            animateInputLevel();
+        } catch(e) {}
+    }
+
+    function animateInputLevel() {
+        if (!_inputMicAnalyser) return;
+        const data = new Uint8Array(_inputMicAnalyser.frequencyBinCount);
+        _inputMicAnalyser.getByteFrequencyData(data);
+        const avg = data.reduce((a,b)=>a+b,0)/data.length;
+        const fill = document.getElementById('micLevelInputFill');
+        if (fill) fill.style.width = Math.min(100, avg * 3) + '%';
+        _inputMicFrame = requestAnimationFrame(animateInputLevel);
+    }
+
+    function stopInputMicLevel() {
+        if (_inputMicFrame) cancelAnimationFrame(_inputMicFrame);
+        if (_inputMicStream) { _inputMicStream.getTracks().forEach(t=>t.stop()); _inputMicStream = null; }
+        if (_inputMicCtx) { _inputMicCtx.close(); _inputMicCtx = null; }
+        _inputMicAnalyser = null;
+        const fill = document.getElementById('micLevelInputFill');
+        if (fill) fill.style.width = '0%';
+    }
+
     // ── Init ─────────────────────────────────────────────
     checkStatus();
     checkNexus();
     loadTasks();
     updateClock();
     loadSettings();
+    loadSystemStats();
     setInterval(checkStatus, 30000);
     setInterval(checkNexus, 60000);
     setInterval(updateClock, 1000);
+    setInterval(loadSystemStats, 15000);
     chatInput.focus();
 </script>
 </body>
