@@ -268,6 +268,34 @@ async def nexus_agents_proxy():
         return {"agents": [], "total": 0, "error": "Nexus offline"}
 
 
+@app.get("/nexus/status")
+async def nexus_status_proxy():
+    """Proxy para status do Cfdm Nexus"""
+    import urllib.request
+    try:
+        with urllib.request.urlopen("http://localhost:8000/status", timeout=3) as r:
+            data = json.loads(r.read())
+            data["online"] = True
+            return data
+    except Exception:
+        return {"online": False, "error": "Nexus offline"}
+
+
+@app.post("/nexus/run")
+async def nexus_run_proxy(request: Request):
+    """Proxy para executar agente no Cfdm Nexus via chat ICARUS"""
+    data = await request.json()
+    agent = data.get("agent", "").strip()
+    task = data.get("task", "").strip()
+    if not agent or not task:
+        return JSONResponse({"error": "agent e task obrigatórios"}, status_code=400)
+    # Executa via chat do ICARUS (nexus_skill trata a mensagem)
+    message = f"executar agente {agent}: {task}"
+    _icarus_log.info(f"NEXUS RUN → {agent}: {task[:60]}")
+    response = icarus.process(message)
+    return {"response": response, "agent": agent, "task": task}
+
+
 @app.get("/scripts")
 async def list_scripts():
     """Lista scripts disponíveis em scripts/"""

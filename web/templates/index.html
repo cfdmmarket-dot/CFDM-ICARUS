@@ -889,6 +889,82 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
+        /* ── Nexus panel ──────────────────────────────────── */
+        .nexus-panel-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 6px;
+        }
+        .nexus-status-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--text-faint);
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+        .nexus-status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .nexus-status-dot.offline { background: var(--red); }
+        .nexus-panel-search {
+            width: 100%;
+            height: 26px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 0 8px;
+            font-size: 11.5px;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 6px;
+        }
+        .nexus-panel-search:focus { border-color: var(--border-acc); }
+        .nexus-agent-list {
+            max-height: 220px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .nexus-agent-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+        .nexus-agent-item:hover { border-color: var(--border-acc); background: var(--bg-hover); }
+        .nexus-agent-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+        .nexus-agent-name { font-size: 11.5px; color: var(--text); flex: 1; text-transform: capitalize; }
+        .nexus-agent-cat { font-size: 10px; color: var(--text-faint); background: var(--bg-input); padding: 1px 5px; border-radius: 3px; }
+        .nexus-task-row {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .nexus-task-input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 4px 8px;
+            font-size: 11.5px;
+            font-family: inherit;
+            outline: none;
+            resize: none;
+            height: 48px;
+        }
+        .nexus-task-input:focus { border-color: var(--border-acc); }
+
         /* Nexus link badge */
         .nexus-link {
             display: flex;
@@ -1378,7 +1454,7 @@
         <button class="tb-btn" onclick="openModal('modalFerramentas')" title="Ferramentas">🔧 Ferramentas</button>
         <button class="tb-btn" onclick="openModal('modalSettings')" title="Configurações">⚙ Config</button>
         <div class="toolbar-sep"></div>
-        <a href="http://localhost:8000" target="_blank" class="tb-btn">🌐 Nexus</a>
+        <button class="tb-btn" onclick="switchPanel('nexus')" title="Cfdm Nexus — 286+ agentes" style="border-color:var(--border-acc);color:var(--accent)">⚡ Nexus</button>
         <div class="status-pill">
             <div class="status-dot" id="statusDot"></div>
             <span id="statusText">Online</span>
@@ -1505,6 +1581,7 @@
                 <button class="view-tab active" onclick="switchPanel('info')">Info</button>
                 <button class="view-tab" onclick="switchPanel('tasks')">Tasks</button>
                 <button class="view-tab" onclick="switchPanel('sys')">CPU</button>
+                <button class="view-tab" onclick="switchPanel('nexus')" style="color:var(--accent)">Nexus</button>
             </div>
         </div>
 
@@ -1520,7 +1597,7 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Versão</span>
-                        <span class="info-value">v1.2.0</span>
+                        <span class="info-value">v1.3.0</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Cfdm Nexus</span>
@@ -1538,9 +1615,9 @@
 
                 <div class="panel-section">
                     <div class="panel-section-title">Ecossistema</div>
-                    <a href="http://localhost:8000" target="_blank" class="nexus-link">
-                        🤖 Cfdm Nexus <span style="margin-left:auto; font-size:10px;">↗</span>
-                    </a>
+                    <div class="nexus-link" onclick="switchPanel('nexus')" title="Abrir painel Nexus integrado">
+                        ⚡ Cfdm Nexus <span id="nexusStatusInline" style="margin-left:auto;font-size:10px;color:var(--text-faint)">—</span>
+                    </div>
                     <div style="height:5px"></div>
                     <div class="nexus-link" onclick="openCfdmNote()">
                         📝 CfdmNote <span style="margin-left:auto; font-size:10px;">↗</span>
@@ -1620,6 +1697,51 @@
                         <span class="info-value">8001</span>
                     </div>
                     <button class="btn-sm" style="margin-top:6px;width:100%" onclick="loadSystemStats()">↺ Atualizar</button>
+                </div>
+            </div>
+
+            <!-- Nexus panel -->
+            <div id="panelNexus" style="display:none">
+                <div class="panel-section">
+                    <div class="panel-section-title">Cfdm Nexus</div>
+                    <div class="nexus-panel-status">
+                        <div class="nexus-status-dot" id="nexusDot"></div>
+                        <span id="nexusPanelStatusText" style="font-size:11.5px;flex:1">Verificando...</span>
+                        <span id="nexusPanelAgentCount" style="font-size:10px;color:var(--text-faint)">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Porta</span>
+                        <span class="info-value">8000</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Sessão</span>
+                        <span class="info-value" id="nexusPanelVersion">—</span>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-section-title">Agentes</div>
+                    <input type="text" class="nexus-panel-search" id="nexusPanelSearch"
+                        placeholder="Buscar agente..."
+                        oninput="filterNexusPanel(this.value)">
+                    <div class="nexus-agent-list" id="nexusAgentList">
+                        <div style="font-size:11px;color:var(--text-faint);padding:4px 0">Carregando agentes...</div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-section-title">Executar</div>
+                    <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">
+                        Agente: <span id="nexusSelectedAgent" style="color:var(--accent)">nenhum selecionado</span>
+                    </div>
+                    <textarea class="nexus-task-input" id="nexusTaskInput"
+                        placeholder="Descreva a tarefa para o agente..."
+                        onkeydown="if(event.ctrlKey&&event.key==='Enter')runNexusAgent()"></textarea>
+                    <div class="nexus-task-row">
+                        <button class="btn-sm primary" style="flex:1" onclick="runNexusAgent()">▶ Executar</button>
+                        <button class="btn-sm" onclick="sendNexusToChat()" title="Enviar pelo chat">💬 Chat</button>
+                        <button class="btn-sm" onclick="loadNexusPanel()" title="Recarregar">↺</button>
+                    </div>
                 </div>
             </div>
 
@@ -2237,11 +2359,123 @@
         document.getElementById('panelInfo').style.display = p === 'info' ? '' : 'none';
         document.getElementById('panelTasks').style.display = p === 'tasks' ? '' : 'none';
         document.getElementById('panelSys').style.display = p === 'sys' ? '' : 'none';
+        document.getElementById('panelNexus').style.display = p === 'nexus' ? '' : 'none';
         document.querySelectorAll('.view-tab').forEach((t, i) => {
-            t.classList.toggle('active', (i===0&&p==='info')||(i===1&&p==='tasks')||(i===2&&p==='sys'));
+            t.classList.toggle('active',
+                (i===0&&p==='info')||(i===1&&p==='tasks')||(i===2&&p==='sys')||(i===3&&p==='nexus'));
         });
         if (p === 'tasks') loadTasks();
         if (p === 'sys') loadSystemStats();
+        if (p === 'nexus') loadNexusPanel();
+    }
+
+    // ── Nexus Panel ───────────────────────────────────────
+    let nexusAgents = [];
+    let nexusSelectedAgent = '';
+
+    async function loadNexusPanel() {
+        // Status
+        try {
+            const sr = await fetch('/nexus/status', {signal: AbortSignal.timeout(3000)});
+            const sd = await sr.json();
+            const dot = document.getElementById('nexusDot');
+            const stxt = document.getElementById('nexusPanelStatusText');
+            if (sd.online) {
+                dot.className = 'nexus-status-dot online';
+                stxt.textContent = '● Online';
+                stxt.style.color = 'var(--green)';
+                document.getElementById('nexusPanelVersion').textContent = sd.version || '—';
+            } else {
+                dot.className = 'nexus-status-dot offline';
+                stxt.textContent = '○ Offline';
+                stxt.style.color = 'var(--red)';
+                document.getElementById('nexusPanelAgentCount').textContent = '—';
+            }
+        } catch(e) {
+            document.getElementById('nexusDot').className = 'nexus-status-dot offline';
+            document.getElementById('nexusPanelStatusText').textContent = '○ Offline';
+            document.getElementById('nexusPanelStatusText').style.color = 'var(--red)';
+        }
+
+        // Agents
+        try {
+            const ar = await fetch('/nexus/agents', {signal: AbortSignal.timeout(4000)});
+            const ad = await ar.json();
+            nexusAgents = Array.isArray(ad.agents) ? ad.agents : [];
+            document.getElementById('nexusPanelAgentCount').textContent = nexusAgents.length + ' agentes';
+            renderNexusAgents(nexusAgents);
+        } catch(e) {
+            document.getElementById('nexusAgentList').innerHTML =
+                '<div style="font-size:11px;color:var(--red);padding:4px 0">Nexus offline — inicie com o launcher</div>';
+        }
+    }
+
+    function renderNexusAgents(list) {
+        const el = document.getElementById('nexusAgentList');
+        if (!list.length) {
+            el.innerHTML = '<div style="font-size:11px;color:var(--text-faint);padding:4px 0">Nenhum agente encontrado</div>';
+            return;
+        }
+        el.innerHTML = list.map(name => {
+            const cat = name.includes('_') ? name.split('_')[0] : 'core';
+            const display = name.replace(/_/g,' ');
+            const sel = nexusSelectedAgent === name;
+            return `<div class="nexus-agent-item${sel?' selected':''}" onclick="selectNexusAgent('${name}')">
+                <span class="nexus-agent-name">${display}</span>
+                <span class="nexus-agent-cat">${cat}</span>
+            </div>`;
+        }).join('');
+    }
+
+    function filterNexusPanel(q) {
+        const filtered = q ? nexusAgents.filter(n => n.toLowerCase().includes(q.toLowerCase())) : nexusAgents;
+        renderNexusAgents(filtered);
+    }
+
+    function selectNexusAgent(name) {
+        nexusSelectedAgent = name;
+        document.getElementById('nexusSelectedAgent').textContent = name.replace(/_/g,' ');
+        document.getElementById('nexusTaskInput').focus();
+        renderNexusAgents(nexusAgents.filter(n => {
+            const q = document.getElementById('nexusPanelSearch').value;
+            return q ? n.toLowerCase().includes(q.toLowerCase()) : true;
+        }));
+    }
+
+    async function runNexusAgent() {
+        const task = document.getElementById('nexusTaskInput').value.trim();
+        if (!nexusSelectedAgent) { alert('Selecione um agente na lista'); return; }
+        if (!task) { alert('Descreva a tarefa'); return; }
+
+        const btn = document.querySelector('#panelNexus .btn-sm.primary');
+        btn.textContent = '⟳ Executando...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/nexus/run', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({agent: nexusSelectedAgent, task})
+            });
+            const d = await res.json();
+            appendMsg('assistant', `[Nexus — ${nexusSelectedAgent}]\n${d.response || d.error}`);
+            switchPanel('info'); // volta para o chat view
+            document.getElementById('nexusTaskInput').value = '';
+        } catch(e) {
+            appendMsg('assistant', `[Nexus] Erro ao executar agente: ${e.message}`);
+        } finally {
+            btn.textContent = '▶ Executar';
+            btn.disabled = false;
+        }
+    }
+
+    function sendNexusToChat() {
+        const task = document.getElementById('nexusTaskInput').value.trim();
+        if (!nexusSelectedAgent || !task) { alert('Selecione agente e descreva a tarefa'); return; }
+        const msg = `executar agente ${nexusSelectedAgent}: ${task}`;
+        document.getElementById('chatInput').value = msg;
+        sendMessage();
+        switchPanel('info');
     }
 
     // ── Tasks ─────────────────────────────────────────────
@@ -2318,17 +2552,19 @@
 
     async function checkNexus() {
         try {
-            const res = await fetch('http://localhost:8000/status', {signal: AbortSignal.timeout(2000)});
-            if (res.ok) {
+            const res = await fetch('/nexus/status', {signal: AbortSignal.timeout(3000)});
+            const sd = await res.json();
+            if (sd.online) {
                 document.getElementById('nexusStatus').textContent = '● Online';
                 document.getElementById('nexusStatus').className = 'info-value green';
                 document.getElementById('sbNexus').textContent = 'Online';
-                // Count agents from Nexus
+                document.getElementById('nexusStatusInline').textContent = '●';
+                document.getElementById('nexusStatusInline').style.color = 'var(--green)';
                 try {
-                    const ar = await fetch('http://localhost:8000/agents', {signal: AbortSignal.timeout(2000)});
+                    const ar = await fetch('/nexus/agents', {signal: AbortSignal.timeout(2000)});
                     if (ar.ok) {
                         const ad = await ar.json();
-                        const cnt = Array.isArray(ad) ? ad.length : (ad.total || '—');
+                        const cnt = Array.isArray(ad.agents) ? ad.agents.length : (ad.total || '—');
                         document.getElementById('agentCount').textContent = cnt;
                     }
                 } catch(e) { document.getElementById('agentCount').textContent = '194'; }
@@ -2338,6 +2574,8 @@
         document.getElementById('nexusStatus').textContent = '○ Offline';
         document.getElementById('nexusStatus').className = 'info-value';
         document.getElementById('sbNexus').textContent = 'Offline';
+        document.getElementById('nexusStatusInline').textContent = '○';
+        document.getElementById('nexusStatusInline').style.color = 'var(--text-faint)';
     }
 
     function openCfdmNote() {
