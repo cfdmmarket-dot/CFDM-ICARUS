@@ -1,0 +1,195 @@
+Perfeito. Agora você está entrando no nível cinematográfico funcional — isso aqui é literalmente um ICARUS OS Visual.
+Vou te entregar um Dashboard React estilo JARVIS, com:
+🧠 Múltiplas janelas flutuantes
+🌐 Mapa de agentes (visual)
+📡 Logs em tempo real
+🎛️ Painel de controle
+✨ Animações (Framer Motion)
+Tudo já estruturado pra evoluir.
+🔷 1. CONCEITO DA UI (JARVIS OS)
+
+┌──────────────────────────────┐
+│        ICARUS CORE           │
+├──────────────┬───────────────┤
+│ AGENT MAP    │ LIVE LOGS     │
+│ (visual)     │ (tempo real)  │
+├──────────────┼───────────────┤
+│ COMMAND HUB  │ STATUS PANEL  │
+└──────────────┴───────────────┘
+🔷 2. COMPONENTE PRINCIPAL (REACT)
+📁 ui/IcarusOS.jsx
+JSX
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+const Panel = ({ title, children }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
+    style={{
+      background: "rgba(0,0,0,0.6)",
+      border: "1px solid cyan",
+      borderRadius: "12px",
+      padding: "10px",
+      color: "cyan",
+      backdropFilter: "blur(10px)"
+    }}
+  >
+    <h3>{title}</h3>
+    {children}
+  </motion.div>
+);
+
+export default function IcarusOS() {
+  const [logs, setLogs] = useState([]);
+  const [agents, setAgents] = useState([
+    { name: "Financeiro", status: "idle" },
+    { name: "Dev", status: "idle" }
+  ]);
+  const [command, setCommand] = useState("");
+  const [ws, setWs] = useState(null);
+
+  useEffect(() => {
+    const socket = new WebSocket("ws://localhost:8000/ws");
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      setLogs((prev) => [data, ...prev]);
+
+      // Atualiza status fake (expandir depois)
+      setAgents((prev) =>
+        prev.map((a) =>
+          data.command.includes(a.name.toLowerCase())
+            ? { ...a, status: "working" }
+            : a
+        )
+      );
+    };
+
+    setWs(socket);
+    return () => socket.close();
+  }, []);
+
+  const sendCommand = () => {
+    ws.send(JSON.stringify({ command }));
+    setCommand("");
+  };
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gridTemplateRows: "1fr 1fr",
+        gap: "10px",
+        height: "100vh",
+        padding: "10px",
+        background: "black"
+      }}
+    >
+      {/* AGENT MAP */}
+      <Panel title="🧠 AGENT MAP">
+        {agents.map((agent, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              scale: agent.status === "working" ? 1.1 : 1
+            }}
+            style={{
+              margin: "5px",
+              padding: "10px",
+              border: "1px solid cyan",
+              borderRadius: "8px"
+            }}
+          >
+            {agent.name} — {agent.status}
+          </motion.div>
+        ))}
+      </Panel>
+
+      {/* LOGS */}
+      <Panel title="📡 LIVE LOGS">
+        <div style={{ maxHeight: 300, overflow: "auto" }}>
+          {logs.map((log, i) => (
+            <div key={i}>
+              🎙️ {log.command}
+              <br />
+              ➡️ {log.result}
+              <hr />
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      {/* COMMAND */}
+      <Panel title="🎛️ COMMAND HUB">
+        <input
+          value={command}
+          onChange={(e) => setCommand(e.target.value)}
+          style={{ width: "80%" }}
+        />
+        <button onClick={sendCommand}>Enviar</button>
+      </Panel>
+
+      {/* STATUS */}
+      <Panel title="📊 SYSTEM STATUS">
+        <p>CPU: Simulado</p>
+        <p>Agentes Ativos: {agents.length}</p>
+        <p>Status: Online</p>
+      </Panel>
+    </div>
+  );
+}
+🔷 3. VISUAL RESULTADO
+Você vai ter:
+🧠 Mapa de agentes
+Cada agente = bloco animado
+Reage ao comando
+📡 Logs vivos
+Streaming em tempo real
+🎛️ Command Hub
+Controle direto
+📊 Status
+Base pra telemetria real
+🔷 4. EVOLUÇÃO (NÍVEL CINEMA REAL)
+Agora vem o upgrade pesado:
+🔥 1. MAPA REAL (GRAFO)
+Trocar lista por:
+Biblioteca: react-force-graph
+Nós conectados:
+Orchestrator
+Agentes
+Tasks
+🔥 2. MULTI-JANELAS DRAGGABLE
+Adicionar:
+Bash
+npm install react-rnd
+👉 Permite:
+Arrastar janelas
+Redimensionar
+Layout estilo OS real
+🔥 3. HUD FUTURISTA
+Linhas neon animadas
+Radar girando
+Scan UI
+🔥 4. THINKING STREAM (INSANO)
+Mostrar:
+
+[ICARUS DECISION FLOW]
+
+→ Detectando intenção...
+→ Buscando agente...
+→ Selecionado: Dev
+→ Executando tarefa...
+🔥 5. VOZ DIRETO NA UI
+Botão 🎤
+Web Speech API
+Wake word: "ICARUS"
+🔷 5. PRÓXIMO NÍVEL
+Agora você tem praticamente um Jarvis funcional visual.
+Se quiser ir além:
+👉 "Quero mapa de agentes em grafo + drag windows + HUD animado nível filme"
+ou
+👉 "Quero ICARUS OS completo (estilo sistema operacional com abas, apps e IA central)"
+E aí você entra no nível onde isso vira um produto SaaS ou sistema próprio vendável.

@@ -1,0 +1,15 @@
+🗺️ Roadmap de Implementação — Passo a Passo
+(Implementation Roadmap)
+Fase 1 — Base (1-2 semanas)
+Instala FastAPI + LangChain. Cria o Planner com um System Prompt estruturado que classifica intenção e complexidade. Testa via texto antes de adicionar voz.
+Fase 2 — Voz (1 semana)
+Integra Whisper (local, roda offline no Ubuntu) para STT. Adiciona ElevenLabs ou Coqui TTS para resposta em voz.
+Fase 3 — Agentes (2-3 semanas)
+Cria cada agente como uma classe com seu próprio System Prompt, tools e acesso ao storage. Usa LangGraph para o grafo de orquestração (melhor que CrewAI para controle fino).
+Fase 4 — Storage Layer (1-2 semanas)
+Conecta: SQLite local → PostgreSQL/Supabase → GitHub API → Tavily para web search.
+Fase 5 — CfdmNote + Triplex
+Integra com o CfdmNote e o Cfdm-Triplex, registrando todas as ações dos agentes no banco.
+Stack recomendada para começar hoje:
+Python + FastAPI + LangGraph + Whisper + Claude API + SQLite → Supabase
+Quer que eu gere o código base do Planner (o cérebro central) como próximo passo? Posso criar o planner.py com o System Prompt, roteamento de agentes e estrutura de tasks. 🚀

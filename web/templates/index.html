@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICARUS — Assistente Pessoal — CFDM Holding</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* Palette — dark navy inspired by CfdmNote/KeePassXC */
+            --bg-base:    #1a1d2e;
+            --bg-panel:   #22263a;
+            --bg-card:    #2a2f47;
+            --bg-hover:   #323759;
+            --bg-input:   #1e2235;
+            --accent:     #4f8ef7;
+            --accent-dim: rgba(79,142,247,0.12);
+            --accent2:    #7c5cbf;
+            --gold:       #e6a817;
+            --green:      #3cb371;
+            --green-dim:  rgba(60,179,113,0.12);
+            --red:        #e05555;
+            --text:       #e2e6f8;
+            --text-dim:   #a8adc8;
+            --text-faint: #7b80a0;
+            --border:     #363a56;
+            --border-acc: #4f6ab0;
+            --radius:     6px;
+            --radius-lg:  10px;
+        }
+
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 13px;
+            background: var(--bg-base);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Toolbar ─────────────────────────────────────────── */
+        .toolbar {
+            height: 46px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 8px;
+        }
+
+        .logo-mark {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -1px;
+            flex-shrink: 0;
+        }
+
+        .logo-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.04em;
+        }
+
+        .logo-version {
+            font-size: 10px;
+            color: var(--text-faint);
+            font-weight: 400;
+        }
+
+        .toolbar-sep {
+            width: 1px;
+            height: 22px;
+            background: var(--border);
+            margin: 0 4px;
+        }
+
+        .tb-btn {
+            height: 30px;
+            padding: 0 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            color: var(--text-dim);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            white-space: nowrap;
+        }
+
+        .tb-btn:hover {
+            background: var(--bg-card);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .tb-btn.active {
+            background: var(--accent-dim);
+            border-color: var(--border-acc);
+            color: var(--accent);
+        }
+
+        .toolbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text-dim);
+            background: var(--bg-input);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2.5s infinite;
+        }
+
+        .status-dot.offline { background: var(--red); animation: none; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ── App body ─────────────────────────────────────────── */
+        .app-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── Left sidebar ─────────────────────────────────────── */
+        .sidebar {
+            width: 220px;
+            min-width: 180px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .sidebar-search {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            height: 28px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 0 8px;
+            font-size: 12px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .sidebar-search input:focus { border-color: var(--border-acc); }
+        .sidebar-search input::placeholder { color: var(--text-faint); }
+
+        .sidebar-scroll { flex: 1; overflow-y: auto; padding-bottom: 8px; }
+
+        .sidebar-group {
+            padding: 10px 0 2px;
+        }
+
+        .sidebar-group-title {
+            padding: 0 10px 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: 0;
+            color: var(--text-dim);
+            font-size: 12.5px;
+            border-left: 2px solid transparent;
+            transition: all 0.12s;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+
+        .nav-item .icon { width: 15px; text-align: center; font-size: 13px; flex-shrink: 0; }
+        .nav-item .label { flex: 1; }
+        .nav-item .badge {
+            font-size: 10px;
+            padding: 1px 5px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            color: var(--text-faint);
+        }
+        .nav-item.active .badge { background: var(--accent-dim); color: var(--accent); }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        /* ── Center: Chat ─────────────────────────────────────── */
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-base);
+        }
+
+        .chat-header {
+            height: 38px;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            background: var(--bg-panel);
+        }
+
+        .chat-header-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .chat-header-subtitle {
+            font-size: 11px;
+            color: var(--text-faint);
+            margin-left: auto;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .messages-area::-webkit-scrollbar { width: 5px; }
+        .messages-area::-webkit-scrollbar-track { background: transparent; }
+        .messages-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .messages-area::-webkit-scrollbar-thumb:hover { background: var(--border-acc); }
+
+        /* Welcome screen */
+        .welcome {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 40px 24px;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .welcome-logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(79,142,247,0.25);
+        }
+
+        .welcome h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .welcome p {
+            font-size: 13px;
+            color: var(--text-dim);
+            max-width: 360px;
+            line-height: 1.6;
+        }
+
+        .welcome-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            justify-content: center;
+            margin-top: 8px;
+            max-width: 500px;
+        }
+
+        .chip {
+            padding: 5px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        /* Messages */
+        .msg-row {
+            display: flex;
+            gap: 10px;
+            max-width: 800px;
+        }
+
+        .msg-row.user { flex-direction: row-reverse; margin-left: auto; }
+
+        .msg-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .msg-row.assistant .msg-avatar {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            color: #fff;
+        }
+
+        .msg-row.user .msg-avatar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .msg-body { display: flex; flex-direction: column; gap: 3px; max-width: calc(100% - 40px); }
+
+        .msg-meta {
+            font-size: 10px;
+            color: var(--text-faint);
+            padding: 0 2px;
+        }
+
+        .msg-row.user .msg-meta { text-align: right; }
+
+        .msg-bubble {
+            padding: 9px 13px;
+            border-radius: var(--radius-lg);
+            line-height: 1.65;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .msg-row.assistant .msg-bubble {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-top-left-radius: 3px;
+            color: var(--text);
+        }
+
+        .msg-row.user .msg-bubble {
+            background: var(--accent);
+            color: #fff;
+            border-top-right-radius: 3px;
+        }
+
+        /* Typing indicator */
+        .typing-dots { display: flex; gap: 4px; padding: 10px 13px; }
+        .typing-dots span {
+            width: 6px; height: 6px;
+            background: var(--text-faint);
+            border-radius: 50%;
+            animation: tdot 1.2s infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes tdot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+
+        /* Input bar */
+        .input-bar {
+            border-top: 1px solid var(--border);
+            padding: 10px 16px;
+            background: var(--bg-panel);
+            flex-shrink: 0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 8px 10px;
+            transition: border-color 0.15s;
+        }
+
+        .input-row:focus-within { border-color: var(--border-acc); }
+
+        #chatInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            min-height: 20px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        #chatInput::placeholder { color: var(--text-faint); }
+
+        .input-actions { display: flex; gap: 4px; align-items: flex-end; }
+
+        .input-btn {
+            width: 30px;
+            height: 30px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            color: var(--text-faint);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .input-btn:hover { background: var(--bg-card); color: var(--text); border-color: var(--border); }
+        .input-btn.recording { background: rgba(224,85,85,0.15); border-color: var(--red); color: var(--red); animation: recpulse 1s infinite; }
+        @keyframes recpulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+        .send-btn {
+            width: 30px;
+            height: 30px;
+            background: var(--accent);
+            border: none;
+            border-radius: var(--radius);
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s;
+        }
+
+        .send-btn:hover { opacity: 0.85; }
+        .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .input-hint {
+            padding: 4px 2px 0;
+            font-size: 10px;
+            color: var(--text-faint);
+        }
+
+        /* ── Right panel ──────────────────────────────────────── */
+        .right-panel {
+            width: 240px;
+            min-width: 200px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            height: 38px;
+            padding: 0 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+        }
+
+        .panel-scroll { flex: 1; overflow-y: auto; }
+        .panel-scroll::-webkit-scrollbar { width: 4px; }
+        .panel-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .panel-section {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-faint);
+            margin-bottom: 8px;
+        }
+
+        /* System info */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 11.5px;
+        }
+
+        .info-label { color: var(--text-faint); }
+        .info-value { color: var(--text); font-weight: 500; }
+        .info-value.green { color: var(--green); }
+        .info-value.accent { color: var(--accent); }
+
+        /* Tasks */
+        .task-list { display: flex; flex-direction: column; gap: 2px; }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 4px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .task-item:hover { background: var(--bg-hover); }
+
+        .task-cb {
+            width: 14px;
+            height: 14px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            transition: all 0.12s;
+        }
+
+        .task-cb:hover { border-color: var(--green); }
+        .task-cb.done { background: var(--green); border-color: var(--green); color: #fff; }
+
+        .task-label {
+            font-size: 11.5px;
+            color: var(--text-dim);
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .task-label.done { text-decoration: line-through; opacity: 0.5; }
+
+        .task-add-row {
+            display: flex;
+            gap: 5px;
+            margin-top: 6px;
+        }
+
+        .task-add-row input {
+            flex: 1;
+            height: 26px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 0 7px;
+            font-size: 11.5px;
+            outline: none;
+        }
+
+        .task-add-row input:focus { border-color: var(--border-acc); }
+        .task-add-row input::placeholder { color: var(--text-faint); }
+
+        .task-add-row button {
+            width: 26px;
+            height: 26px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.12s;
+        }
+
+        .task-add-row button:hover { background: var(--accent-dim); border-color: var(--border-acc); }
+
+        /* Quick actions */
+        .quick-action {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 4px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-dim);
+            transition: all 0.12s;
+        }
+
+        .quick-action:hover { background: var(--bg-hover); color: var(--text); }
+        .quick-action .qa-icon { width: 18px; text-align: center; flex-shrink: 0; }
+
+        /* Status bar */
+        .statusbar {
+            height: 24px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .statusbar-item {
+            font-size: 11px;
+            color: rgba(255,255,255,0.85);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .statusbar-item span { opacity: 0.7; }
+
+        /* Context menu style tabs (view switcher) */
+        .view-tabs {
+            display: flex;
+            gap: 1px;
+            background: var(--bg-input);
+            padding: 3px;
+            border-radius: var(--radius);
+            flex-shrink: 0;
+        }
+
+        .view-tab {
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-faint);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+
+        .view-tab.active {
+            background: var(--bg-panel);
+            color: var(--text);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Nexus link badge */
+        .nexus-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 11.5px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.12s;
+            text-decoration: none;
+        }
+
+        .nexus-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+        /* Scrollbar global */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-row { animation: fadeUp 0.2s ease; }
+    </style>
+</head>
+<body>
+
+<!-- ── Toolbar ─────────────────────────────────────────────────── -->
+<div class="toolbar">
+    <div class="logo">
+        <div class="logo-mark">I</div>
+        <div>
+            <div class="logo-name">ICARUS</div>
+            <div class="logo-version">v1.0.0 — CFDM Holding</div>
+        </div>
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <button class="tb-btn active" onclick="setView('chat')">💬 Chat</button>
+    <button class="tb-btn" onclick="setView('tasks')">✅ Tarefas</button>
+    <button class="tb-btn" onclick="setView('memory')">🧠 Memória</button>
+    <button class="tb-btn" onclick="sendCmd('/status')">⚡ Status</button>
+    <button class="tb-btn" onclick="sendCmd('/agentes')">🤖 Agentes</button>
+
+    <div class="toolbar-right">
+        <a href="http://localhost:8000" target="_blank" class="tb-btn">🌐 Cfdm Nexus</a>
+        <div class="status-pill">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Online</span>
+        </div>
+    </div>
+</div>
+
+<!-- ── App body ────────────────────────────────────────────────── -->
+<div class="app-body">
+
+    <!-- Left sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-search">
+            <input type="text" id="sidebarSearch" placeholder="Buscar na conversa..." oninput="filterHistory(this.value)">
+        </div>
+
+        <div class="sidebar-scroll">
+
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">Conversa</div>
+                <div class="nav-item active" onclick="setView('chat')">
+                    <span class="icon">💬</span>
+                    <span class="label">Chat Atual</span>
+                </div>
+                <div class="nav-item" onclick="clearChat()">
+                    <span class="icon">🗑️</span>
+                    <span class="label">Limpar Chat</span>
+                </div>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">Ações Rápidas</div>
+                <div class="nav-item" onclick="sendQuick('O que tenho pra fazer hoje?')">
+                    <span class="icon">📋</span><span class="label">Tarefas do dia</span>
+                </div>
+                <div class="nav-item" onclick="sendQuick('Qual o status dos meus projetos CFDM?')">
+                    <span class="icon">📊</span><span class="label">Status projetos</span>
+                </div>
+                <div class="nav-item" onclick="sendQuick('Me dá 3 ideias de conteúdo para YouTube')">
+                    <span class="icon">🎬</span><span class="label">Ideias YouTube</span>
+                </div>
+                <div class="nav-item" onclick="sendQuick('Cria um plano de ação para minha semana')">
+                    <span class="icon">📅</span><span class="label">Plano semanal</span>
+                </div>
+                <div class="nav-item" onclick="sendQuick('Pesquisa: ')">
+                    <span class="icon">🔍</span><span class="label">Pesquisar</span>
+                </div>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">Ecossistema CFDM</div>
+                <div class="nav-item" onclick="sendCmd('/agentes')">
+                    <span class="icon">🤖</span><span class="label">Agentes Nexus</span>
+                    <span class="badge" id="agentCount">—</span>
+                </div>
+                <div class="nav-item" onclick="sendCmd('/notas')">
+                    <span class="icon">📝</span><span class="label">CfdmNote</span>
+                </div>
+                <div class="nav-item" onclick="sendCmd('/ajuda')">
+                    <span class="icon">❓</span><span class="label">Ajuda</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Center chat -->
+    <div class="chat-panel">
+        <div class="chat-header">
+            <span style="font-size:14px;">💬</span>
+            <span class="chat-header-title">Conversa com ICARUS</span>
+            <span class="chat-header-subtitle" id="msgCount">0 mensagens</span>
+        </div>
+
+        <div class="messages-area" id="messagesArea">
+            <!-- Welcome -->
+            <div class="welcome" id="welcome">
+                <div class="welcome-logo">I</div>
+                <h2>Olá! Eu sou o ICARUS</h2>
+                <p>Seu assistente pessoal de IA integrado ao ecossistema CFDM Holding.<br>
+                Como posso te ajudar hoje?</p>
+                <div class="welcome-chips">
+                    <div class="chip" onclick="sendQuick('Quais são minhas tarefas pendentes?')">📋 Minhas tarefas</div>
+                    <div class="chip" onclick="sendQuick('Qual o status do Cfdm Nexus?')">⚡ Status Nexus</div>
+                    <div class="chip" onclick="sendQuick('Me dá 5 ideias de vídeo para YouTube sobre IA')">🎬 Ideias YouTube</div>
+                    <div class="chip" onclick="sendQuick('Cria um plano semanal focado em produtividade')">📅 Plano semanal</div>
+                    <div class="chip" onclick="sendQuick('Quais agentes do Cfdm Nexus posso usar?')">🤖 Ver agentes</div>
+                    <div class="chip" onclick="sendQuick('/ajuda')">❓ Comandos</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-bar">
+            <div class="input-row">
+                <textarea id="chatInput" rows="1" placeholder="Mensagem para ICARUS... (Enter para enviar, Shift+Enter para nova linha)"
+                    onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+                <div class="input-actions">
+                    <button class="input-btn" title="Adicionar tarefa rápida" onclick="addTaskQuick()">✅</button>
+                    <button class="input-btn" id="micBtn" title="Falar com ICARUS (voz)" onclick="toggleVoice()">🎤</button>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">▶</button>
+                </div>
+            </div>
+            <div class="input-hint">Enter para enviar · Shift+Enter nova linha · /ajuda para comandos</div>
+        </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+        <div class="panel-header">
+            <span class="panel-title">Painel</span>
+            <div class="view-tabs">
+                <button class="view-tab active" onclick="switchPanel('info')">Info</button>
+                <button class="view-tab" onclick="switchPanel('tasks')">Tasks</button>
+            </div>
+        </div>
+
+        <div class="panel-scroll" id="panelContent">
+
+            <!-- Info panel (default) -->
+            <div id="panelInfo">
+                <div class="panel-section">
+                    <div class="panel-section-title">Sistema</div>
+                    <div class="info-row">
+                        <span class="info-label">ICARUS</span>
+                        <span class="info-value green">● Online</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Versão</span>
+                        <span class="info-value">v1.0.0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Cfdm Nexus</span>
+                        <span class="info-value" id="nexusStatus">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Memórias</span>
+                        <span class="info-value accent" id="memCount">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Msgs sessão</span>
+                        <span class="info-value" id="sessionMsgs">0</span>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-section-title">Ecossistema</div>
+                    <a href="http://localhost:8000" target="_blank" class="nexus-link">
+                        🤖 Cfdm Nexus <span style="margin-left:auto; font-size:10px;">↗</span>
+                    </a>
+                    <div style="height:5px"></div>
+                    <div class="nexus-link" onclick="openCfdmNote()">
+                        📝 CfdmNote <span style="margin-left:auto; font-size:10px;">↗</span>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-section-title">Ações rápidas</div>
+                    <div class="quick-action" onclick="sendCmd('/status')">
+                        <span class="qa-icon">⚡</span> Status do sistema
+                    </div>
+                    <div class="quick-action" onclick="sendCmd('/agentes')">
+                        <span class="qa-icon">🤖</span> Listar agentes
+                    </div>
+                    <div class="quick-action" onclick="sendCmd('/memoria')">
+                        <span class="qa-icon">🧠</span> Ver memória
+                    </div>
+                    <div class="quick-action" onclick="sendCmd('/ajuda')">
+                        <span class="qa-icon">❓</span> Ajuda / Comandos
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks panel -->
+            <div id="panelTasks" style="display:none">
+                <div class="panel-section">
+                    <div class="panel-section-title">Tarefas pendentes</div>
+                    <div class="task-list" id="taskList">
+                        <div style="font-size:11.5px;color:var(--text-faint);padding:4px 0">Carregando...</div>
+                    </div>
+                    <div class="task-add-row">
+                        <input type="text" id="newTaskInput" placeholder="Nova tarefa..."
+                            onkeypress="if(event.key==='Enter')addTask()">
+                        <button onclick="addTask()" title="Adicionar">+</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Status bar ──────────────────────────────────────────────── -->
+<div class="statusbar">
+    <div class="statusbar-item">✦ ICARUS <span>v1.0.0</span></div>
+    <div class="statusbar-item">🌐 Nexus: <span id="sbNexus">verificando...</span></div>
+    <div class="statusbar-item">💬 <span id="sbMsgs">0</span> mensagens</div>
+    <div class="statusbar-item" style="margin-left:auto" id="sbTime"></div>
+</div>
+
+<script>
+    // ── State ────────────────────────────────────────────
+    let msgCount = 0;
+    let currentPanel = 'info';
+    let sending = false;
+
+    const messagesArea = document.getElementById('messagesArea');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // ── Key handler ──────────────────────────────────────
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    // ── Helpers ──────────────────────────────────────────
+    function esc(t) {
+        return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    }
+
+    function nowTime() {
+        return new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    }
+
+    function hideWelcome() {
+        const w = document.getElementById('welcome');
+        if (w) w.remove();
+    }
+
+    // ── Messages ─────────────────────────────────────────
+    function appendMsg(role, text) {
+        hideWelcome();
+
+        const row = document.createElement('div');
+        row.className = `msg-row ${role}`;
+
+        const initial = role === 'assistant' ? 'I' : '◈';
+        row.innerHTML = `
+            <div class="msg-avatar">${initial}</div>
+            <div class="msg-body">
+                <div class="msg-meta">${role === 'assistant' ? 'ICARUS' : 'Você'} · ${nowTime()}</div>
+                <div class="msg-bubble">${esc(text)}</div>
+            </div>`;
+
+        messagesArea.appendChild(row);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+
+        msgCount++;
+        document.getElementById('msgCount').textContent = `${msgCount} mensagem${msgCount !== 1 ? 's' : ''}`;
+        document.getElementById('sbMsgs').textContent = msgCount;
+        document.getElementById('sessionMsgs').textContent = msgCount;
+    }
+
+    function appendTyping() {
+        const el = document.createElement('div');
+        el.className = 'msg-row assistant';
+        el.id = 'typing-indicator';
+        el.innerHTML = `
+            <div class="msg-avatar">I</div>
+            <div class="msg-body">
+                <div class="msg-bubble" style="padding:0"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+            </div>`;
+        messagesArea.appendChild(el);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function removeTyping() {
+        const el = document.getElementById('typing-indicator');
+        if (el) el.remove();
+    }
+
+    // ── Send ─────────────────────────────────────────────
+    async function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text || sending) return;
+
+        sending = true;
+        appendMsg('user', text);
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        sendBtn.disabled = true;
+        appendTyping();
+
+        try {
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: text})
+            });
+            const data = await res.json();
+            removeTyping();
+            appendMsg('assistant', data.response || data.error || 'Sem resposta');
+
+            if (text.toLowerCase().includes('tarefa') || text.startsWith('/tarefa')) loadTasks();
+        } catch (e) {
+            removeTyping();
+            appendMsg('assistant', '⚠ Não foi possível conectar ao servidor ICARUS.\nVerifique se está rodando em http://localhost:8001');
+        }
+
+        sendBtn.disabled = false;
+        sending = false;
+        chatInput.focus();
+    }
+
+    function sendQuick(text) {
+        chatInput.value = text;
+        autoResize(chatInput);
+        if (!text.endsWith(' ') && !text.endsWith(':')) sendMessage();
+        else chatInput.focus();
+    }
+
+    function sendCmd(cmd) { chatInput.value = cmd; sendMessage(); }
+
+    // ── View switcher ─────────────────────────────────────
+    function setView(v) {
+        document.querySelectorAll('.tb-btn').forEach(b => b.classList.remove('active'));
+        if (v === 'tasks') switchPanel('tasks');
+        if (v === 'chat') {
+            document.querySelectorAll('.tb-btn')[0].classList.add('active');
+            chatInput.focus();
+        }
+    }
+
+    function switchPanel(p) {
+        currentPanel = p;
+        document.getElementById('panelInfo').style.display = p === 'info' ? '' : 'none';
+        document.getElementById('panelTasks').style.display = p === 'tasks' ? '' : 'none';
+        document.querySelectorAll('.view-tab').forEach((t, i) => {
+            t.classList.toggle('active', (i === 0 && p === 'info') || (i === 1 && p === 'tasks'));
+        });
+        if (p === 'tasks') loadTasks();
+    }
+
+    // ── Tasks ─────────────────────────────────────────────
+    async function loadTasks() {
+        try {
+            const res = await fetch('/tasks');
+            const data = await res.json();
+            renderTasks(data.tasks || []);
+        } catch (e) {}
+    }
+
+    function renderTasks(tasks) {
+        const pending = tasks.filter(t => t.status === '⏳');
+        const list = document.getElementById('taskList');
+        if (!pending.length) {
+            list.innerHTML = '<div style="font-size:11.5px;color:var(--text-faint);padding:4px 0">Nenhuma tarefa pendente</div>';
+            return;
+        }
+        list.innerHTML = pending.slice(-12).map(t => `
+            <div class="task-item" onclick="completeTask(${t.id})">
+                <div class="task-cb" data-id="${t.id}"></div>
+                <span class="task-label">${esc(t.task)}</span>
+            </div>`).join('');
+    }
+
+    async function addTask() {
+        const inp = document.getElementById('newTaskInput');
+        const text = inp.value.trim();
+        if (!text) return;
+        try {
+            await fetch('/tasks', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({task: text})
+            });
+            inp.value = '';
+            loadTasks();
+        } catch (e) {}
+    }
+
+    async function completeTask(id) {
+        try {
+            await fetch(`/tasks/${id}/complete`, {method: 'PUT'});
+            const cb = document.querySelector(`.task-cb[data-id="${id}"]`);
+            if (cb) { cb.classList.add('done'); cb.textContent = '✓'; }
+            setTimeout(loadTasks, 600);
+        } catch (e) {}
+    }
+
+    function addTaskQuick() {
+        const t = chatInput.value.trim();
+        if (t) {
+            sendQuick(`adiciona tarefa: ${t}`);
+        } else {
+            switchPanel('tasks');
+            document.getElementById('newTaskInput').focus();
+        }
+    }
+
+    // ── Status ────────────────────────────────────────────
+    async function checkStatus() {
+        try {
+            const res = await fetch('/status', {signal: AbortSignal.timeout(3000)});
+            const d = await res.json();
+            document.getElementById('statusDot').classList.remove('offline');
+            document.getElementById('statusText').textContent = 'Online';
+            document.getElementById('memCount').textContent = d.memories || 0;
+            document.getElementById('sessionMsgs').textContent = d.session_messages || 0;
+        } catch (e) {
+            document.getElementById('statusDot').classList.add('offline');
+            document.getElementById('statusText').textContent = 'Offline';
+        }
+    }
+
+    async function checkNexus() {
+        try {
+            const res = await fetch('http://localhost:8000/status', {signal: AbortSignal.timeout(2000)});
+            if (res.ok) {
+                document.getElementById('nexusStatus').textContent = '● Online';
+                document.getElementById('nexusStatus').className = 'info-value green';
+                document.getElementById('sbNexus').textContent = 'Online';
+                // Count agents from Nexus
+                try {
+                    const ar = await fetch('http://localhost:8000/agents', {signal: AbortSignal.timeout(2000)});
+                    if (ar.ok) {
+                        const ad = await ar.json();
+                        const cnt = Array.isArray(ad) ? ad.length : (ad.total || '—');
+                        document.getElementById('agentCount').textContent = cnt;
+                    }
+                } catch(e) { document.getElementById('agentCount').textContent = '194'; }
+                return;
+            }
+        } catch (e) {}
+        document.getElementById('nexusStatus').textContent = '○ Offline';
+        document.getElementById('nexusStatus').className = 'info-value';
+        document.getElementById('sbNexus').textContent = 'Offline';
+    }
+
+    function openCfdmNote() {
+        fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: '/notas'})
+        }).then(r => r.json()).then(d => appendMsg('assistant', d.response || d.error));
+    }
+
+    function clearChat() {
+        if (!confirm('Limpar conversa?')) return;
+        document.querySelectorAll('.msg-row').forEach(m => m.remove());
+        msgCount = 0;
+        document.getElementById('msgCount').textContent = '0 mensagens';
+        document.getElementById('sbMsgs').textContent = '0';
+        fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: '/limpar'})
+        });
+    }
+
+    function filterHistory(q) {
+        // Basic message filter
+        document.querySelectorAll('.msg-row').forEach(m => {
+            const t = m.textContent.toLowerCase();
+            m.style.display = (!q || t.includes(q.toLowerCase())) ? '' : 'none';
+        });
+    }
+
+    // ── Clock ─────────────────────────────────────────────
+    function updateClock() {
+        document.getElementById('sbTime').textContent = new Date().toLocaleTimeString('pt-BR');
+    }
+
+    // ── Voice ────────────────────────────────────────────
+    let recognition = null;
+    let isRecording = false;
+
+    function toggleVoice() {
+        const micBtn = document.getElementById('micBtn');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            appendMsg('assistant', '⚠ Reconhecimento de voz não suportado neste navegador.\nUse Chrome ou Chromium.');
+            return;
+        }
+
+        if (isRecording) {
+            recognition.stop();
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'pt-BR';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+            isRecording = true;
+            micBtn.classList.add('recording');
+            micBtn.title = 'Gravando... (clique para parar)';
+            chatInput.placeholder = '🎤 Ouvindo...';
+        };
+
+        recognition.onresult = (e) => {
+            const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+            chatInput.value = transcript;
+            autoResize(chatInput);
+        };
+
+        recognition.onend = () => {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            micBtn.title = 'Falar com ICARUS (voz)';
+            chatInput.placeholder = 'Mensagem para ICARUS... (Enter para enviar, Shift+Enter para nova linha)';
+            if (chatInput.value.trim()) sendMessage();
+        };
+
+        recognition.onerror = (e) => {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            if (e.error !== 'no-speech') appendMsg('assistant', `⚠ Erro no microfone: ${e.error}`);
+        };
+
+        recognition.start();
+    }
+
+    // ── Init ─────────────────────────────────────────────
+    checkStatus();
+    checkNexus();
+    loadTasks();
+    updateClock();
+    setInterval(checkStatus, 30000);
+    setInterval(checkNexus, 60000);
+    setInterval(updateClock, 1000);
+    chatInput.focus();
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+Vou entregar o pacote completo — o Planner core em Python + estrutura de agentes + um visualizador do sistema funcionando.
+
+Entregue. Aqui está o que você recebeu:
+
+---
+
+## 📦 Pacote JARVIS — 6 arquivos
+
+**`planner.py`** — O cérebro. Recebe o comando, chama a Claude API com um System Prompt de orquestração, analisa intenção, classifica complexidade (`simple / moderate / complex`), monta um plano com subtasks e dependências, e executa em **ondas paralelas**.
+
+**`agents.py`** — Os 6 agentes especializados (`ResearchAgent`, `CodeAgent`, `DatabaseAgent`, `FilesAgent`, `MemoryAgent`, `NotifierAgent`) + o `AgentRouter` que mapeia qual agente chamar. Cada um tem seu próprio System Prompt e roda assíncrono.
+
+**`voice.py`** — Interface de voz completa. STT via **Whisper local** (offline, privado, roda no seu Ubuntu). TTS via **Coqui** (local) ou **ElevenLabs** (cloud).
+
+**`main.py`** — Entry point com 3 modos: texto interativo, voz, e comando direto via CLI.
+
+**`requirements.txt`** — Todas as dependências comentadas e organizadas por módulo.
+
+**`README.md`** — Setup completo para o seu Ubuntu.
+
+---
+
+## 🚀 Para rodar agora
+
+```bash
+cd ~/cfdm-triplex/jarvis
+python3 -m venv .venv && source .venv/bin/activate
+pip install anthropic
+export ANTHROPIC_API_KEY="sk-ant-..."
+python main.py
+```
+
+O próximo passo natural é conectar o `DatabaseAgent` ao SQLite real e o `ResearchAgent` à Tavily API para buscas reais. Quer que eu entregue isso?
