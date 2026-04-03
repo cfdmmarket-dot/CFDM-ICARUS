@@ -214,21 +214,36 @@ class IcarusCore:
         return result
 
     def _fallback_response(self, user_input: str) -> str:
-        """Resposta padrão — usa persona do modo ativo ou padrão ICARUS"""
-        persona = ICARUS_PERSONA
-        if self.active_mode and self.active_mode_persona:
-            persona = f"{self.active_mode_persona}\n\n{ICARUS_PERSONA}"
+        """Resposta padrão — delega ao Cfdm Nexus via HTTP"""
+        mode_str = f" [{self.active_mode}]" if self.active_mode else ""
         try:
-            from triplex import TRIPLEX
-            triplex = TRIPLEX()
-            response = triplex.chat(
-                user_input,
-                system=persona + f"\n\nContexto recente:\n{self.context.get_recent()}"
+            import requests
+            payload = {
+                "message": user_input,
+                "provider": "auto",
+                "system": ICARUS_PERSONA + (
+                    f"\n\nModo ativo: {self.active_mode}" if self.active_mode else ""
+                ) + f"\n\nContexto recente:\n{self.context.get_recent()}"
+            }
+            r = requests.post(
+                "http://localhost:8000/chat",
+                json=payload,
+                timeout=30
             )
-            return response.content
-        except Exception as e:
-            mode_str = f" [{self.active_mode}]" if self.active_mode else ""
-            return f"[ICARUS{mode_str}] Recebi: {user_input}\n(Nexus offline: {e})"
+            if r.status_code == 200:
+                data = r.json()
+                content = data.get("content") or data.get("response") or ""
+                if content:
+                    return content
+        except Exception:
+            pass
+
+        # Segundo fallback: resposta básica sem LLM
+        return (
+            f"[ICARUS{mode_str}] Olá! Recebi sua mensagem: \"{user_input}\"\n\n"
+            "Dica: O Cfdm Nexus precisa estar online (:8000) para respostas inteligentes.\n"
+            "Use o launcher unificado para iniciar os dois sistemas."
+        )
 
     def run_interactive(self):
         """Loop interativo de conversação"""
