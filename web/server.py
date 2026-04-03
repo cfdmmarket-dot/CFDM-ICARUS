@@ -3,13 +3,15 @@ ICARUS Web Server — Interface web do assistente pessoal
 """
 
 import sys
+import os
 import json
 import datetime
 import logging
+import tempfile
 from collections import deque
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -114,6 +116,79 @@ async def deactivate_mode():
     """Desativa modo atual"""
     result = icarus.deactivate_mode()
     return {"result": result, "active_mode": None}
+
+
+@app.post("/voice/transcribe")
+async def transcribe_audio(request: Request):
+    """Transcreve áudio via Whisper local (offline, sem depender de internet)"""
+    body = await request.body()
+    if not body:
+        return JSONResponse({"error": "Áudio vazio", "text": ""}, status_code=400)
+
+    suffix = ".webm"
+    ct = request.headers.get("content-type", "")
+    if "wav" in ct:  suffix = ".wav"
+    elif "ogg" in ct: suffix = ".ogg"
+    elif "mp4" in ct: suffix = ".mp4"
+
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+            f.write(body)
+            tmp_path = f.name
+
+        # Tenta faster-whisper primeiro (mais rápido)
+        try:
+            from faster_whisper import WhisperModel
+            model = WhisperModel("base", device="cpu", compute_type="int8")
+            segments, info = model.transcribe(tmp_path, language="pt")
+            text = " ".join(s.text for s in segments).strip()
+            return {"text": text, "language": info.language, "engine": "faster-whisper"}
+        except ImportError:
+            pass
+
+        # Fallback: openai-whisper
+        try:
+            import whisper
+            model = whisper.load_model("base")
+            result = model.transcribe(tmp_path, language="pt")
+            return {"text": result["text"].strip(), "language": "pt", "engine": "whisper"}
+        except ImportError:
+            pass
+
+        return JSONResponse({
+            "error": "Whisper não instalado. Execute: pip install faster-whisper",
+            "text": "",
+            "engine": "none"
+        }, status_code=503)
+
+    except Exception as e:
+        return JSONResponse({"error": str(e), "text": ""}, status_code=500)
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+
+@app.get("/voice/status")
+async def voice_status():
+    """Verifica engines de voz disponíveis"""
+    engines = {"faster_whisper": False, "whisper": False, "web_speech": True}
+    try:
+        import faster_whisper
+        engines["faster_whisper"] = True
+    except ImportError:
+        pass
+    try:
+        import whisper
+        engines["whisper"] = True
+    except ImportError:
+        pass
+    return {
+        "engines": engines,
+        "recommended": "faster-whisper" if engines["faster_whisper"] else
+                       "whisper" if engines["whisper"] else "web-speech-api",
+        "install_cmd": "pip install faster-whisper" if not engines["faster_whisper"] else None
+    }
 
 
 @app.get("/agents")

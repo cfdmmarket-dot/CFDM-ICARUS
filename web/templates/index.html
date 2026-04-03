@@ -1345,7 +1345,11 @@
     </div>
     <div class="orb-transcript" id="orbTranscript"></div>
     <div class="orb-info" id="orbInfo">DIGA "ICARUS" PARA ATIVAR · ESC PARA FECHAR</div>
-    <button class="orb-close-btn" onclick="setVoiceMode(false)">[ DESATIVAR MODO VOZ ]</button>
+    <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="orb-close-btn" id="orbPttBtn" onpointerdown="orbPTTStart()" onpointerup="orbPTTStop()" onpointercancel="orbPTTStop()"
+            style="border-color:var(--green);color:var(--green)">[ 🎤 SEGURAR PARA FALAR ]</button>
+        <button class="orb-close-btn" onclick="setVoiceMode(false)">[ FECHAR ]</button>
+    </div>
 </div>
 
 <!-- ── Toolbar ─────────────────────────────────────────────────── -->
@@ -2921,10 +2925,113 @@
             if (e.error === 'not-allowed') {
                 appendMsg('assistant', '⚠ Permissão de microfone negada. Permita o acesso nas configurações do Chrome.');
                 setVoiceMode(false);
+                return;
+            }
+            if (e.error === 'network') {
+                // Web Speech API precisa de internet — trocar para Whisper local
+                console.warn('Web Speech API: erro de rede. Alternando para Whisper local.');
+                switchToWhisperMode();
             }
         };
 
         try { voiceRecog.start(); } catch(e) {}
+    }
+
+    // ── Whisper local (fallback offline) ─────────────────
+    let whisperMode = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let orbHoldActive = false;
+
+    async function switchToWhisperMode() {
+        stopVoiceRecog();
+        whisperMode = true;
+
+        // Verifica se Whisper está instalado no servidor
+        const res = await fetch('/voice/status').then(r=>r.json()).catch(()=>null);
+        const hasWhisper = res && (res.engines?.faster_whisper || res.engines?.whisper);
+
+        if (!hasWhisper) {
+            orbSetState('wake', '', 'WHISPER NÃO INSTALADO');
+            appendMsg('assistant',
+                '⚠ Web Speech API sem internet e Whisper não instalado.\n\n' +
+                'Para usar voz offline, instale:\n' +
+                'pip install faster-whisper\n\n' +
+                'Depois reinicie o servidor ICARUS.');
+            // Modo push-to-talk sem STT — só mostra o orb e usa input manual
+            enablePushToTalkMode();
+            return;
+        }
+
+        // Whisper disponível — modo push-to-talk com transcrição local
+        orbSetState('wake', '', 'MODO OFFLINE · SEGURE O ORB PARA FALAR');
+        appendMsg('assistant', '🎤 Alternado para Whisper local (offline). Segure o círculo do orb para falar.');
+        enableWhisperPushToTalk();
+    }
+
+    function enableWhisperPushToTalk() {
+        const core = document.querySelector('.orb-core');
+        if (!core) return;
+        core.style.cursor = 'pointer';
+        core.title = 'Segure para falar';
+
+        core.onpointerdown = async (e) => {
+            e.preventDefault();
+            if (orbHoldActive) return;
+            orbHoldActive = true;
+            audioChunks = [];
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                mediaRecorder = new MediaRecorder(stream, {mimeType: 'audio/webm'});
+                mediaRecorder.ondataavailable = ev => { if (ev.data.size > 0) audioChunks.push(ev.data); };
+                mediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    orbSetState('process', '', 'TRANSCREVENDO...');
+                    const blob = new Blob(audioChunks, {type: 'audio/webm'});
+                    try {
+                        const resp = await fetch('/voice/transcribe', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'audio/webm'},
+                            body: blob
+                        });
+                        const data = await resp.json();
+                        if (data.text && data.text.length > 1) {
+                            orbSetState('listen', data.text, 'COMANDO RECEBIDO');
+                            await processVoiceCommand(data.text);
+                        } else {
+                            orbSetState('wake', '', 'NÃO ENTENDI · TENTE NOVAMENTE');
+                        }
+                    } catch(err) {
+                        orbSetState('wake', '', 'ERRO NA TRANSCRIÇÃO · TENTE NOVAMENTE');
+                    }
+                    orbHoldActive = false;
+                };
+                mediaRecorder.start();
+                orbSetState('listen', '', 'GRAVANDO... SOLTE PARA ENVIAR');
+            } catch(err) {
+                orbHoldActive = false;
+                orbSetState('wake', '', 'ERRO NO MICROFONE');
+            }
+        };
+
+        core.onpointerup = core.onpointercancel = () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+        };
+    }
+
+    function enablePushToTalkMode() {
+        // Sem STT — orb abre input de texto
+        const core = document.querySelector('.orb-core');
+        if (!core) return;
+        core.style.cursor = 'pointer';
+        core.onclick = () => {
+            setVoiceMode(false);
+            chatInput.focus();
+        };
+        orbSetState('wake', 'Clique no orb para digitar', 'SEM CONEXÃO · SEM WHISPER');
     }
 
     async function processVoiceCommand(cmd) {
@@ -2997,6 +3104,56 @@
 
     // Auto-TTS para modo voz (quando recebe resposta no chat normal)
     const _origSendMsg = sendMessage;
+
+    // ── Orb Push-to-Talk button ───────────────────────────
+    async function orbPTTStart() {
+        if (orbHoldActive) return;
+        // Se Whisper disponível no servidor, usa ele (offline)
+        const res = await fetch('/voice/status').then(r=>r.json()).catch(()=>null);
+        const hasWhisper = res && (res.engines?.faster_whisper || res.engines?.whisper);
+
+        if (hasWhisper) {
+            // Grava com MediaRecorder → Whisper
+            whisperMode = true;
+            orbHoldActive = true;
+            audioChunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+                mediaRecorder = new MediaRecorder(stream, {mimeType:'audio/webm'});
+                mediaRecorder.ondataavailable = ev => { if(ev.data.size>0) audioChunks.push(ev.data); };
+                mediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(t=>t.stop());
+                    orbSetState('process','','TRANSCREVENDO COM WHISPER...');
+                    const blob = new Blob(audioChunks,{type:'audio/webm'});
+                    try {
+                        const resp = await fetch('/voice/transcribe',{
+                            method:'POST', headers:{'Content-Type':'audio/webm'}, body:blob
+                        });
+                        const data = await resp.json();
+                        if(data.text && data.text.length>1) {
+                            orbSetState('listen',data.text,'COMANDO RECEBIDO');
+                            await processVoiceCommand(data.text);
+                        } else {
+                            orbSetState('wake','','NÃO ENTENDI · TENTE NOVAMENTE');
+                        }
+                    } catch(e){ orbSetState('wake','','ERRO · TENTE NOVAMENTE'); }
+                    orbHoldActive=false;
+                };
+                mediaRecorder.start();
+                orbSetState('listen','','🔴 GRAVANDO... SOLTE PARA ENVIAR');
+                document.getElementById('orbPttBtn').style.background='rgba(255,51,85,0.2)';
+            } catch(e){ orbHoldActive=false; }
+        } else {
+            // Sem Whisper — usa Web Speech API normalmente
+            if(!isRecording) toggleVoice();
+        }
+    }
+
+    function orbPTTStop() {
+        document.getElementById('orbPttBtn').style.background='';
+        if(mediaRecorder && mediaRecorder.state==='recording') mediaRecorder.stop();
+        else if(isRecording) recognition?.stop();
+    }
 
     // ── Boot sequence ────────────────────────────────────
     function bootSequence() {
