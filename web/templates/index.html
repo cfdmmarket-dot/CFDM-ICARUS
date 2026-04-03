@@ -686,7 +686,8 @@
         /* Status bar */
         .statusbar {
             height: 24px;
-            background: var(--accent);
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
             display: flex;
             align-items: center;
             padding: 0 12px;
@@ -696,13 +697,13 @@
 
         .statusbar-item {
             font-size: 11px;
-            color: rgba(255,255,255,0.85);
+            color: var(--text-dim);
             display: flex;
             align-items: center;
             gap: 4px;
         }
 
-        .statusbar-item span { opacity: 0.7; }
+        .statusbar-item span { color: var(--text-faint); }
 
         /* Context menu style tabs (view switcher) */
         .view-tabs {
@@ -761,6 +762,237 @@
         }
 
         .msg-row { animation: fadeUp 0.2s ease; }
+
+        /* ── Modals ───────────────────────────────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10,12,22,0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            width: 560px;
+            max-width: 95vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+            animation: fadeUp 0.18s ease;
+        }
+
+        .modal-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            width: 26px; height: 26px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.12s;
+        }
+        .modal-close:hover { background: var(--bg-hover); border-color: var(--border); color: var(--text); }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-section { display: flex; flex-direction: column; gap: 10px; }
+
+        .modal-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 6px 0;
+        }
+
+        .setting-label { font-size: 12.5px; color: var(--text); }
+        .setting-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+
+        .setting-control select,
+        .setting-control input[type="text"],
+        .setting-control input[type="url"] {
+            height: 28px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 0 8px;
+            font-size: 12px;
+            outline: none;
+            min-width: 160px;
+            transition: border-color 0.15s;
+        }
+        .setting-control select:focus,
+        .setting-control input:focus { border-color: var(--border-acc); }
+
+        .setting-control input[type="range"] {
+            width: 120px;
+            accent-color: var(--accent);
+        }
+
+        .toggle {
+            position: relative;
+            width: 36px; height: 20px;
+            flex-shrink: 0;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; inset: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px; height: 14px;
+            left: 2px; top: 2px;
+            background: var(--text-faint);
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .toggle input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+        .toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: #fff; }
+
+        .mic-test-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .mic-level {
+            flex: 1;
+            height: 6px;
+            background: var(--bg-input);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .mic-level-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--green), var(--accent));
+            border-radius: 3px;
+            transition: width 0.1s;
+        }
+
+        .btn-sm {
+            height: 28px;
+            padding: 0 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 11.5px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.12s;
+        }
+        .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-sm.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .btn-sm.primary:hover { opacity: 0.85; }
+
+        /* Manual tabs */
+        .manual-tabs {
+            display: flex;
+            gap: 2px;
+            background: var(--bg-input);
+            padding: 3px;
+            border-radius: var(--radius);
+            flex-shrink: 0;
+        }
+        .manual-tab {
+            flex: 1;
+            height: 26px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: var(--text-faint);
+            font-size: 11.5px;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+        .manual-tab.active { background: var(--bg-panel); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+        .manual-page { display: none; flex-direction: column; gap: 14px; }
+        .manual-page.active { display: flex; }
+
+        .cmd-group { display: flex; flex-direction: column; gap: 6px; }
+        .cmd-group-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--accent); margin-bottom: 2px;
+        }
+        .cmd-item {
+            display: flex; gap: 10px; align-items: flex-start;
+            padding: 5px 8px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            font-size: 12px;
+        }
+        .cmd-key {
+            font-family: monospace;
+            color: var(--accent);
+            background: var(--accent-dim);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .cmd-desc { color: var(--text-dim); line-height: 1.4; }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
     </style>
 </head>
 <body>
@@ -771,7 +1003,7 @@
         <div class="logo-mark">I</div>
         <div>
             <div class="logo-name">ICARUS</div>
-            <div class="logo-version">v1.0.0 — CFDM Holding</div>
+            <div class="logo-version">v1.2.0 — CFDM Holding</div>
         </div>
     </div>
 
@@ -784,6 +1016,9 @@
     <button class="tb-btn" onclick="sendCmd('/agentes')">🤖 Agentes</button>
 
     <div class="toolbar-right">
+        <button class="tb-btn" onclick="openModal('modalManual')" title="Manual de referência rápida">📖 Manual</button>
+        <button class="tb-btn" onclick="openModal('modalSettings')" title="Configurações">⚙ Config</button>
+        <div class="toolbar-sep"></div>
         <a href="http://localhost:8000" target="_blank" class="tb-btn">🌐 Cfdm Nexus</a>
         <div class="status-pill">
             <div class="status-dot" id="statusDot"></div>
@@ -917,7 +1152,7 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Versão</span>
-                        <span class="info-value">v1.0.0</span>
+                        <span class="info-value">v1.2.0</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Cfdm Nexus</span>
@@ -981,9 +1216,271 @@
 
 </div>
 
+<!-- ── Modal: Configurações ─────────────────────────────────── -->
+<div class="modal-overlay" id="modalSettings" onclick="closeModalOutside(event,'modalSettings')">
+<div class="modal">
+    <div class="modal-header">
+        <div class="modal-title">⚙ Configurações — ICARUS</div>
+        <button class="modal-close" onclick="closeModal('modalSettings')">✕</button>
+    </div>
+    <div class="modal-body">
+
+        <div class="modal-section">
+            <div class="modal-section-title">🎤 Microfone / Voz</div>
+            <div class="mic-test-row">
+                <span style="font-size:11.5px;color:var(--text-dim)">Nível do mic:</span>
+                <div class="mic-level"><div class="mic-level-bar" id="micLevelBar"></div></div>
+                <button class="btn-sm" id="micTestBtn" onclick="toggleMicTest()">Testar mic</button>
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">Idioma de voz</div>
+                <div class="setting-sub">Idioma usado pelo reconhecimento de voz</div></div>
+                <div class="setting-control">
+                    <select id="voiceLang" onchange="saveSetting('voiceLang',this.value)">
+                        <option value="pt-BR" selected>Português (Brasil)</option>
+                        <option value="pt-PT">Português (Portugal)</option>
+                        <option value="en-US">English (US)</option>
+                        <option value="es-ES">Español</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">Envio automático após voz</div>
+                <div class="setting-sub">Envia mensagem automaticamente ao parar de falar</div></div>
+                <label class="toggle">
+                    <input type="checkbox" id="autoSendVoice" checked onchange="saveSetting('autoSendVoice',this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">TTS (fala do ICARUS)</div>
+                <div class="setting-sub">Requer pyttsx3 instalado no servidor</div></div>
+                <label class="toggle">
+                    <input type="checkbox" id="ttsEnabled" onchange="saveSetting('ttsEnabled',this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">🌐 Conexões</div>
+            <div class="setting-row">
+                <div><div class="setting-label">URL Cfdm Nexus</div>
+                <div class="setting-sub">Servidor de agentes (padrão: porta 8000)</div></div>
+                <div class="setting-control">
+                    <input type="url" id="nexusUrl" value="http://localhost:8000"
+                        onchange="saveSetting('nexusUrl',this.value)" placeholder="http://localhost:8000">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">URL CfdmNote Bridge</div>
+                <div class="setting-sub">WebSocket bridge (futuro — v1.4.0)</div></div>
+                <div class="setting-control">
+                    <input type="url" id="noteUrl" value="ws://localhost:9001"
+                        onchange="saveSetting('noteUrl',this.value)" placeholder="ws://localhost:9001">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">🎨 Interface</div>
+            <div class="setting-row">
+                <div><div class="setting-label">Tamanho do texto</div></div>
+                <div class="setting-control">
+                    <input type="range" id="fontSize" min="11" max="16" value="13"
+                        oninput="applyFontSize(this.value)">
+                    <span id="fontSizeVal" style="font-size:11px;color:var(--text-dim);margin-left:6px">13px</span>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">Animações de mensagem</div></div>
+                <label class="toggle">
+                    <input type="checkbox" id="animations" checked onchange="toggleAnimations(this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">ℹ Sistema</div>
+            <div class="setting-row">
+                <span class="setting-label">Versão ICARUS</span>
+                <span style="font-size:12px;color:var(--accent)">v1.2.0</span>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Porta web</span>
+                <span style="font-size:12px;color:var(--text-dim)">8001</span>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Memória</span>
+                <span style="font-size:12px;color:var(--text-dim)">memory/*.json (local)</span>
+            </div>
+            <button class="btn-sm" onclick="sendCmd('/status');closeModal('modalSettings')">Ver status completo</button>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<!-- ── Modal: Manual de Referência Rápida ──────────────────── -->
+<div class="modal-overlay" id="modalManual" onclick="closeModalOutside(event,'modalManual')">
+<div class="modal" style="width:640px">
+    <div class="modal-header">
+        <div class="modal-title">📖 Manual de Referência Rápida — ICARUS v1.2.0</div>
+        <button class="modal-close" onclick="closeModal('modalManual')">✕</button>
+    </div>
+    <div class="modal-body">
+        <div class="manual-tabs">
+            <button class="manual-tab active" onclick="switchManual('comandos')">Comandos</button>
+            <button class="manual-tab" onclick="switchManual('skills')">Skills</button>
+            <button class="manual-tab" onclick="switchManual('modos')">Modos</button>
+            <button class="manual-tab" onclick="switchManual('atalhos')">Atalhos</button>
+        </div>
+
+        <!-- Comandos -->
+        <div class="manual-page active" id="manPage-comandos">
+            <div class="cmd-group">
+                <div class="cmd-group-title">Sistema</div>
+                <div class="cmd-item"><span class="cmd-key">/status</span><span class="cmd-desc">Ver status completo do ICARUS e conexões</span></div>
+                <div class="cmd-item"><span class="cmd-key">/agentes</span><span class="cmd-desc">Listar agentes disponíveis no Cfdm Nexus</span></div>
+                <div class="cmd-item"><span class="cmd-key">/modos</span><span class="cmd-desc">Listar todos os 28 modos operacionais</span></div>
+                <div class="cmd-item"><span class="cmd-key">/modo</span><span class="cmd-desc">Ver modo ativo atual</span></div>
+                <div class="cmd-item"><span class="cmd-key">/ajuda</span><span class="cmd-desc">Ajuda geral do ICARUS</span></div>
+                <div class="cmd-item"><span class="cmd-key">/memoria</span><span class="cmd-desc">Ver memórias salvas</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Tarefas</div>
+                <div class="cmd-item"><span class="cmd-key">adiciona tarefa: [texto]</span><span class="cmd-desc">Criar nova tarefa</span></div>
+                <div class="cmd-item"><span class="cmd-key">minhas tarefas</span><span class="cmd-desc">Listar todas as tarefas pendentes</span></div>
+                <div class="cmd-item"><span class="cmd-key">concluir tarefa [n]</span><span class="cmd-desc">Marcar tarefa como concluída</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Modos Operacionais</div>
+                <div class="cmd-item"><span class="cmd-key">ativar modo FINANCAS</span><span class="cmd-desc">Ativa modo financeiro</span></div>
+                <div class="cmd-item"><span class="cmd-key">ativar modo CRIATIVO</span><span class="cmd-desc">Ativa modo criativo</span></div>
+                <div class="cmd-item"><span class="cmd-key">ativar modo MESTRE DOS MAGOS</span><span class="cmd-desc">GOD MODE — análise completa</span></div>
+                <div class="cmd-item"><span class="cmd-key">desativar modo</span><span class="cmd-desc">Desativa o modo atual</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Agentes</div>
+                <div class="cmd-item"><span class="cmd-key">convocar agente de marketing</span><span class="cmd-desc">Busca agente por especialidade no Nexus</span></div>
+                <div class="cmd-item"><span class="cmd-key">montar equipe para [projeto]</span><span class="cmd-desc">Cria equipe de agentes para a tarefa</span></div>
+            </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="manual-page" id="manPage-skills">
+            <div class="cmd-group">
+                <div class="cmd-group-title">📰 Notícias (noticias_skill)</div>
+                <div class="cmd-item"><span class="cmd-key">briefing matinal</span><span class="cmd-desc">Resumo do dia: HN, TechCrunch, G1</span></div>
+                <div class="cmd-item"><span class="cmd-key">notícias de tecnologia</span><span class="cmd-desc">Hacker News + TechCrunch</span></div>
+                <div class="cmd-item"><span class="cmd-key">notícias de IA</span><span class="cmd-desc">The Verge AI + MIT Technology Review</span></div>
+                <div class="cmd-item"><span class="cmd-key">notícias do brasil</span><span class="cmd-desc">G1 RSS</span></div>
+                <div class="cmd-item"><span class="cmd-key">notícias de negócios</span><span class="cmd-desc">Reuters Business</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">📅 Agenda (agenda_skill)</div>
+                <div class="cmd-item"><span class="cmd-key">agenda de hoje</span><span class="cmd-desc">Compromissos do dia</span></div>
+                <div class="cmd-item"><span class="cmd-key">agenda de amanhã</span><span class="cmd-desc">Compromissos de amanhã</span></div>
+                <div class="cmd-item"><span class="cmd-key">próximos compromissos</span><span class="cmd-desc">Agenda dos próximos 7 dias</span></div>
+                <div class="cmd-item"><span class="cmd-key">agendar reunião amanhã às 14h</span><span class="cmd-desc">Criar compromisso</span></div>
+                <div class="cmd-item"><span class="cmd-key">cancelar evento [n]</span><span class="cmd-desc">Remover compromisso pelo ID</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">💰 Financeiro (financeiro_skill)</div>
+                <div class="cmd-item"><span class="cmd-key">visão geral financeira</span><span class="cmd-desc">Saldo, contas e alertas</span></div>
+                <div class="cmd-item"><span class="cmd-key">contas a vencer</span><span class="cmd-desc">Vencimentos próximos</span></div>
+                <div class="cmd-item"><span class="cmd-key">fluxo de caixa</span><span class="cmd-desc">Relatório financeiro completo</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">🎤 Voz (voz_skill)</div>
+                <div class="cmd-item"><span class="cmd-key">status de voz</span><span class="cmd-desc">TTS e STT disponíveis</span></div>
+                <div class="cmd-item"><span class="cmd-key">testar voz</span><span class="cmd-desc">ICARUS fala uma frase de teste</span></div>
+                <div class="cmd-item"><span class="cmd-key">falar [texto]</span><span class="cmd-desc">ICARUS lê o texto em voz alta</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">🤖 Nexus (nexus_skill)</div>
+                <div class="cmd-item"><span class="cmd-key">executar agente [nome]: [tarefa]</span><span class="cmd-desc">Roda agente no Cfdm Nexus</span></div>
+                <div class="cmd-item"><span class="cmd-key">listar agentes nexus</span><span class="cmd-desc">Todos os 286+ agentes disponíveis</span></div>
+            </div>
+        </div>
+
+        <!-- Modos -->
+        <div class="manual-page" id="manPage-modos">
+            <div class="cmd-group">
+                <div class="cmd-group-title">Camada 1 — Pessoal / Produtividade</div>
+                <div class="cmd-item"><span class="cmd-key">FOCO</span><span class="cmd-desc">Deep work, sem distrações, timer Pomodoro</span></div>
+                <div class="cmd-item"><span class="cmd-key">MORNING</span><span class="cmd-desc">Rotina matinal: briefing, tarefas, energia</span></div>
+                <div class="cmd-item"><span class="cmd-key">REVISAO</span><span class="cmd-desc">Review semanal e planejamento</span></div>
+                <div class="cmd-item"><span class="cmd-key">DESCANSO</span><span class="cmd-desc">Modo leve, sem pressão de produtividade</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Camada 2 — Negócios / Estratégia</div>
+                <div class="cmd-item"><span class="cmd-key">FINANCAS</span><span class="cmd-desc">Sentinela financeiro CFDM Holding</span></div>
+                <div class="cmd-item"><span class="cmd-key">VENDAS</span><span class="cmd-desc">Funil, objeções, fechamento</span></div>
+                <div class="cmd-item"><span class="cmd-key">ESTRATEGIA</span><span class="cmd-desc">Análise, planejamento, decisão</span></div>
+                <div class="cmd-item"><span class="cmd-key">INVESTIMENTO</span><span class="cmd-desc">Análise de ativos e oportunidades</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Camada 3 — Criativo / Conteúdo</div>
+                <div class="cmd-item"><span class="cmd-key">CRIATIVO</span><span class="cmd-desc">Brainstorm, ideias sem filtro</span></div>
+                <div class="cmd-item"><span class="cmd-key">CONTEUDO</span><span class="cmd-desc">Scripts, posts, roteiros YouTube</span></div>
+                <div class="cmd-item"><span class="cmd-key">COPY</span><span class="cmd-desc">Copywriting persuasivo e headlines</span></div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Camada 7 — GOD MODE</div>
+                <div class="cmd-item"><span class="cmd-key">MESTRE DOS MAGOS</span><span class="cmd-desc">Orquestrador MOR — análise 360° completa com FAQs, matriz de decisão e roadmap</span></div>
+            </div>
+            <div style="padding:8px;background:var(--bg-card);border-radius:var(--radius);font-size:11.5px;color:var(--text-dim)">
+                Sintaxe: <span style="color:var(--accent)">ativar modo [NOME] (NÍVEL | ESTILO | FOCO)</span><br>
+                Ex: <span style="color:var(--accent)">ativar modo CRIATIVO (ALTO | INSTAGRAM | VIRAL)</span>
+            </div>
+        </div>
+
+        <!-- Atalhos -->
+        <div class="manual-page" id="manPage-atalhos">
+            <div class="cmd-group">
+                <div class="cmd-group-title">Teclado</div>
+                <div class="shortcut-grid">
+                    <div class="cmd-item"><span class="cmd-key">Enter</span><span class="cmd-desc">Enviar mensagem</span></div>
+                    <div class="cmd-item"><span class="cmd-key">Shift+Enter</span><span class="cmd-desc">Nova linha</span></div>
+                    <div class="cmd-item"><span class="cmd-key">🎤 Botão</span><span class="cmd-desc">Ativar/parar microfone</span></div>
+                    <div class="cmd-item"><span class="cmd-key">✅ Botão</span><span class="cmd-desc">Adicionar tarefa rápida</span></div>
+                </div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Microfone — Solução de Problemas</div>
+                <div class="cmd-item" style="flex-direction:column;gap:6px">
+                    <span class="cmd-desc">1. Use <b>Chrome ou Chromium</b> — Firefox não suporta Web Speech API</span>
+                </div>
+                <div class="cmd-item" style="flex-direction:column;gap:6px">
+                    <span class="cmd-desc">2. Acesse via <b>http://localhost:8001</b> — HTTPS não é necessário em localhost</span>
+                </div>
+                <div class="cmd-item" style="flex-direction:column;gap:6px">
+                    <span class="cmd-desc">3. Quando clicar no 🎤, o Chrome pedirá permissão — clique <b>Permitir</b></span>
+                </div>
+                <div class="cmd-item" style="flex-direction:column;gap:6px">
+                    <span class="cmd-desc">4. Se o mic não funcionar, vá em <b>⚙ Config → Testar mic</b> para diagnóstico</span>
+                </div>
+                <div class="cmd-item" style="flex-direction:column;gap:6px">
+                    <span class="cmd-desc">5. No Linux, verifique: <b>PulseAudio/PipeWire</b> ativo e mic não mudo no sistema</span>
+                </div>
+            </div>
+            <div class="cmd-group">
+                <div class="cmd-group-title">Portas do Ecossistema</div>
+                <div class="cmd-item"><span class="cmd-key">:8001</span><span class="cmd-desc">ICARUS (este app)</span></div>
+                <div class="cmd-item"><span class="cmd-key">:8000</span><span class="cmd-desc">Cfdm Nexus (286+ agentes)</span></div>
+                <div class="cmd-item"><span class="cmd-key">:9001</span><span class="cmd-desc">CfdmNote Bridge (futuro v1.4.0)</span></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
 <!-- ── Status bar ──────────────────────────────────────────────── -->
 <div class="statusbar">
-    <div class="statusbar-item">✦ ICARUS <span>v1.0.0</span></div>
+    <div class="statusbar-item">✦ ICARUS <span>v1.2.0</span></div>
     <div class="statusbar-item">🌐 Nexus: <span id="sbNexus">verificando...</span></div>
     <div class="statusbar-item">💬 <span id="sbMsgs">0</span> mensagens</div>
     <div class="statusbar-item" style="margin-left:auto" id="sbTime"></div>
@@ -1310,11 +1807,104 @@
         recognition.start();
     }
 
+    // ── Modals ───────────────────────────────────────────
+    function openModal(id) {
+        document.getElementById(id).classList.add('open');
+    }
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+        stopMicTest();
+    }
+    function closeModalOutside(e, id) {
+        if (e.target.id === id) closeModal(id);
+    }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape')
+            document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+    });
+
+    // ── Manual tabs ──────────────────────────────────────
+    function switchManual(tab) {
+        const tabs = ['comandos','skills','modos','atalhos'];
+        document.querySelectorAll('.manual-tab').forEach((t, i) =>
+            t.classList.toggle('active', tabs[i] === tab));
+        document.querySelectorAll('.manual-page').forEach(p =>
+            p.classList.toggle('active', p.id === 'manPage-' + tab));
+    }
+
+    // ── Settings ─────────────────────────────────────────
+    function saveSetting(key, val) { localStorage.setItem('icarus_' + key, val); }
+
+    function loadSettings() {
+        const lang = localStorage.getItem('icarus_voiceLang');
+        if (lang) document.getElementById('voiceLang').value = lang;
+        const fs = localStorage.getItem('icarus_fontSize');
+        if (fs) { applyFontSize(fs); document.getElementById('fontSize').value = fs; }
+        const autoSend = localStorage.getItem('icarus_autoSendVoice');
+        if (autoSend === 'false') document.getElementById('autoSendVoice').checked = false;
+    }
+
+    function applyFontSize(size) {
+        document.body.style.fontSize = size + 'px';
+        document.getElementById('fontSizeVal').textContent = size + 'px';
+        saveSetting('fontSize', size);
+    }
+
+    function toggleAnimations(on) {
+        document.querySelectorAll('.msg-row').forEach(m => m.style.animation = on ? '' : 'none');
+    }
+
+    // ── Mic test ─────────────────────────────────────────
+    let micStream = null, micAnalyser = null, micAnimFrame = null, micTesting = false;
+
+    async function toggleMicTest() {
+        if (micTesting) { stopMicTest(); return; }
+        const btn = document.getElementById('micTestBtn');
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const ctx = new AudioContext();
+            const src = ctx.createMediaStreamSource(micStream);
+            micAnalyser = ctx.createAnalyser();
+            micAnalyser.fftSize = 256;
+            src.connect(micAnalyser);
+            micTesting = true;
+            btn.textContent = 'Parar teste';
+            btn.classList.add('primary');
+            animateMicLevel();
+        } catch(e) {
+            const bar = document.getElementById('micLevelBar');
+            bar.style.width = '0%';
+            bar.style.background = 'var(--red)';
+            btn.textContent = 'Sem permissão';
+            setTimeout(() => { btn.textContent = 'Testar mic'; bar.style.background = ''; }, 3000);
+        }
+    }
+
+    function animateMicLevel() {
+        if (!micTesting || !micAnalyser) return;
+        const data = new Uint8Array(micAnalyser.frequencyBinCount);
+        micAnalyser.getByteFrequencyData(data);
+        const avg = data.reduce((a, b) => a + b, 0) / data.length;
+        document.getElementById('micLevelBar').style.width = Math.min(100, avg * 2.5) + '%';
+        micAnimFrame = requestAnimationFrame(animateMicLevel);
+    }
+
+    function stopMicTest() {
+        micTesting = false;
+        if (micAnimFrame) cancelAnimationFrame(micAnimFrame);
+        if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+        const bar = document.getElementById('micLevelBar');
+        if (bar) bar.style.width = '0%';
+        const btn = document.getElementById('micTestBtn');
+        if (btn) { btn.textContent = 'Testar mic'; btn.classList.remove('primary'); }
+    }
+
     // ── Init ─────────────────────────────────────────────
     checkStatus();
     checkNexus();
     loadTasks();
     updateClock();
+    loadSettings();
     setInterval(checkStatus, 30000);
     setInterval(checkNexus, 60000);
     setInterval(updateClock, 1000);
