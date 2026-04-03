@@ -1,6 +1,58 @@
 # ICARUS — Development Log
 > Intelligent Conversational Assistant for Research, Understanding & Strategy
-> CFDM Holding | Versão atual: v1.1.0
+> CFDM Holding | Versão atual: v1.3.1
+
+---
+
+## [v1.3.1] — 2026-04-03
+
+### Adicionado — Cfdm Nexus Integrado ao Painel ICARUS
+- **Tab ⚡ Nexus** no right panel — Nexus agora vive dentro do ICARUS (sem abrir nova aba)
+- **Status em tempo real** — indicador online/offline com dot verde/vermelho e contador de agentes
+- **Lista de agentes pesquisável** — busca em tempo real, seleção com clique
+- **Execução direta** — campo de tarefa + botão ▶ Executar roda o agente via ICARUS chat
+- **Alternativa Chat** — botão 💬 envia o comando pelo chat visível (transparente)
+- **API: GET /nexus/status** — proxy para Nexus /status (sem CORS no frontend)
+- **API: POST /nexus/run** — executa agente via nexus_skill do ICARUS
+- **Launcher unificado** — `icarus-launcher.sh` agora inicia Nexus (:8000) antes do ICARUS (:8001)
+- Sidebar "Ecossistema": clique em Nexus abre o painel integrado (não nova aba)
+- `checkNexus()` migrado para `/nexus/status` proxy (elimina chamadas CORS diretas)
+
+### Decisão Arquitetural
+```
+Nexus DENTRO do ICARUS (não o contrário):
+- ICARUS = interface (assistente pessoal, front-end)
+- Nexus  = motor (286+ agentes, back-end invisível)
+- Um launcher abre tudo; usuário usa apenas ICARUS (:8001)
+```
+
+---
+
+## [v1.3.0] — 2026-04-03
+
+### Adicionado — JARVIS HUD + Voice Mode
+- **UI JARVIS/Iron Man** — paleta cyan `#00d4ff`, fundo `#020c14`, grade HUD, scanlines, Orbitron font
+- **Voice Orb** — overlay fullscreen com anéis rotativos, estado wake/escuta/pensando
+- **Wake word** — detecção de "ICARUS/ICARO/ÍCARUS" em loop contínuo (Web Speech API)
+- **Push-to-Talk (PTT)** — MediaRecorder → POST /voice/transcribe → Whisper local → texto
+- **TTS** — SpeechSynthesis pt-BR, limpa markdown, fala respostas automaticamente
+- **API: POST /voice/transcribe** — faster-whisper → openai-whisper fallback (offline)
+- **API: GET /voice/status** — informa engines disponíveis
+- **API: GET /system** — CPU/RAM/disco via psutil
+- **API: GET /logs** — últimas N entradas do buffer de log
+- **API: GET /scripts** — lista scripts/*.py
+- Modais: Agentes, Comandos, Logs, Sistema, Ferramentas, Config, Manual
+- Animação de boot na tela de boas-vindas
+- Fix: erro de rede no microfone — mensagem amigável + fallback Whisper
+
+---
+
+## [v1.2.0] — 2026-04-03
+
+### Adicionado
+- **Skill de Notícias** (`skills/noticias_skill.py`) — RSS nativo sem dependências externas
+- **Skill de Agenda** (`skills/agenda_skill.py`) — agenda local em `memory/agenda.json`
+- `skill_router.py` — intents noticias + agenda com padrões em PT-BR
 
 ---
 
