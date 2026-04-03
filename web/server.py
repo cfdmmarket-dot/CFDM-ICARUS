@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.icarus_core import IcarusCore, ICARUS_PERSONA
 
-app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.2.0")
+app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.3.0")
 
 # Buffer circular de logs (últimas 200 entradas)
 LOG_BUFFER: deque = deque(maxlen=200)

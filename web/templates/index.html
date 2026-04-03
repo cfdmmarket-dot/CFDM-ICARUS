@@ -920,6 +920,174 @@
 
         .msg-row { animation: fadeUp 0.2s ease; }
 
+        /* ── JARVIS Voice Orb ─────────────────────────────── */
+        #voiceOrb {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: rgba(2,12,20,0.85);
+            backdrop-filter: blur(8px);
+        }
+        #voiceOrb.active { display: flex; }
+
+        .orb-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Rings */
+        .orb-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(0,212,255,0.3);
+        }
+        .orb-ring-1 { inset: 0;    animation: ringPulse 2s ease-in-out infinite; }
+        .orb-ring-2 { inset: -16px; animation: ringPulse 2s ease-in-out infinite 0.4s; }
+        .orb-ring-3 { inset: -32px; animation: ringPulse 2s ease-in-out infinite 0.8s; }
+        .orb-ring-4 {
+            inset: -8px;
+            border: 2px solid transparent;
+            border-top-color: var(--accent);
+            border-right-color: rgba(0,212,255,0.3);
+            animation: arcRotate 1.5s linear infinite;
+        }
+
+        @keyframes ringPulse {
+            0%,100% { opacity:0.3; transform:scale(1); }
+            50%      { opacity:0.8; transform:scale(1.04); border-color: rgba(0,212,255,0.7); }
+        }
+
+        /* Core */
+        .orb-core {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%,
+                rgba(0,212,255,0.25) 0%,
+                rgba(0,128,255,0.12) 50%,
+                rgba(0,0,0,0.4) 100%);
+            border: 2px solid var(--accent);
+            box-shadow:
+                0 0 30px rgba(0,212,255,0.4),
+                0 0 60px rgba(0,212,255,0.15),
+                inset 0 0 30px rgba(0,212,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            animation: hudGlow 2s ease-in-out infinite;
+        }
+
+        .orb-letter {
+            font-family: 'Orbitron', monospace;
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent), 0 0 40px rgba(0,212,255,0.5);
+            line-height: 1;
+        }
+
+        .orb-status-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            opacity: 0.8;
+        }
+
+        /* Waveform bars */
+        .orb-wave {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+            height: 20px;
+            margin-top: 2px;
+        }
+        .orb-wave span {
+            width: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+            animation: waveBar 0.8s ease-in-out infinite;
+        }
+        .orb-wave span:nth-child(1) { animation-delay:0s;    height:6px; }
+        .orb-wave span:nth-child(2) { animation-delay:0.1s;  height:14px; }
+        .orb-wave span:nth-child(3) { animation-delay:0.2s;  height:20px; }
+        .orb-wave span:nth-child(4) { animation-delay:0.3s;  height:12px; }
+        .orb-wave span:nth-child(5) { animation-delay:0.4s;  height:8px; }
+        .orb-wave span:nth-child(6) { animation-delay:0.2s;  height:16px; }
+        .orb-wave span:nth-child(7) { animation-delay:0.1s;  height:10px; }
+
+        @keyframes waveBar {
+            0%,100% { transform: scaleY(0.4); opacity:0.5; }
+            50%      { transform: scaleY(1);   opacity:1; }
+        }
+
+        /* Transcript + info */
+        .orb-transcript {
+            margin-top: 28px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 13px;
+            color: var(--text);
+            text-align: center;
+            max-width: 420px;
+            min-height: 22px;
+            letter-spacing: 0.04em;
+            padding: 0 20px;
+            line-height: 1.5;
+        }
+
+        .orb-info {
+            margin-top: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-faint);
+            letter-spacing: 0.1em;
+        }
+
+        .orb-close-btn {
+            margin-top: 28px;
+            padding: 8px 24px;
+            background: transparent;
+            border: 1px solid rgba(0,212,255,0.4);
+            border-radius: var(--radius);
+            color: var(--text-dim);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .orb-close-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: var(--glow-sm);
+        }
+
+        /* Orb states */
+        #voiceOrb.state-wake     .orb-core { border-color: var(--text-faint); box-shadow: none; animation: none; }
+        #voiceOrb.state-listen   .orb-core { border-color: var(--green); box-shadow: 0 0 30px rgba(0,255,136,0.4); }
+        #voiceOrb.state-process  .orb-core { border-color: var(--gold); box-shadow: 0 0 30px rgba(255,215,0,0.4); }
+        #voiceOrb.state-speak    .orb-core { border-color: var(--accent2); box-shadow: 0 0 30px rgba(0,128,255,0.5); }
+
+        /* Voice mode btn */
+        .tb-btn.voice-on {
+            background: rgba(0,255,136,0.1) !important;
+            border-color: var(--green) !important;
+            color: var(--green) !important;
+            box-shadow: 0 0 8px rgba(0,255,136,0.3) !important;
+            animation: hudGlow 2s ease-in-out infinite;
+        }
+
         /* ── Modals ───────────────────────────────────────── */
         .modal-overlay {
             display: none;
@@ -1160,18 +1328,40 @@
 
 <div class="scan-line"></div>
 
+<!-- ── JARVIS Voice Orb ────────────────────────────────────────── -->
+<div id="voiceOrb" class="state-wake">
+    <div class="orb-container">
+        <div class="orb-ring orb-ring-1"></div>
+        <div class="orb-ring orb-ring-2"></div>
+        <div class="orb-ring orb-ring-3"></div>
+        <div class="orb-ring orb-ring-4"></div>
+        <div class="orb-core">
+            <div class="orb-letter">I</div>
+            <div class="orb-status-text" id="orbStatusText">AGUARDANDO</div>
+            <div class="orb-wave" id="orbWave" style="display:none">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+    <div class="orb-transcript" id="orbTranscript"></div>
+    <div class="orb-info" id="orbInfo">DIGA "ICARUS" PARA ATIVAR · ESC PARA FECHAR</div>
+    <button class="orb-close-btn" onclick="setVoiceMode(false)">[ DESATIVAR MODO VOZ ]</button>
+</div>
+
 <!-- ── Toolbar ─────────────────────────────────────────────────── -->
 <div class="toolbar">
     <div class="logo">
         <div class="logo-mark">I</div>
         <div>
             <div class="logo-name">ICARUS</div>
-            <div class="logo-version">v1.2.0 — CFDM Holding</div>
+            <div class="logo-version">v1.3.0 — CFDM Holding</div>
         </div>
     </div>
 
     <div class="toolbar-sep"></div>
 
+    <button class="tb-btn" id="tbVoiceMode" onclick="toggleVoiceMode()" title="Modo Voz JARVIS — wake word ICARUS">🎙 MODO VOZ</button>
+    <div class="toolbar-sep"></div>
     <button class="tb-btn active" id="tbChat" onclick="setView('chat')">💬 Chat</button>
     <button class="tb-btn" onclick="setView('tasks')">✅ Tarefas</button>
     <button class="tb-btn" onclick="openModal('modalAgentes')">🤖 Agentes</button>
@@ -2004,8 +2194,10 @@
             });
             const data = await res.json();
             removeTyping();
-            appendMsg('assistant', data.response || data.error || 'Sem resposta');
-
+            const reply = data.response || data.error || 'Sem resposta';
+            appendMsg('assistant', reply);
+            // Auto-TTS quando modo voz ativo no chat normal
+            if (voiceMode && voiceState !== 'speak') speakTTS(reply);
             if (text.toLowerCase().includes('tarefa') || text.startsWith('/tarefa')) loadTasks();
         } catch (e) {
             removeTyping();
@@ -2623,6 +2815,188 @@
         const fill = document.getElementById('micLevelInputFill');
         if (fill) fill.style.width = '0%';
     }
+
+    // ── JARVIS Voice Mode ────────────────────────────────
+    let voiceMode = false;
+    let voiceRecog = null;
+    let voiceState = 'idle'; // idle | wake | listen | process | speak
+    let voiceAwake = false;
+    let ttsEnabled = true;
+    let voiceRestartTimer = null;
+
+    const WAKE_WORDS = ['icarus', 'ícarus', 'icaro', 'ícaro', 'íkarus'];
+
+    const orb = document.getElementById('voiceOrb');
+    const orbStatus = document.getElementById('orbStatusText');
+    const orbTranscript = document.getElementById('orbTranscript');
+    const orbInfo = document.getElementById('orbInfo');
+    const orbWave = document.getElementById('orbWave');
+
+    function orbSetState(state, transcript='', info='') {
+        voiceState = state;
+        orb.className = 'active state-' + state;
+        const labels = {
+            wake: 'AGUARDANDO', listen: 'OUVINDO...', process: 'PROCESSANDO', speak: 'FALANDO'
+        };
+        orbStatus.textContent = labels[state] || state.toUpperCase();
+        orbTranscript.textContent = transcript;
+        if (info) orbInfo.textContent = info;
+        orbWave.style.display = (state === 'listen' || state === 'speak') ? 'flex' : 'none';
+    }
+
+    function setVoiceMode(on) {
+        voiceMode = on;
+        const btn = document.getElementById('tbVoiceMode');
+        if (on) {
+            btn.classList.add('voice-on');
+            btn.textContent = '🔴 VOZ ON';
+            orbSetState('wake', '', 'DIGA "ICARUS" PARA ATIVAR · ESC PARA FECHAR');
+            orb.classList.add('active');
+            startWakeWordLoop();
+        } else {
+            btn.classList.remove('voice-on');
+            btn.textContent = '🎙 MODO VOZ';
+            orb.className = '';
+            stopVoiceRecog();
+            stopTTS();
+            voiceAwake = false;
+        }
+    }
+
+    function toggleVoiceMode() { setVoiceMode(!voiceMode); }
+
+    function startWakeWordLoop() {
+        stopVoiceRecog();
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+            appendMsg('assistant', '⚠ Reconhecimento de voz requer Chrome/Chromium.');
+            setVoiceMode(false);
+            return;
+        }
+        voiceRecog = new SR();
+        voiceRecog.lang = localStorage.getItem('icarus_voiceLang') || 'pt-BR';
+        voiceRecog.continuous = true;
+        voiceRecog.interimResults = true;
+
+        voiceRecog.onresult = (e) => {
+            const results = Array.from(e.results);
+            const last = results[results.length - 1];
+            const transcript = last[0].transcript.toLowerCase().trim();
+            const isFinal = last.isFinal;
+
+            if (!voiceAwake) {
+                // Ouvindo wake word
+                orbSetState('wake', transcript.length > 2 ? transcript : '', 'DIGA "ICARUS" PARA ATIVAR');
+                if (WAKE_WORDS.some(w => transcript.includes(w))) {
+                    voiceAwake = true;
+                    orbSetState('listen', '', 'AGUARDANDO COMANDO...');
+                    speakTTS('Olá! Pode falar.');
+                }
+            } else {
+                // Ouvindo comando após wake word
+                orbSetState('listen', transcript, 'OUVINDO COMANDO...');
+                if (isFinal && transcript.length > 2) {
+                    // Remove wake word do início se presente
+                    let cmd = transcript;
+                    WAKE_WORDS.forEach(w => { cmd = cmd.replace(w, '').trim(); });
+                    if (cmd.length < 2) { voiceAwake = false; return; }
+                    voiceAwake = false;
+                    processVoiceCommand(cmd);
+                }
+            }
+        };
+
+        voiceRecog.onend = () => {
+            if (!voiceMode) return;
+            // Auto-restart para manter ouvindo
+            clearTimeout(voiceRestartTimer);
+            voiceRestartTimer = setTimeout(() => {
+                if (voiceMode && voiceState !== 'process' && voiceState !== 'speak') {
+                    startWakeWordLoop();
+                }
+            }, 400);
+        };
+
+        voiceRecog.onerror = (e) => {
+            if (e.error === 'not-allowed') {
+                appendMsg('assistant', '⚠ Permissão de microfone negada. Permita o acesso nas configurações do Chrome.');
+                setVoiceMode(false);
+            }
+        };
+
+        try { voiceRecog.start(); } catch(e) {}
+    }
+
+    async function processVoiceCommand(cmd) {
+        orbSetState('process', cmd, 'PROCESSANDO...');
+        stopVoiceRecog();
+        appendMsg('user', cmd);
+
+        try {
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: cmd})
+            });
+            const data = await res.json();
+            const reply = data.response || 'Sem resposta';
+            removeTyping();
+            appendMsg('assistant', reply);
+            orbSetState('speak', '', 'RESPONDENDO...');
+            await speakTTS(reply);
+        } catch(e) {
+            orbSetState('wake', '', 'ERRO — DIGA "ICARUS" PARA TENTAR NOVAMENTE');
+        }
+
+        if (voiceMode) {
+            setTimeout(() => {
+                orbSetState('wake', '', 'DIGA "ICARUS" PARA ATIVAR');
+                startWakeWordLoop();
+            }, 600);
+        }
+    }
+
+    function speakTTS(text) {
+        return new Promise(resolve => {
+            if (!ttsEnabled || !window.speechSynthesis) { resolve(); return; }
+            stopTTS();
+            // Limpa markdown e encurta se muito longo
+            const clean = text
+                .replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s/g,'')
+                .replace(/`[^`]+`/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+                .substring(0, 500);
+            const utt = new SpeechSynthesisUtterance(clean);
+            utt.lang = localStorage.getItem('icarus_voiceLang') || 'pt-BR';
+            utt.rate = 1.05;
+            utt.pitch = 0.95;
+            // Prefere voz masculina PT
+            const voices = speechSynthesis.getVoices();
+            const ptVoice = voices.find(v =>
+                v.lang.startsWith('pt') && v.name.toLowerCase().includes('male')
+            ) || voices.find(v => v.lang.startsWith('pt')) || null;
+            if (ptVoice) utt.voice = ptVoice;
+            utt.onend = resolve;
+            utt.onerror = resolve;
+            speechSynthesis.speak(utt);
+        });
+    }
+
+    function stopTTS() {
+        if (window.speechSynthesis) speechSynthesis.cancel();
+    }
+
+    function stopVoiceRecog() {
+        clearTimeout(voiceRestartTimer);
+        if (voiceRecog) { try { voiceRecog.stop(); } catch(e) {} voiceRecog = null; }
+    }
+
+    // ESC fecha o orb
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && voiceMode) setVoiceMode(false);
+    });
+
+    // Auto-TTS para modo voz (quando recebe resposta no chat normal)
+    const _origSendMsg = sendMessage;
 
     // ── Boot sequence ────────────────────────────────────
     function bootSequence() {
