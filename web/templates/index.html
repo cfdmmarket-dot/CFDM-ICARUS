@@ -657,6 +657,71 @@
         .input-btn.recording { background: rgba(224,85,85,0.15); border-color: var(--red); color: var(--red); animation: recpulse 1s infinite; }
         @keyframes recpulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
+        /* ── Mic button especial ─────────────────────────── */
+        #micBtn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-acc);
+            color: var(--accent);
+            font-size: 16px;
+            position: relative;
+            transition: all 0.18s;
+            box-shadow: 0 0 8px rgba(0,212,255,0.15);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #micBtn:hover {
+            background: var(--accent-dim);
+            box-shadow: 0 0 14px rgba(0,212,255,0.35);
+            transform: scale(1.06);
+        }
+        #micBtn.recording {
+            background: rgba(255,51,85,0.18);
+            border-color: var(--red);
+            color: var(--red);
+            box-shadow: 0 0 0 0 rgba(255,51,85,0.5);
+            animation: micPulse 0.8s ease-out infinite;
+        }
+        #micBtn.transcribing {
+            background: rgba(255,215,0,0.12);
+            border-color: var(--gold);
+            color: var(--gold);
+            animation: micSpin 1s linear infinite;
+        }
+        #micBtn.ready {
+            border-color: var(--green);
+            color: var(--green);
+            box-shadow: 0 0 10px rgba(0,255,136,0.3);
+        }
+        @keyframes micPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(255,51,85,0.6); transform: scale(1.0); }
+            50%  { box-shadow: 0 0 0 8px rgba(255,51,85,0); transform: scale(1.08); }
+            100% { box-shadow: 0 0 0 0 rgba(255,51,85,0); transform: scale(1.0); }
+        }
+        @keyframes micSpin {
+            from { transform: rotate(0deg) scale(1.05); }
+            to   { transform: rotate(360deg) scale(1.05); }
+        }
+        /* Anel de ondas ao gravar */
+        #micBtn::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1.5px solid transparent;
+            transition: all 0.2s;
+        }
+        #micBtn.recording::before {
+            border-color: rgba(255,51,85,0.4);
+            animation: micRing 1.2s ease-out infinite;
+        }
+        @keyframes micRing {
+            0%   { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
         .send-btn {
             width: 30px;
             height: 30px;
@@ -1567,7 +1632,17 @@
                 <div class="input-actions">
                     <button class="input-btn" title="Adicionar tarefa rápida" onclick="addTaskQuick()">✅</button>
                     <button class="input-btn" title="Comandos rápidos" onclick="openModal('modalComandos')">⌨</button>
-                    <button class="input-btn" id="micBtn" title="Segure para falar (Whisper offline)">🎤</button>
+                    <div style="position:relative;display:flex;align-items:center;gap:3px">
+                        <button id="micBtn" title="Segure para falar — Whisper offline">🎤</button>
+                        <button id="micSelectBtn" onclick="toggleMicSelect()" title="Selecionar microfone"
+                            style="width:14px;height:14px;background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:9px;padding:0;line-height:1;position:absolute;right:-2px;bottom:-2px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border)">▾</button>
+                        <div id="micSelectPanel" style="display:none;position:absolute;bottom:48px;left:0;background:var(--bg-panel);border:1px solid var(--border-acc);border-radius:var(--radius-lg);padding:8px;min-width:240px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
+                            <div style="font-size:10px;color:var(--text-faint);margin-bottom:6px;letter-spacing:0.08em">SELECIONAR MICROFONE</div>
+                            <div id="micDeviceList" style="display:flex;flex-direction:column;gap:4px">
+                                <div style="font-size:11px;color:var(--text-faint)">Carregando...</div>
+                            </div>
+                        </div>
+                    </div>
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">▶</button>
                 </div>
             </div>
@@ -2654,18 +2729,39 @@
 
     async function startMicRecord() {
         if (isRecording) return;
-        isRecording = true;
-        micChunks = [];
 
         const btn = document.getElementById('micBtn');
+
+        // Verifica permissão antes de tudo
+        try {
+            const perm = await navigator.permissions.query({name: 'microphone'});
+            if (perm.state === 'denied') {
+                appendMsg('assistant',
+                    '🔒 Microfone bloqueado no Chrome.\n\n' +
+                    'Para liberar:\n' +
+                    '1. Clique no 🔒 cadeado na barra de endereço\n' +
+                    '2. Microfone → Permitir\n' +
+                    '3. Recarregue a página (F5)');
+                btn.classList.add('ready');
+                btn.textContent = '🔒';
+                setTimeout(() => { btn.classList.remove('ready'); btn.textContent = '🎤'; }, 3000);
+                return;
+            }
+        } catch(e) {} // Navegador pode não suportar permissions API
+
+        isRecording = true;
+        micChunks = [];
         btn.classList.add('recording');
-        btn.textContent = '🔴';
+        btn.textContent = '⏺';
         chatInput.placeholder = '🔴 Gravando... solte para enviar';
         document.getElementById('micLevelInputBar').style.display = '';
         startInputMicLevel();
 
         try {
-            micStream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const audioConstraints = selectedMicId
+                ? {audio: {deviceId: {exact: selectedMicId}}}
+                : {audio: true};
+            micStream = await navigator.mediaDevices.getUserMedia(audioConstraints);
             const mime = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
                 .find(m => MediaRecorder.isTypeSupported(m)) || '';
             micRecorder = new MediaRecorder(micStream, mime ? {mimeType: mime} : {});
@@ -2674,18 +2770,22 @@
             micRecorder.ondataavailable = ev => { if (ev.data.size > 0) micChunks.push(ev.data); };
             micRecorder.onstop = async () => {
                 if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+                isRecording = false;
                 btn.classList.remove('recording');
-                btn.textContent = '🎤';
                 document.getElementById('micLevelInputBar').style.display = 'none';
                 stopInputMicLevel();
-                isRecording = false;
 
                 if (!micChunks.length) {
+                    btn.textContent = '🎤';
                     chatInput.placeholder = 'Mensagem para ICARUS...';
                     return;
                 }
 
-                chatInput.placeholder = '⟳ Transcrevendo...';
+                // Estado: transcrevendo
+                btn.classList.add('transcribing');
+                btn.textContent = '⟳';
+                chatInput.placeholder = '⟳ Transcrevendo com Whisper...';
+
                 const blob = new Blob(micChunks, {type: actualMime});
                 try {
                     const resp = await fetch('/voice/transcribe', {
@@ -2694,18 +2794,26 @@
                         body: blob
                     });
                     const data = await resp.json();
+                    btn.classList.remove('transcribing');
                     chatInput.placeholder = 'Mensagem para ICARUS...';
+
                     if (data.text && data.text.trim().length > 1) {
+                        btn.classList.add('ready');
+                        btn.textContent = '✓';
+                        setTimeout(() => { btn.classList.remove('ready'); btn.textContent = '🎤'; }, 1500);
                         chatInput.value = data.text.trim();
                         autoResize(chatInput);
                         const autoSend = document.getElementById('autoSendVoice');
                         if (!autoSend || autoSend.checked) sendMessage();
                     } else {
+                        btn.textContent = '🎤';
                         chatInput.placeholder = 'Não entendi — tente novamente';
                         setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 2500);
                     }
                 } catch(err) {
-                    chatInput.placeholder = 'Erro — tente novamente';
+                    btn.classList.remove('transcribing');
+                    btn.textContent = '🎤';
+                    chatInput.placeholder = 'Erro na transcrição — tente novamente';
                     setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 2500);
                 }
             };
@@ -2717,8 +2825,13 @@
             btn.textContent = '🎤';
             document.getElementById('micLevelInputBar').style.display = 'none';
             stopInputMicLevel();
-            chatInput.placeholder = 'Erro no microfone: ' + err.message;
-            setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 3000);
+            if (err.name === 'NotAllowedError') {
+                appendMsg('assistant',
+                    '🔒 Permissão de microfone negada.\n\n' +
+                    'Clique no 🔒 cadeado → Microfone → Permitir → F5');
+            } else {
+                appendMsg('assistant', `⚠ Microfone: ${err.message}`);
+            }
         }
     }
 
@@ -2726,6 +2839,76 @@
         if (!isRecording) return;
         if (micRecorder && micRecorder.state === 'recording') micRecorder.stop();
     }
+
+    // ── Seletor de microfone ──────────────────────────────
+    let selectedMicId = null; // null = padrão do sistema
+
+    async function toggleMicSelect() {
+        const panel = document.getElementById('micSelectPanel');
+        if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+
+        panel.style.display = '';
+        const list = document.getElementById('micDeviceList');
+        list.innerHTML = '<div style="font-size:11px;color:var(--text-faint)">Carregando...</div>';
+
+        try {
+            // Precisa de permissão para listar dispositivos com label
+            await navigator.mediaDevices.getUserMedia({audio: true}).then(s => s.getTracks().forEach(t => t.stop()));
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const mics = devices.filter(d => d.kind === 'audioinput');
+
+            list.innerHTML = '';
+
+            // Opção padrão
+            const defItem = makeMicItem('Padrão do sistema', null);
+            list.appendChild(defItem);
+
+            mics.forEach(d => {
+                const label = d.label || `Microfone (${d.deviceId.substring(0,8)}...)`;
+                list.appendChild(makeMicItem(label, d.deviceId));
+            });
+        } catch(e) {
+            list.innerHTML = `<div style="font-size:11px;color:var(--red)">Erro: ${e.message}</div>`;
+        }
+    }
+
+    function makeMicItem(label, deviceId) {
+        const el = document.createElement('div');
+        const isSelected = selectedMicId === deviceId;
+        el.style.cssText = `
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};
+            background: ${isSelected ? 'var(--accent-dim)' : 'var(--bg-card)'};
+            color: ${isSelected ? 'var(--accent)' : 'var(--text)'};
+            transition: all 0.12s;
+        `;
+        el.innerHTML = `<span>${isSelected ? '●' : '○'}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span>`;
+        el.onmouseenter = () => { if (!isSelected) el.style.borderColor = 'var(--border-acc)'; };
+        el.onmouseleave = () => { if (!isSelected) el.style.borderColor = 'var(--border)'; };
+        el.onclick = () => {
+            selectedMicId = deviceId;
+            document.getElementById('micSelectPanel').style.display = 'none';
+            // Feedback visual no botão
+            const btn = document.getElementById('micBtn');
+            btn.title = `Segure para falar — ${label}`;
+            appendMsg('assistant', `🎤 Microfone selecionado: **${label}**\nSegure o botão para gravar.`);
+        };
+        return el;
+    }
+
+    // Fecha seletor ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#micSelectBtn') && !e.target.closest('#micSelectPanel')) {
+            const p = document.getElementById('micSelectPanel');
+            if (p) p.style.display = 'none';
+        }
+    });
 
     // Detecta engine de voz disponível ao carregar a página
     async function initMicEngine() {
