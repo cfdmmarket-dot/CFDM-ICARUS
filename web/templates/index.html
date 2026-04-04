@@ -1814,10 +1814,14 @@
                             </div>
                         </div>
                     </div>
+                    <button id="flowBtn" onclick="toggleFlow()" title="Silenciar / Ativar fluxo conversacional"
+                        style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg-card);
+                               color:var(--text-dim);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;
+                               transition:all 0.18s;flex-shrink:0">🔊</button>
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">▶</button>
                 </div>
             </div>
-            <div class="input-hint">Enter para enviar · Shift+Enter nova linha · 🎤 voz · ⌨ comandos</div>
+            <div class="input-hint">Enter para enviar · Shift+Enter nova linha · 🎤 voz · ⌨ comandos · 🔇 silenciar</div>
         </div>
     </div>
 
@@ -7582,6 +7586,52 @@ document.addEventListener('keydown', e => {
         dragging = false;
         document.body.style.userSelect = '';
     });
+})();
+
+// ══════════════════════════════════════════════════════════════
+//  FLOW BUTTON — silenciar / ativar fluxo conversacional
+// ══════════════════════════════════════════════════════════════
+let _flowActive = true;
+
+async function toggleFlow() {
+    try {
+        const r = await fetch('/settings/conversation_flow', {method:'POST'});
+        const d = await r.json();
+        _flowActive = d.conversation_flow;
+    } catch(e) {
+        _flowActive = !_flowActive;
+    }
+    _updateFlowBtn();
+    const msg = _flowActive ? '🔊 Fluxo ativado — ICARUS voltará a perguntar se continua' : '🔇 ICARUS silenciado — respostas diretas sem interrupções';
+    toast(_flowActive ? 'Fluxo ativado' : 'Silenciado', msg, _flowActive ? 'success' : 'warn', 2800);
+}
+
+function _updateFlowBtn() {
+    const btn = document.getElementById('flowBtn');
+    if (!btn) return;
+    if (_flowActive) {
+        btn.textContent = '🔊';
+        btn.title = 'ICARUS ativo — clique para silenciar';
+        btn.style.borderColor = 'var(--border)';
+        btn.style.color = 'var(--text-dim)';
+        btn.style.background = 'var(--bg-card)';
+    } else {
+        btn.textContent = '🔇';
+        btn.title = 'ICARUS silenciado — clique para reativar';
+        btn.style.borderColor = '#ff6b6b';
+        btn.style.color = '#ff6b6b';
+        btn.style.background = 'rgba(255,107,107,0.08)';
+    }
+}
+
+// Sincroniza estado com o servidor ao carregar
+(async () => {
+    try {
+        const r = await fetch('/settings');
+        const d = await r.json();
+        _flowActive = d.conversation_flow ?? true;
+        _updateFlowBtn();
+    } catch(e) {}
 })();
 </script>
 

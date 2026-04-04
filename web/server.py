@@ -96,6 +96,20 @@ async def status():
     }
 
 
+@app.get("/settings")
+async def get_settings():
+    return {
+        "conversation_flow": icarus.conversation_flow,
+        "paused": icarus._paused,
+    }
+
+@app.post("/settings/conversation_flow")
+async def toggle_conversation_flow():
+    icarus.conversation_flow = not icarus.conversation_flow
+    state = "ativado" if icarus.conversation_flow else "desativado"
+    return {"conversation_flow": icarus.conversation_flow, "message": f"Fluxo conversacional {state}"}
+
+
 @app.get("/modes")
 async def get_modes():
     """Lista todos os modos operacionais disponíveis"""
