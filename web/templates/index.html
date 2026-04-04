@@ -1798,16 +1798,20 @@
                 <div id="micLevelInputFill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.08s"></div>
             </div>
             <div class="input-row">
-                <textarea id="chatInput" rows="1" placeholder="Mensagem para ICARUS... (Enter para enviar, Shift+Enter para nova linha)"
-                    onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-                <div class="input-actions">
+                <!-- Ações à esquerda -->
+                <div style="display:flex;flex-direction:column;gap:4px;align-items:center;flex-shrink:0">
                     <button class="input-btn" title="Adicionar tarefa rápida" onclick="addTaskQuick()">✅</button>
                     <button class="input-btn" title="Comandos rápidos" onclick="openModal('modalComandos')">⌨</button>
+                </div>
+                <textarea id="chatInput" rows="1" placeholder="Mensagem para ICARUS..."
+                    onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+                <!-- Ações à direita: voz · silenciar · enviar -->
+                <div class="input-actions">
                     <div style="position:relative;display:flex;align-items:center;gap:3px">
                         <button id="micBtn" title="Segure para falar — Whisper offline">🎤</button>
                         <button id="micSelectBtn" onclick="toggleMicSelect()" title="Selecionar microfone"
                             style="width:14px;height:14px;background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:9px;padding:0;line-height:1;position:absolute;right:-2px;bottom:-2px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border)">▾</button>
-                        <div id="micSelectPanel" style="display:none;position:absolute;bottom:48px;left:0;background:var(--bg-panel);border:1px solid var(--border-acc);border-radius:var(--radius-lg);padding:8px;min-width:240px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
+                        <div id="micSelectPanel" style="display:none;position:absolute;bottom:48px;right:0;background:var(--bg-panel);border:1px solid var(--border-acc);border-radius:var(--radius-lg);padding:8px;min-width:240px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
                             <div style="font-size:10px;color:var(--text-faint);margin-bottom:6px;letter-spacing:0.08em">SELECIONAR MICROFONE</div>
                             <div id="micDeviceList" style="display:flex;flex-direction:column;gap:4px">
                                 <div style="font-size:11px;color:var(--text-faint)">Carregando...</div>
@@ -1821,7 +1825,7 @@
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">▶</button>
                 </div>
             </div>
-            <div class="input-hint">Enter para enviar · Shift+Enter nova linha · 🎤 voz · ⌨ comandos · 🔇 silenciar</div>
+            <div class="input-hint">Enter · Shift+Enter nova linha · 🎤 voz · 🔇 silenciar · ⌨ comandos</div>
         </div>
     </div>
 
