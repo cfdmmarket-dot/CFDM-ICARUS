@@ -2626,8 +2626,103 @@
     // ── Voice ────────────────────────────────────────────
     let recognition = null;
     let isRecording = false;
+    let micUsesWhisper = false;  // true = Whisper offline, false = Web Speech
+    let micRecorder = null;
+    let micChunks = [];
+    let micStream = null;
 
+    // Detecta engine de voz disponível ao carregar a página
+    async function initMicEngine() {
+        try {
+            const st = await fetch('/voice/status', {signal: AbortSignal.timeout(3000)}).then(r=>r.json());
+            micUsesWhisper = !!(st.engines?.faster_whisper || st.engines?.whisper);
+        } catch(e) {
+            micUsesWhisper = false;
+        }
+        const micBtn = document.getElementById('micBtn');
+        if (micBtn) {
+            if (micUsesWhisper) {
+                micBtn.title = 'Segurar para falar — Whisper offline';
+                micBtn.onpointerdown = micWhisperStart;
+                micBtn.onpointerup = micWhisperStop;
+                micBtn.onpointercancel = micWhisperStop;
+                micBtn.onclick = null;
+            } else {
+                micBtn.title = 'Falar com ICARUS (Google Speech — requer internet)';
+            }
+        }
+    }
+
+    // ── Whisper PTT no botão do chat ─────────────────────
+    async function micWhisperStart(e) {
+        e.preventDefault();
+        if (isRecording) return;
+        isRecording = true;
+        micChunks = [];
+        const micBtn = document.getElementById('micBtn');
+
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const mime = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
+                .find(m => MediaRecorder.isTypeSupported(m)) || '';
+            micRecorder = new MediaRecorder(micStream, mime ? {mimeType: mime} : {});
+            const actualMime = micRecorder.mimeType || 'audio/webm';
+
+            micRecorder.ondataavailable = ev => { if (ev.data.size > 0) micChunks.push(ev.data); };
+            micRecorder.onstop = async () => {
+                micStream.getTracks().forEach(t => t.stop());
+                micStream = null;
+                isRecording = false;
+                micBtn.classList.remove('recording');
+                micBtn.style.borderColor = '';
+                chatInput.placeholder = 'Transcrevendo...';
+
+                const blob = new Blob(micChunks, {type: actualMime});
+                try {
+                    const resp = await fetch('/voice/transcribe', {
+                        method: 'POST',
+                        headers: {'Content-Type': actualMime},
+                        body: blob
+                    });
+                    const data = await resp.json();
+                    if (data.text && data.text.trim().length > 1) {
+                        chatInput.value = data.text.trim();
+                        autoResize(chatInput);
+                        chatInput.placeholder = 'Mensagem para ICARUS...';
+                        const autoSend = document.getElementById('autoSendVoice');
+                        if (!autoSend || autoSend.checked) sendMessage();
+                    } else {
+                        chatInput.placeholder = 'Não entendi — tente novamente';
+                        setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 2000);
+                    }
+                } catch(err) {
+                    chatInput.placeholder = 'Erro na transcrição';
+                    setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 2000);
+                }
+            };
+
+            micRecorder.start();
+            micBtn.classList.add('recording');
+            micBtn.style.borderColor = 'var(--red)';
+            chatInput.placeholder = '🔴 Gravando... solte para enviar';
+            document.getElementById('micLevelInputBar').style.display = '';
+            startInputMicLevel();
+        } catch(err) {
+            isRecording = false;
+            chatInput.placeholder = 'Erro no microfone';
+            setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 2000);
+        }
+    }
+
+    function micWhisperStop() {
+        document.getElementById('micLevelInputBar').style.display = 'none';
+        stopInputMicLevel();
+        if (micRecorder && micRecorder.state === 'recording') micRecorder.stop();
+    }
+
+    // ── Web Speech API (fallback com internet) ────────────
     function toggleVoice() {
+        if (micUsesWhisper) return; // Whisper gerencia via pointer events
         const micBtn = document.getElementById('micBtn');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -2635,43 +2730,34 @@
             appendMsg('assistant', '⚠ Reconhecimento de voz não suportado neste navegador.\nUse Chrome ou Chromium.');
             return;
         }
-
-        if (isRecording) {
-            recognition.stop();
-            return;
-        }
+        if (isRecording) { recognition.stop(); return; }
 
         recognition = new SpeechRecognition();
-        recognition.lang = 'pt-BR';
+        recognition.lang = localStorage.getItem('icarus_voiceLang') || 'pt-BR';
         recognition.continuous = false;
         recognition.interimResults = true;
 
         recognition.onstart = () => {
             isRecording = true;
             micBtn.classList.add('recording');
-            micBtn.title = 'Gravando... (clique para parar)';
             chatInput.placeholder = '🎤 Ouvindo...';
             document.getElementById('micLevelInputBar').style.display = '';
             startInputMicLevel();
         };
-
         recognition.onresult = (e) => {
             const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
             chatInput.value = transcript;
             autoResize(chatInput);
         };
-
         recognition.onend = () => {
             isRecording = false;
             micBtn.classList.remove('recording');
-            micBtn.title = 'Falar com ICARUS (voz)';
-            chatInput.placeholder = 'Mensagem para ICARUS... (Enter para enviar, Shift+Enter para nova linha)';
+            chatInput.placeholder = 'Mensagem para ICARUS...';
             document.getElementById('micLevelInputBar').style.display = 'none';
             stopInputMicLevel();
             const autoSend = document.getElementById('autoSendVoice');
             if (chatInput.value.trim() && (!autoSend || autoSend.checked)) sendMessage();
         };
-
         recognition.onerror = (e) => {
             isRecording = false;
             micBtn.classList.remove('recording');
@@ -2679,16 +2765,21 @@
             document.getElementById('micLevelInputBar').style.display = 'none';
             stopInputMicLevel();
             if (e.error === 'network') {
-                appendMsg('assistant',
-                    '⚠ Microfone via browser requer internet (Google Speech API).\n' +
-                    'Use o botão 🎙 MODO VOZ → segure "SEGURAR PARA FALAR" — funciona offline com Whisper local.');
+                // Whisper estava disponível mas não foi detectado — tenta agora
+                micUsesWhisper = true;
+                const btn = document.getElementById('micBtn');
+                btn.title = 'Segurar para falar — Whisper offline';
+                btn.onpointerdown = micWhisperStart;
+                btn.onpointerup = micWhisperStop;
+                btn.onpointercancel = micWhisperStop;
+                btn.onclick = null;
+                appendMsg('assistant', '🎤 Alternado para Whisper offline. Segure o botão 🎤 para falar.');
             } else if (e.error === 'not-allowed') {
                 appendMsg('assistant', '⚠ Permissão de microfone negada. Clique no cadeado na barra do Chrome → Permitir microfone.');
             } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
                 appendMsg('assistant', `⚠ Microfone: ${e.error}`);
             }
         };
-
         recognition.start();
     }
 
@@ -3638,6 +3729,7 @@
     // ── Init ─────────────────────────────────────────────
     checkStatus();
     checkNexus();
+    initMicEngine(); // detecta Whisper e configura botão 🎤
     loadTasks();
     updateClock();
     loadSettings();
