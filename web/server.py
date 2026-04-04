@@ -800,6 +800,99 @@ async def kill_app(request: Request):
         return JSONResponse({"ok": False, "msg": str(e)}, status_code=500)
 
 
+@app.get("/ecosystem/status")
+async def ecosystem_status():
+    """Status em tempo real de todos os apps do ecossistema CFDM."""
+    import subprocess
+    import requests as _req
+
+    result = {
+        "icarus":    {"online": True,  "port": 8001, "version": ICARUS_VERSION, "label": "ICARUS"},
+        "nexus":     {"online": False, "port": 8000, "version": None, "agents": 0, "label": "Cfdm Nexus"},
+        "cfdmnote":  {"running": False, "pid": None, "path": "/home/cfdm/Proj-Cfdm-Note_/build/cfdmnote", "label": "CfdmNote"},
+    }
+
+    # ── Nexus (:8000) ─────────────────────────────────────────
+    try:
+        r = _req.get("http://localhost:8000/status", timeout=2)
+        if r.status_code == 200:
+            d = r.json()
+            result["nexus"]["online"]  = True
+            result["nexus"]["version"] = d.get("version", "")
+            # Conta agentes
+            try:
+                ar = _req.get("http://localhost:8000/agents", timeout=2)
+                if ar.ok:
+                    ad = ar.json()
+                    result["nexus"]["agents"] = len(ad.get("agents", []))
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # ── CfdmNote (processo) ────────────────────────────────────
+    try:
+        out = subprocess.run(["pgrep", "-f", "cfdmnote"], capture_output=True, text=True)
+        if out.returncode == 0 and out.stdout.strip():
+            pids = [p for p in out.stdout.strip().split('\n') if p]
+            result["cfdmnote"]["running"] = True
+            result["cfdmnote"]["pid"] = int(pids[0])
+    except Exception:
+        pass
+
+    return result
+
+
+@app.post("/ecosystem/launch")
+async def ecosystem_launch(request: Request):
+    """Inicia um app do ecossistema."""
+    import subprocess
+    data = await request.json()
+    app_name = data.get("app", "").lower()
+
+    LAUNCHERS = {
+        "nexus":    ["bash", "-c",
+                     "cd '/home/cfdm/Proj-Cfdm-NEXUS-AI-OS-(Triplex )_' && "
+                     "nohup python3 -m uvicorn web.server:app --host 0.0.0.0 --port 8000 "
+                     "> /tmp/cfdm-nexus.log 2>&1 &"],
+        "cfdmnote": ["bash", "-c",
+                     "DISPLAY=:1 nohup /home/cfdm/Proj-Cfdm-Note_/build/cfdmnote > /tmp/cfdmnote.log 2>&1 &"],
+    }
+
+    if app_name not in LAUNCHERS:
+        return JSONResponse({"ok": False, "msg": f"App '{app_name}' desconhecido"}, status_code=400)
+
+    try:
+        subprocess.Popen(LAUNCHERS[app_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return {"ok": True, "msg": f"{app_name} iniciando..."}
+    except Exception as e:
+        return JSONResponse({"ok": False, "msg": str(e)}, status_code=500)
+
+
+@app.post("/ecosystem/stop")
+async def ecosystem_stop(request: Request):
+    """Para um app do ecossistema."""
+    import subprocess
+    data = await request.json()
+    app_name = data.get("app", "").lower()
+
+    KILL_PATTERNS = {
+        "nexus":    "uvicorn web.server:app.*8000",
+        "cfdmnote": "cfdmnote",
+    }
+
+    if app_name not in KILL_PATTERNS:
+        return JSONResponse({"ok": False, "msg": f"App '{app_name}' desconhecido"}, status_code=400)
+
+    try:
+        r = subprocess.run(["pkill", "-f", KILL_PATTERNS[app_name]], capture_output=True)
+        if r.returncode == 0:
+            return {"ok": True, "msg": f"{app_name} encerrado"}
+        return {"ok": False, "msg": f"{app_name} não estava rodando"}
+    except Exception as e:
+        return JSONResponse({"ok": False, "msg": str(e)}, status_code=500)
+
+
 @app.get("/skills")
 async def list_skills():
     """Lista todas as skills: builtin + dinâmicas criadas pelo Architect."""

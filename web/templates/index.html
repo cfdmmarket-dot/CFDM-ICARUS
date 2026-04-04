@@ -1012,6 +1012,53 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
+        /* ── Ecosystem / Apps panel ─────────────────────── */
+        .eco-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            margin-bottom: 5px;
+            transition: border-color .15s;
+        }
+        .eco-card:hover { border-color: var(--border-acc); }
+        .eco-card-icon { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
+        .eco-card-info { flex: 1; min-width: 0; }
+        .eco-card-name { font-size: 12px; font-weight: 700; color: var(--text); }
+        .eco-card-meta { font-size: 10px; color: var(--text-faint); margin-top: 1px; }
+        .eco-card-status { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .eco-card-actions { flex-shrink: 0; }
+        .eco-status-lbl { font-size: 10px; font-weight: 600; white-space: nowrap; }
+        .eco-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--text-faint);
+            flex-shrink: 0;
+        }
+        .eco-dot-on  { background: var(--green); box-shadow: 0 0 5px var(--green); }
+        .eco-dot-off { background: var(--red); }
+        .eco-btn {
+            font-size: 10px; padding: 2px 7px; height: 22px;
+            background: transparent; border: 1px solid var(--border);
+            border-radius: var(--radius); color: var(--text-dim);
+            cursor: pointer; transition: all .12s; font-family: inherit;
+        }
+        .eco-btn:hover { border-color: var(--border-acc); color: var(--text); }
+        .eco-btn.stop  { border-color: rgba(255,51,85,.4); color: #ff3355; }
+        .eco-btn.start { border-color: rgba(0,230,140,.4); color: #00e68c; }
+        .eco-action-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 10px; width: 100%;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: var(--radius); color: var(--text);
+            cursor: pointer; font-size: 11.5px; font-family: inherit;
+            transition: all .12s; text-align: left;
+        }
+        .eco-action-btn:hover { border-color: var(--border-acc); background: var(--bg-hover); }
+
         /* ── Nexus panel ──────────────────────────────────── */
         .nexus-panel-status {
             display: flex;
@@ -1641,7 +1688,7 @@
         <button class="tb-btn" onclick="openModal('modalFerramentas')" title="Ferramentas">🔧 Ferramentas</button>
         <button class="tb-btn" onclick="openModal('modalSettings')" title="Configurações">⚙ Config</button>
         <div class="toolbar-sep"></div>
-        <button class="tb-btn" onclick="switchPanel('nexus')" title="Cfdm Nexus — painel de agentes" style="border-color:var(--border-acc);color:var(--accent)">⚡ Nexus</button>
+        <button class="tb-btn" onclick="switchPanel('apps')" title="Ecossistema CFDM — Nexus, CfdmNote e status" style="border-color:var(--border-acc);color:var(--accent)">🌐 Apps</button>
         <button class="tb-btn" id="nexusToggleBtn" onclick="toggleNexus()" title="Ligar/desligar Nexus"
             style="font-size:11px;padding:4px 8px">
             <span id="nexusToggleIcon">●</span> <span id="nexusToggleLabel">Nexus</span>
@@ -1779,10 +1826,10 @@
         <div class="panel-header">
             <span class="panel-title">Painel</span>
             <div class="view-tabs">
-                <button class="view-tab active" onclick="switchPanel('info')">Info</button>
-                <button class="view-tab" onclick="switchPanel('tasks')">Tasks</button>
-                <button class="view-tab" onclick="switchPanel('sys')">CPU</button>
-                <button class="view-tab" onclick="switchPanel('nexus')" style="color:var(--accent)">Nexus</button>
+                <button class="view-tab active" id="panelTab-info"  onclick="switchPanel('info')">Info</button>
+                <button class="view-tab" id="panelTab-tasks" onclick="switchPanel('tasks')">Tasks</button>
+                <button class="view-tab" id="panelTab-sys"   onclick="switchPanel('sys')">CPU</button>
+                <button class="view-tab" id="panelTab-apps"  onclick="switchPanel('apps')" style="color:var(--accent)">🌐 Apps</button>
             </div>
         </div>
 
@@ -1816,7 +1863,7 @@
 
                 <div class="panel-section">
                     <div class="panel-section-title">Ecossistema</div>
-                    <div class="nexus-link" onclick="switchPanel('nexus')" title="Abrir painel Nexus integrado">
+                    <div class="nexus-link" onclick="switchPanel('apps')" title="Abrir painel Nexus integrado">
                         ⚡ Cfdm Nexus <span id="nexusStatusInline" style="margin-left:auto;font-size:10px;color:var(--text-faint)">—</span>
                     </div>
                     <div style="height:5px"></div>
@@ -1901,49 +1948,107 @@
                 </div>
             </div>
 
-            <!-- Nexus panel -->
-            <div id="panelNexus" style="display:none">
-                <div class="panel-section">
-                    <div class="panel-section-title">Cfdm Nexus</div>
-                    <div class="nexus-panel-status">
-                        <div class="nexus-status-dot" id="nexusDot"></div>
-                        <span id="nexusPanelStatusText" style="font-size:11.5px;flex:1">Verificando...</span>
-                        <span id="nexusPanelAgentCount" style="font-size:10px;color:var(--text-faint)">—</span>
+            <!-- ── Ecossistema / Apps panel ── -->
+            <div id="panelApps" style="display:none">
+
+                <!-- Status board -->
+                <div class="panel-section" style="padding-bottom:4px">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                        <div class="panel-section-title" style="margin:0">Ecossistema</div>
+                        <button class="btn-sm" style="font-size:10px" onclick="loadAppsPanel()" title="Atualizar status">↺</button>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Porta</span>
-                        <span class="info-value">8000</span>
+
+                    <!-- ICARUS card -->
+                    <div class="eco-card">
+                        <div class="eco-card-icon">⚡</div>
+                        <div class="eco-card-info">
+                            <div class="eco-card-name">ICARUS</div>
+                            <div class="eco-card-meta">:8001 · v<span id="ecoIcarusVer">—</span></div>
+                        </div>
+                        <div class="eco-card-status">
+                            <span class="eco-dot eco-dot-on" id="ecoIcarusDot"></span>
+                            <span class="eco-status-lbl" id="ecoIcarusLbl" style="color:var(--green)">Online</span>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">Sessão</span>
-                        <span class="info-value" id="nexusPanelVersion">—</span>
+
+                    <!-- Nexus card -->
+                    <div class="eco-card">
+                        <div class="eco-card-icon">🤖</div>
+                        <div class="eco-card-info">
+                            <div class="eco-card-name">Cfdm Nexus</div>
+                            <div class="eco-card-meta">:8000 · <span id="ecoNexusAgents">—</span> agentes</div>
+                        </div>
+                        <div class="eco-card-status">
+                            <span class="eco-dot" id="ecoNexusDot"></span>
+                            <span class="eco-status-lbl" id="ecoNexusLbl">—</span>
+                        </div>
+                        <div class="eco-card-actions">
+                            <button class="eco-btn" id="ecoNexusBtn" onclick="ecoToggle('nexus')">…</button>
+                        </div>
+                    </div>
+
+                    <!-- CfdmNote card -->
+                    <div class="eco-card">
+                        <div class="eco-card-icon">📓</div>
+                        <div class="eco-card-info">
+                            <div class="eco-card-name">CfdmNote</div>
+                            <div class="eco-card-meta" id="ecoNoteMeta">Desktop app</div>
+                        </div>
+                        <div class="eco-card-status">
+                            <span class="eco-dot" id="ecoNoteDot"></span>
+                            <span class="eco-status-lbl" id="ecoNoteLbl">—</span>
+                        </div>
+                        <div class="eco-card-actions">
+                            <button class="eco-btn" id="ecoNoteBtn" onclick="ecoToggle('cfdmnote')">…</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="panel-section">
-                    <div class="panel-section-title">Agentes</div>
+                <!-- Nexus section — agentes -->
+                <div class="panel-section" id="ecoNexusSection">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                        <div class="panel-section-title" style="margin:0">⚡ Nexus — Agentes</div>
+                        <span id="nexusPanelAgentCount" style="font-size:10px;color:var(--text-faint)">—</span>
+                    </div>
                     <input type="text" class="nexus-panel-search" id="nexusPanelSearch"
                         placeholder="Buscar agente..."
                         oninput="filterNexusPanel(this.value)">
                     <div class="nexus-agent-list" id="nexusAgentList">
-                        <div style="font-size:11px;color:var(--text-faint);padding:4px 0">Carregando agentes...</div>
+                        <div style="font-size:11px;color:var(--text-faint);padding:4px 0">Aguardando Nexus online...</div>
+                    </div>
+                    <div style="margin-top:6px">
+                        <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">
+                            Agente: <span id="nexusSelectedAgent" style="color:var(--accent)">nenhum</span>
+                        </div>
+                        <textarea class="nexus-task-input" id="nexusTaskInput"
+                            placeholder="Tarefa para o agente... (Ctrl+Enter executa)"
+                            onkeydown="if(event.ctrlKey&&event.key==='Enter')runNexusAgent()"></textarea>
+                        <div class="nexus-task-row">
+                            <button class="btn-sm primary" style="flex:1" onclick="runNexusAgent()">▶ Executar</button>
+                            <button class="btn-sm" onclick="sendNexusToChat()" title="Enviar pelo chat">💬</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="panel-section">
-                    <div class="panel-section-title">Executar</div>
-                    <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">
-                        Agente: <span id="nexusSelectedAgent" style="color:var(--accent)">nenhum selecionado</span>
+                <!-- CfdmNote section -->
+                <div class="panel-section" id="ecoNoteSection">
+                    <div class="panel-section-title">📓 CfdmNote</div>
+                    <div style="display:flex;flex-direction:column;gap:5px">
+                        <button class="eco-action-btn" onclick="ecoLaunch('cfdmnote')">
+                            <span>🚀</span> Abrir CfdmNote
+                        </button>
+                        <button class="eco-action-btn" onclick="sendQuick('abrir notas')">
+                            <span>📝</span> Ver notas no chat
+                        </button>
+                        <button class="eco-action-btn" onclick="sendQuick('abrir cofre')">
+                            <span>🔐</span> Abrir cofre
+                        </button>
                     </div>
-                    <textarea class="nexus-task-input" id="nexusTaskInput"
-                        placeholder="Descreva a tarefa para o agente..."
-                        onkeydown="if(event.ctrlKey&&event.key==='Enter')runNexusAgent()"></textarea>
-                    <div class="nexus-task-row">
-                        <button class="btn-sm primary" style="flex:1" onclick="runNexusAgent()">▶ Executar</button>
-                        <button class="btn-sm" onclick="sendNexusToChat()" title="Enviar pelo chat">💬 Chat</button>
-                        <button class="btn-sm" onclick="loadNexusPanel()" title="Recarregar">↺</button>
+                    <div style="margin-top:8px;font-size:10px;color:var(--text-faint);line-height:1.5">
+                        PID: <span id="ecoNotePid" style="color:var(--text-dim)">—</span>
                     </div>
                 </div>
+
             </div>
 
         </div>
@@ -3937,58 +4042,138 @@
 
     function switchPanel(p) {
         currentPanel = p;
-        document.getElementById('panelInfo').style.display = p === 'info' ? '' : 'none';
-        document.getElementById('panelTasks').style.display = p === 'tasks' ? '' : 'none';
-        document.getElementById('panelSys').style.display = p === 'sys' ? '' : 'none';
-        document.getElementById('panelNexus').style.display = p === 'nexus' ? '' : 'none';
-        document.querySelectorAll('.view-tab').forEach((t, i) => {
-            t.classList.toggle('active',
-                (i===0&&p==='info')||(i===1&&p==='tasks')||(i===2&&p==='sys')||(i===3&&p==='nexus'));
+        const panels = ['info','tasks','sys','apps'];
+        panels.forEach(id => {
+            const el = document.getElementById('panel' + id.charAt(0).toUpperCase() + id.slice(1));
+            if (el) el.style.display = (id === p) ? '' : 'none';
+            const tb = document.getElementById('panelTab-' + id);
+            if (tb) tb.classList.toggle('active', id === p);
         });
         if (p === 'tasks') loadTasks();
-        if (p === 'sys') loadSystemStats();
-        if (p === 'nexus') loadNexusPanel();
+        if (p === 'sys')   loadSystemStats();
+        if (p === 'apps')  loadAppsPanel();
     }
 
-    // ── Nexus Panel ───────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════
+    // ── ECOSSISTEMA / APPS PANEL ────────────────────────────
+    // ═══════════════════════════════════════════════════════════
     let nexusAgents = [];
     let nexusSelectedAgent = '';
+    let _ecoRefreshTimer = null;
 
-    async function loadNexusPanel() {
-        // Status
+    async function loadAppsPanel() {
+        // Chama endpoint unificado
         try {
-            const sr = await fetch('/nexus/status', {signal: AbortSignal.timeout(3000)});
-            const sd = await sr.json();
-            const dot = document.getElementById('nexusDot');
-            const stxt = document.getElementById('nexusPanelStatusText');
-            if (sd.online) {
-                dot.className = 'nexus-status-dot online';
-                stxt.textContent = '● Online';
-                stxt.style.color = 'var(--green)';
-                document.getElementById('nexusPanelVersion').textContent = sd.version || '—';
-            } else {
-                dot.className = 'nexus-status-dot offline';
-                stxt.textContent = '○ Offline';
-                stxt.style.color = 'var(--red)';
-                document.getElementById('nexusPanelAgentCount').textContent = '—';
-            }
+            const r = await fetch('/ecosystem/status', {signal: AbortSignal.timeout(5000)});
+            const d = await r.json();
+            _renderEcoStatus(d);
+            // Se Nexus online, carrega agentes
+            if (d.nexus?.online) _loadNexusAgents();
         } catch(e) {
-            document.getElementById('nexusDot').className = 'nexus-status-dot offline';
-            document.getElementById('nexusPanelStatusText').textContent = '○ Offline';
-            document.getElementById('nexusPanelStatusText').style.color = 'var(--red)';
+            _ecoSetOffline();
         }
+        // Auto-refresh a cada 30s enquanto o painel estiver visível
+        clearTimeout(_ecoRefreshTimer);
+        _ecoRefreshTimer = setTimeout(() => {
+            if (currentPanel === 'apps') loadAppsPanel();
+        }, 30000);
+    }
 
-        // Agents
+    // Compat: manter loadNexusPanel() funcionando para referências antigas
+    function loadNexusPanel() { loadAppsPanel(); }
+
+    function _renderEcoStatus(d) {
+        // ── ICARUS (sempre online) ──────────────────────────
+        _setEcoDot('ecoIcarusDot', true);
+        _setText('ecoIcarusVer', d.icarus?.version || '—');
+
+        // ── Nexus ──────────────────────────────────────────
+        const nexOnline = d.nexus?.online || false;
+        _setEcoDot('ecoNexusDot', nexOnline);
+        _setStatusLbl('ecoNexusLbl', nexOnline);
+        _setText('ecoNexusAgents', nexOnline ? (d.nexus.agents || '0') : '—');
+        const nexBtn = document.getElementById('ecoNexusBtn');
+        if (nexBtn) {
+            nexBtn.textContent = nexOnline ? '⏹ Parar' : '▶ Iniciar';
+            nexBtn.className = 'eco-btn ' + (nexOnline ? 'stop' : 'start');
+        }
+        // Sync Info panel indicators
+        try {
+            document.getElementById('nexusStatus').textContent = nexOnline ? '● Online' : '○ Offline';
+            document.getElementById('nexusStatus').className = 'info-value ' + (nexOnline ? 'green' : '');
+            document.getElementById('nexusStatusInline').textContent = nexOnline ? '●' : '○';
+            document.getElementById('nexusStatusInline').style.color = nexOnline ? 'var(--green)' : 'var(--text-faint)';
+            updateNexusUI(nexOnline);
+        } catch(e) {}
+
+        // ── CfdmNote ───────────────────────────────────────
+        const noteOn = d.cfdmnote?.running || false;
+        _setEcoDot('ecoNoteDot', noteOn);
+        _setStatusLbl('ecoNoteLbl', noteOn, 'Ativo', 'Fechado');
+        _setText('ecoNotePid', d.cfdmnote?.pid ? String(d.cfdmnote.pid) : '—');
+        const noteBtn = document.getElementById('ecoNoteBtn');
+        if (noteBtn) {
+            noteBtn.textContent = noteOn ? '⏹ Fechar' : '▶ Abrir';
+            noteBtn.className = 'eco-btn ' + (noteOn ? 'stop' : 'start');
+        }
+        const noteMeta = document.getElementById('ecoNoteMeta');
+        if (noteMeta) noteMeta.textContent = noteOn ? `PID ${d.cfdmnote.pid}` : 'Desktop app';
+    }
+
+    function _setEcoDot(id, online) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = 'eco-dot ' + (online ? 'eco-dot-on' : 'eco-dot-off');
+    }
+    function _setStatusLbl(id, online, onLabel='Online', offLabel='Offline') {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = online ? onLabel : offLabel;
+        el.style.color = online ? 'var(--green)' : 'var(--red)';
+    }
+    function _setText(id, txt) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = txt;
+    }
+    function _ecoSetOffline() {
+        ['ecoNexusDot','ecoNoteDot'].forEach(id => _setEcoDot(id, false));
+        _setStatusLbl('ecoNexusLbl', false);
+        _setStatusLbl('ecoNoteLbl', false, 'Ativo', 'Fechado');
+    }
+
+    async function _loadNexusAgents() {
         try {
             const ar = await fetch('/nexus/agents', {signal: AbortSignal.timeout(4000)});
             const ad = await ar.json();
             nexusAgents = Array.isArray(ad.agents) ? ad.agents : [];
-            document.getElementById('nexusPanelAgentCount').textContent = nexusAgents.length + ' agentes';
+            _setText('nexusPanelAgentCount', nexusAgents.length + ' agentes');
             renderNexusAgents(nexusAgents);
         } catch(e) {
-            document.getElementById('nexusAgentList').innerHTML =
-                '<div style="font-size:11px;color:var(--red);padding:4px 0">Nexus offline — inicie com o launcher</div>';
+            const el = document.getElementById('nexusAgentList');
+            if (el) el.innerHTML = '<div style="font-size:11px;color:var(--red);padding:4px 0">Nexus offline</div>';
         }
+    }
+
+    async function ecoToggle(app) {
+        const r = await fetch('/ecosystem/status');
+        const d = await r.json();
+        const isOn = app === 'nexus' ? d.nexus?.online : d.cfdmnote?.running;
+        const endpoint = isOn ? '/ecosystem/stop' : '/ecosystem/launch';
+        try {
+            const res = await fetch(endpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({app})});
+            const rd = await res.json();
+            toast('Ecossistema', rd.msg || (isOn ? 'Encerrando...' : 'Iniciando...'), rd.ok ? 'info' : 'error', 3000);
+            setTimeout(loadAppsPanel, 2500);
+        } catch(e) { toast('Erro', e.message, 'error'); }
+    }
+
+    async function ecoLaunch(app) {
+        try {
+            const r = await fetch('/ecosystem/launch', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({app})});
+            const d = await r.json();
+            toast('Ecossistema', d.msg || 'Iniciando...', d.ok ? 'success' : 'error', 3000);
+            setTimeout(loadAppsPanel, 3000);
+        } catch(e) { toast('Erro', e.message, 'error'); }
     }
 
     function renderNexusAgents(list) {
@@ -4028,7 +4213,7 @@
         if (!nexusSelectedAgent) { alert('Selecione um agente na lista'); return; }
         if (!task) { alert('Descreva a tarefa'); return; }
 
-        const btn = document.querySelector('#panelNexus .btn-sm.primary');
+        const btn = document.querySelector('#panelApps .btn-sm.primary');
         btn.textContent = '⟳ Executando...';
         btn.disabled = true;
 
@@ -4252,13 +4437,7 @@
         updateNexusUI(false);
     }
 
-    function openCfdmNote() {
-        fetch('/chat', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message: '/notas'})
-        }).then(r => r.json()).then(d => appendMsg('assistant', d.response || d.error));
-    }
+    function openCfdmNote() { ecoLaunch('cfdmnote'); }
 
     function clearChat() {
         if (!confirm('Limpar conversa?')) return;
