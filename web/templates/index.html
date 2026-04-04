@@ -2067,75 +2067,279 @@
 
 <!-- ── Modal: Comandos ─────────────────────────────────────── -->
 <div class="modal-overlay" id="modalComandos" onclick="closeModalOutside(event,'modalComandos')">
-<div class="modal" style="width:620px;max-height:80vh">
+<div class="modal" style="width:720px;height:85vh">
+
     <div class="modal-header">
-        <div class="modal-title">⌨ Comandos &amp; Modos</div>
-        <button class="modal-close" onclick="closeModal('modalComandos')">✕</button>
-    </div>
-
-    <!-- Tabs -->
-    <div style="display:flex;gap:0;background:var(--bg-input);border-bottom:1px solid var(--border);flex-shrink:0">
-        <button class="cmd-tab active" id="cmdTabCmds" onclick="switchCmdTab('cmds')"
-            style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text);cursor:pointer;border-bottom:2px solid var(--accent);transition:all .15s">
-            ⌨ Comandos
-        </button>
-        <button class="cmd-tab" id="cmdTabModos" onclick="switchCmdTab('modos')"
-            style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s">
-            🎭 Modos
-        </button>
-    </div>
-
-    <!-- Página: Comandos -->
-    <div id="cmdPageCmds" class="modal-body" style="gap:14px;max-height:55vh;overflow-y:auto">
-        <input type="text" id="cmdSearch" placeholder="Filtrar comandos..." oninput="filterCmds(this.value)"
-            style="height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none;width:100%;transition:border-color 0.15s"
-            onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
-        <div id="cmdList" style="display:flex;flex-direction:column;gap:4px"></div>
-    </div>
-
-    <!-- Página: Modos -->
-    <div id="cmdPageModos" style="display:none;flex-direction:column;max-height:55vh;overflow-y:auto;padding:14px;gap:12px">
-
-        <!-- Destaque — modos favoritos -->
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:4px">⭐ Favoritos</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px">
-            <button class="mode-card" onclick="activateMode('MORDOMO')"
-                style="--mc:rgba(0,212,255,0.2);--mc-b:rgba(0,212,255,0.4)">
-                <span class="mc-icon">🧑‍💼</span>
-                <div><div class="mc-name">Mordomo</div><div class="mc-desc">Elegante e organizado</div></div>
-            </button>
-            <button class="mode-card" onclick="activateMode('ARQUITETO')"
-                style="--mc:rgba(138,43,226,0.2);--mc-b:rgba(138,43,226,0.5)">
-                <span class="mc-icon">🏛</span>
-                <div><div class="mc-name">Arquiteto</div><div class="mc-desc">Design de sistemas</div></div>
-            </button>
-            <button class="mode-card" onclick="activateMode('ENGENHEIRO')"
-                style="--mc:rgba(59,130,246,0.2);--mc-b:rgba(59,130,246,0.5)">
-                <span class="mc-icon">⚙</span>
-                <div><div class="mc-name">Engenheiro</div><div class="mc-desc">Código &amp; implementação</div></div>
-            </button>
-            <button class="mode-card" onclick="activateMode('PARCA')"
-                style="--mc:rgba(0,230,140,0.2);--mc-b:rgba(0,230,140,0.5)">
-                <span class="mc-icon">🤙</span>
-                <div><div class="mc-name">Parça</div><div class="mc-desc">Casual e direto</div></div>
-            </button>
+        <div class="modal-title">⌨ Comandos &amp; Modos — ICARUS</div>
+        <div style="display:flex;gap:6px;align-items:center">
+            <span id="cmdsBadge" style="font-size:10px;color:var(--text-faint)">—</span>
+            <button class="modal-close" onclick="closeModal('modalComandos')">✕</button>
         </div>
+    </div>
 
+    <!-- ── Tabs ── -->
+    <div style="display:flex;background:var(--bg-input);border-bottom:1px solid var(--border);flex-shrink:0">
+        <button id="cmdT-cmds"  class="cmd-tab-btn active" onclick="switchCmdTab('cmds')">⌨ Comandos</button>
+        <button id="cmdT-modos" class="cmd-tab-btn"        onclick="switchCmdTab('modos')">🎭 Modos</button>
+        <button id="cmdT-rules" class="cmd-tab-btn"        onclick="switchCmdTab('rules')">📋 Regras</button>
+        <button id="cmdT-criar" class="cmd-tab-btn"        onclick="switchCmdTab('criar')">➕ Criar</button>
+    </div>
+
+    <!-- ════════════════════ PAGE: COMANDOS ════════════════════ -->
+    <div id="cmdPageCmds" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden">
+        <!-- toolbar -->
+        <div style="padding:10px 14px 8px;display:flex;gap:8px;flex-shrink:0;align-items:center">
+            <input type="text" id="cmdSearch" placeholder="Buscar comando..."
+                oninput="filterCmds(this.value)"
+                style="flex:1;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none"
+                onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+            <button class="term-filter-btn active" data-cf="all"     onclick="setCmdFilter('all')">Todos</button>
+            <button class="term-filter-btn"        data-cf="builtin" onclick="setCmdFilter('builtin')">Builtin</button>
+            <button class="term-filter-btn"        data-cf="custom"  onclick="setCmdFilter('custom')">Custom</button>
+            <button class="btn-sm primary" style="font-size:11px;white-space:nowrap" onclick="openCmdForm()">➕ Novo</button>
+        </div>
+        <!-- inline create/edit form -->
+        <div id="cmdForm" style="display:none;padding:0 14px 10px;flex-shrink:0">
+            <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-lg);padding:12px;display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em" id="cmdFormTitle">Novo Comando</div>
+                <input type="hidden" id="cmdFormId">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Comando / Frase</div>
+                        <input type="text" id="cmdFormKey" placeholder="ex: agenda de hoje"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Categoria</div>
+                        <input type="text" id="cmdFormCat" placeholder="ex: Agenda, Tarefas..."
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Descrição</div>
+                    <input type="text" id="cmdFormDesc" placeholder="Descrição curta do que faz"
+                        style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                </div>
+                <div style="display:flex;gap:6px;justify-content:flex-end">
+                    <button class="btn-sm" onclick="closeCmdForm()">Cancelar</button>
+                    <button class="btn-sm primary" onclick="saveCmdForm()">💾 Salvar</button>
+                </div>
+            </div>
+        </div>
+        <!-- list -->
+        <div id="cmdList" style="flex:1;min-height:0;overflow-y:auto;padding:0 14px 14px;
+            scrollbar-width:thin;scrollbar-color:rgba(0,212,255,0.2) transparent"></div>
+    </div>
+
+    <!-- ════════════════════ PAGE: MODOS ════════════════════════ -->
+    <div id="cmdPageModos" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden">
+        <!-- toolbar -->
+        <div style="padding:10px 14px 8px;display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <input type="text" id="modeSearch" placeholder="Buscar modo..."
+                oninput="filterModes(this.value)"
+                style="flex:1;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none"
+                onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+            <button class="btn-sm primary" style="font-size:11px;white-space:nowrap" onclick="openModeForm()">➕ Novo Modo</button>
+        </div>
+        <!-- inline mode form -->
+        <div id="modeForm" style="display:none;padding:0 14px 10px;flex-shrink:0">
+            <div style="background:rgba(138,43,226,0.06);border:1px solid rgba(138,43,226,0.3);border-radius:var(--radius-lg);padding:12px;display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:10px;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:.08em" id="modeFormTitle">Novo Modo</div>
+                <input type="hidden" id="modeFormKey">
+                <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Nome (KEY)</div>
+                        <input type="text" id="modeFormName" placeholder="ex: FOCO_TOTAL"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none;text-transform:uppercase">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Descrição curta</div>
+                        <input type="text" id="modeFormDesc" placeholder="Faz o quê?"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Camada</div>
+                        <select id="modeFormCamada"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 6px;font-size:11px;outline:none">
+                            <option value="1">1-Estratégico</option>
+                            <option value="2">2-Gestão</option>
+                            <option value="3">3-Controle</option>
+                            <option value="4">4-Especializado</option>
+                            <option value="5">5-Inteligência</option>
+                            <option value="6" selected>6-Comportamental</option>
+                            <option value="7">7-Composto</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Persona (instrução para o LLM)</div>
+                    <textarea id="modeFormPersona" rows="3" placeholder="Você é... Sua missão é..."
+                        style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px;font-size:12px;outline:none;resize:vertical;font-family:inherit"></textarea>
+                </div>
+                <div style="display:flex;gap:6px;justify-content:flex-end">
+                    <button class="btn-sm" onclick="closeModeForm()">Cancelar</button>
+                    <button class="btn-sm primary" onclick="saveModeForm()">💾 Salvar</button>
+                </div>
+            </div>
+        </div>
+        <!-- Favoritos -->
+        <div style="padding:0 14px 8px;flex-shrink:0">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:6px">⭐ Favoritos</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+                <button class="mode-card" onclick="activateMode('MORDOMO')"   style="--mc:rgba(0,212,255,0.15);--mc-b:rgba(0,212,255,0.35)"><span class="mc-icon">🧑‍💼</span><div><div class="mc-name">Mordomo</div><div class="mc-desc">Elegante</div></div></button>
+                <button class="mode-card" onclick="activateMode('ARQUITETO')" style="--mc:rgba(138,43,226,0.15);--mc-b:rgba(138,43,226,0.4)"><span class="mc-icon">🏛</span><div><div class="mc-name">Arquiteto</div><div class="mc-desc">Sistemas</div></div></button>
+                <button class="mode-card" onclick="activateMode('ENGENHEIRO')" style="--mc:rgba(59,130,246,0.15);--mc-b:rgba(59,130,246,0.4)"><span class="mc-icon">⚙</span><div><div class="mc-name">Engenheiro</div><div class="mc-desc">Código</div></div></button>
+                <button class="mode-card" onclick="activateMode('PARCA')"     style="--mc:rgba(0,230,140,0.15);--mc-b:rgba(0,230,140,0.4)"><span class="mc-icon">🤙</span><div><div class="mc-name">Parça</div><div class="mc-desc">Casual</div></div></button>
+            </div>
+        </div>
         <!-- Todos os modos -->
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:4px">Todos os modos</div>
-        <div id="allModesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px"></div>
-
-        <!-- Modo ativo -->
-        <div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg-input);border-radius:var(--radius);margin-top:4px">
+        <div style="padding:0 14px 4px;flex-shrink:0">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim)">Todos os modos</div>
+        </div>
+        <div id="allModesList" style="flex:1;min-height:0;overflow-y:auto;padding:4px 14px 4px;
+            display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:5px;align-content:start;
+            scrollbar-width:thin;scrollbar-color:rgba(0,212,255,0.2) transparent"></div>
+        <!-- Modo ativo footer -->
+        <div style="padding:8px 14px;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px">
             <span style="font-size:11px;color:var(--text-faint)">Modo ativo:</span>
             <span style="font-size:12px;font-weight:600;color:var(--accent)" id="activeModeLabel">—</span>
-            <button class="btn-sm" style="margin-left:auto;font-size:10px" onclick="activateMode('__deactivate__')">Desativar</button>
+            <button class="btn-sm" style="margin-left:auto;font-size:10px" onclick="activateMode('__deactivate__')">⏹ Desativar</button>
         </div>
     </div>
+
+    <!-- ════════════════════ PAGE: REGRAS ══════════════════════ -->
+    <div id="cmdPageRules" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden">
+        <!-- toolbar -->
+        <div style="padding:10px 14px 8px;display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <div style="flex:1;font-size:11px;color:var(--text-faint)">Regras disparam automaticamente quando a condição é satisfeita.</div>
+            <button class="btn-sm primary" style="font-size:11px;white-space:nowrap" onclick="openRuleForm()">➕ Nova Regra</button>
+        </div>
+        <!-- inline rule form -->
+        <div id="ruleForm" style="display:none;padding:0 14px 10px;flex-shrink:0">
+            <div style="background:rgba(0,230,140,0.04);border:1px solid rgba(0,230,140,0.25);border-radius:var(--radius-lg);padding:12px;display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:10px;font-weight:700;color:#00e68c;text-transform:uppercase;letter-spacing:.08em" id="ruleFormTitle">Nova Regra</div>
+                <input type="hidden" id="ruleFormId">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Nome da Regra</div>
+                        <input type="text" id="ruleFormName" placeholder="ex: Bom dia → Agenda"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Tipo de Gatilho</div>
+                        <select id="ruleFormTriggerType" onchange="updateRuleTriggerUI()"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 6px;font-size:11px;outline:none">
+                            <option value="text">💬 Texto (padrão regex)</option>
+                            <option value="always">⚡ Sempre (toda mensagem)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ruleTriggerPatternBox">
+                    <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Padrão de texto (regex ou palavra)</div>
+                    <input type="text" id="ruleFormPattern" placeholder='ex: bom dia|boa tarde|olá'
+                        style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-family:monospace;font-size:12px;outline:none">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Ação</div>
+                        <select id="ruleFormActionType"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 6px;font-size:11px;outline:none">
+                            <option value="mode">🎭 Ativar Modo</option>
+                            <option value="response">💬 Resposta fixa</option>
+                            <option value="skill">⚡ Executar Skill</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Valor da ação</div>
+                        <input type="text" id="ruleFormActionValue" placeholder='ex: MORDOMO | "Olá!" | agenda de hoje'
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                    </div>
+                </div>
+                <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center">
+                    <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-faint);cursor:pointer">
+                        <input type="checkbox" id="ruleFormEnabled" checked style="accent-color:var(--accent)"> Ativa
+                    </label>
+                    <button class="btn-sm" onclick="closeRuleForm()">Cancelar</button>
+                    <button class="btn-sm primary" onclick="saveRuleForm()">💾 Salvar</button>
+                </div>
+            </div>
+        </div>
+        <!-- rules list -->
+        <div id="rulesList" style="flex:1;min-height:0;overflow-y:auto;padding:0 14px 14px;display:flex;flex-direction:column;gap:6px;
+            scrollbar-width:thin;scrollbar-color:rgba(0,212,255,0.2) transparent">
+            <div style="color:var(--text-faint);font-size:12px;text-align:center;padding:30px">Carregando regras...</div>
+        </div>
+    </div>
+
+    <!-- ════════════════════ PAGE: CRIAR ═══════════════════════ -->
+    <div id="cmdPageCriar" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px;gap:16px">
+        <!-- tipo -->
+        <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:8px">O que deseja criar?</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                <button class="criar-tipo-btn active" id="criarT-cmd"  onclick="setCriarTipo('cmd')">
+                    <div style="font-size:20px">⌨</div>
+                    <div style="font-size:12px;font-weight:700">Comando</div>
+                    <div style="font-size:10px;color:var(--text-faint)">Atalho de chat</div>
+                </button>
+                <button class="criar-tipo-btn" id="criarT-mode" onclick="setCriarTipo('mode')">
+                    <div style="font-size:20px">🎭</div>
+                    <div style="font-size:12px;font-weight:700">Modo</div>
+                    <div style="font-size:10px;color:var(--text-faint)">Personalidade</div>
+                </button>
+                <button class="criar-tipo-btn" id="criarT-rule" onclick="setCriarTipo('rule')">
+                    <div style="font-size:20px">📋</div>
+                    <div style="font-size:12px;font-weight:700">Regra</div>
+                    <div style="font-size:10px;color:var(--text-faint)">Automação</div>
+                </button>
+            </div>
+        </div>
+        <!-- form dinâmico -->
+        <div id="criarForm"></div>
+        <!-- output -->
+        <div id="criarOutput" style="display:none;border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-lg);padding:12px;background:rgba(0,212,255,0.03)">
+            <div id="criarOutputText" style="font-size:12px;color:var(--text)"></div>
+        </div>
+    </div>
+
 </div>
 </div>
 
 <style>
+/* ── Tab buttons (Comandos modal) ── */
+.cmd-tab-btn {
+    padding: 8px 18px;
+    font-size: 12px; font-weight: 600;
+    border: none; background: transparent;
+    color: var(--text-faint); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .15s; font-family: inherit;
+}
+.cmd-tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+.cmd-tab-btn:hover:not(.active) { color: var(--text-dim); }
+
+/* ── Criar tipo selector ── */
+.criar-tipo-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; padding: 14px 8px;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); cursor: pointer; color: var(--text);
+    transition: all .15s; font-family: inherit;
+}
+.criar-tipo-btn.active { border-color: var(--accent); background: rgba(0,212,255,0.08); }
+.criar-tipo-btn:hover:not(.active) { border-color: var(--border-acc); }
+
+/* ── Rule card ── */
+.rule-card {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-input);
+    transition: border-color .15s;
+}
+.rule-card:hover { border-color: rgba(0,230,140,0.3); }
+.rule-card.disabled { opacity: .5; }
+
 /* ── Mode cards ── */
 .mode-card {
     display:flex;align-items:center;gap:10px;
@@ -2252,7 +2456,7 @@
 
 <!-- ── Modal: Skills ───────────────────────────────────────── -->
 <div class="modal-overlay" id="modalSkills" onclick="closeModalOutside(event,'modalSkills')">
-<div class="modal" style="width:660px;max-height:82vh">
+<div class="modal" style="width:660px;height:82vh">
 
     <div class="modal-header">
         <div class="modal-title">🔌 Skills ICARUS</div>
@@ -2276,10 +2480,10 @@
     </div>
 
     <!-- ── Tab: Lista ── -->
-    <div id="skPageList" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div id="skPageList" style="display:flex;flex-direction:column;min-height:0;flex:1;overflow:hidden">
 
         <!-- Barra de busca + filtros -->
-        <div style="padding:12px 14px 0;display:flex;gap:8px;flex-shrink:0">
+        <div style="padding:12px 14px 8px;display:flex;gap:8px;flex-shrink:0">
             <input id="skSearch" type="text" placeholder="Buscar skill..."
                 oninput="filterSkills(this.value)"
                 style="flex:1;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none;transition:border-color .15s"
@@ -2290,13 +2494,14 @@
         </div>
 
         <!-- Lista de skills -->
-        <div id="skList" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+        <div id="skList" style="flex:1;min-height:0;overflow-y:auto;padding:0 14px 14px;display:flex;flex-direction:column;gap:6px;
+            scrollbar-width:thin;scrollbar-color:rgba(0,212,255,0.2) transparent">
             <div style="color:var(--text-faint);font-size:12px;text-align:center;padding:30px">Carregando skills...</div>
         </div>
     </div>
 
     <!-- ── Tab: + Nova Skill ── -->
-    <div id="skPageNew" style="display:none;flex-direction:column;padding:16px;gap:14px;overflow-y:auto;max-height:65vh">
+    <div id="skPageNew" style="display:none;flex-direction:column;padding:16px;gap:14px;overflow-y:auto;flex:1;min-height:0">
 
         <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-lg);padding:14px">
             <div style="font-size:11px;color:var(--accent);font-weight:700;margin-bottom:6px">🤖 Agente Architect</div>
@@ -4373,60 +4578,136 @@
     }
 
     // ── Comandos database ────────────────────────────────
-    const CMDS_DB = [
-        {cat:"Sistema",    key:"/status",                    desc:"Status completo do ICARUS"},
-        {cat:"Sistema",    key:"/agentes",                   desc:"Listar agentes Nexus no chat"},
-        {cat:"Sistema",    key:"/modos",                     desc:"Listar 28 modos operacionais"},
-        {cat:"Sistema",    key:"/modo",                      desc:"Ver modo ativo atual"},
-        {cat:"Sistema",    key:"/ajuda",                     desc:"Ajuda geral"},
-        {cat:"Sistema",    key:"/memoria",                   desc:"Ver memórias salvas"},
-        {cat:"Tarefas",    key:"minhas tarefas",             desc:"Listar tarefas pendentes"},
-        {cat:"Tarefas",    key:"adiciona tarefa: ",          desc:"Criar nova tarefa"},
-        {cat:"Tarefas",    key:"concluir tarefa 1",          desc:"Marcar tarefa como concluída"},
-        {cat:"Modos",      key:"ativar modo FOCO",           desc:"Deep work, sem distrações"},
-        {cat:"Modos",      key:"ativar modo MORNING",        desc:"Rotina matinal"},
-        {cat:"Modos",      key:"ativar modo FINANCAS",       desc:"Sentinela financeiro"},
-        {cat:"Modos",      key:"ativar modo CRIATIVO",       desc:"Brainstorm criativo"},
-        {cat:"Modos",      key:"ativar modo MESTRE DOS MAGOS", desc:"GOD MODE — análise 360°"},
-        {cat:"Modos",      key:"desativar modo",             desc:"Desativar modo atual"},
-        {cat:"Notícias",   key:"briefing matinal",           desc:"Resumo do dia (HN/TechCrunch/G1)"},
-        {cat:"Notícias",   key:"notícias de tecnologia",     desc:"HN + TechCrunch RSS"},
-        {cat:"Notícias",   key:"notícias de IA",             desc:"The Verge AI + MIT Tech"},
-        {cat:"Notícias",   key:"notícias do brasil",         desc:"G1 RSS"},
-        {cat:"Agenda",     key:"agenda de hoje",             desc:"Compromissos do dia"},
-        {cat:"Agenda",     key:"agenda de amanhã",           desc:"Compromissos de amanhã"},
-        {cat:"Agenda",     key:"próximos compromissos",      desc:"Agenda 7 dias"},
+    // ═══════════════════════════════════════════════════════════
+    // ── MODAL COMANDOS — Estado e dados
+    // ═══════════════════════════════════════════════════════════
+    const CMDS_BUILTIN = [
+        {cat:"Sistema",    key:"/status",                       desc:"Status completo do ICARUS"},
+        {cat:"Sistema",    key:"/agentes",                      desc:"Listar agentes Nexus no chat"},
+        {cat:"Sistema",    key:"/modos",                        desc:"Listar todos os modos"},
+        {cat:"Sistema",    key:"/modo",                         desc:"Ver modo ativo atual"},
+        {cat:"Sistema",    key:"/ajuda",                        desc:"Ajuda geral"},
+        {cat:"Sistema",    key:"/memoria",                      desc:"Ver memórias salvas"},
+        {cat:"Sistema",    key:"ICARUS espere",                 desc:"Pausa — ICARUS aguarda"},
+        {cat:"Sistema",    key:"pode continuar",                desc:"Retoma após pausa"},
+        {cat:"Tarefas",    key:"minhas tarefas",                desc:"Listar tarefas pendentes"},
+        {cat:"Tarefas",    key:"adiciona tarefa: ",             desc:"Criar nova tarefa"},
+        {cat:"Tarefas",    key:"concluir tarefa 1",             desc:"Marcar tarefa como concluída"},
+        {cat:"Modos",      key:"ativar modo FOCO",              desc:"Deep work, sem distrações"},
+        {cat:"Modos",      key:"ativar modo FINANCAS",          desc:"Sentinela financeiro"},
+        {cat:"Modos",      key:"ativar modo CRIATIVO",          desc:"Brainstorm criativo"},
+        {cat:"Modos",      key:"ativar modo MESTRE DOS MAGOS",  desc:"GOD MODE — análise 360°"},
+        {cat:"Modos",      key:"desativar modo",                desc:"Desativar modo atual"},
+        {cat:"Notícias",   key:"briefing matinal",              desc:"Resumo do dia"},
+        {cat:"Notícias",   key:"notícias de tecnologia",        desc:"HN + TechCrunch RSS"},
+        {cat:"Notícias",   key:"notícias do brasil",            desc:"G1 RSS"},
+        {cat:"Agenda",     key:"agenda de hoje",                desc:"Compromissos do dia"},
+        {cat:"Agenda",     key:"agenda de amanhã",              desc:"Compromissos de amanhã"},
         {cat:"Agenda",     key:"agendar reunião amanhã às 14h", desc:"Criar compromisso"},
-        {cat:"Agenda",     key:"cancelar evento 1",          desc:"Cancelar compromisso pelo ID"},
-        {cat:"Financeiro", key:"visão geral financeira",     desc:"Saldo e alertas"},
-        {cat:"Financeiro", key:"contas a vencer",            desc:"Vencimentos próximos"},
-        {cat:"Voz",        key:"testar voz",                 desc:"ICARUS fala frase de teste"},
-        {cat:"Voz",        key:"falar olá mundo",            desc:"ICARUS lê texto em voz"},
-        {cat:"Voz",        key:"status de voz",              desc:"Status TTS/STT"},
-        {cat:"Agentes",    key:"convocar agente de marketing", desc:"Busca agente por especialidade"},
-        {cat:"Agentes",    key:"montar equipe para projeto X", desc:"Cria equipe de agentes"},
+        {cat:"Financeiro", key:"visão geral financeira",        desc:"Saldo e alertas"},
+        {cat:"Financeiro", key:"contas a vencer",               desc:"Vencimentos próximos"},
+        {cat:"Voz",        key:"testar voz",                    desc:"ICARUS fala teste"},
+        {cat:"Agentes",    key:"convocar agente de marketing",  desc:"Busca agente por especialidade"},
+        {cat:"Agentes",    key:"montar equipe para projeto X",  desc:"Cria equipe de agentes"},
     ];
 
-    function renderCmds(list) {
-        const cats = [...new Set(list.map(c => c.cat))];
-        return cats.map(cat => `
-            <div style="margin-bottom:8px">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:4px">${cat}</div>
-                ${list.filter(c=>c.cat===cat).map(c=>`
-                <div class="cmd-item" style="cursor:pointer" onclick="pasteCmd('${c.key.replace(/'/g,"\\'")}')">
-                    <span class="cmd-key">${c.key}</span>
-                    <span class="cmd-desc">${c.desc}</span>
-                </div>`).join('')}
-            </div>`).join('');
+    let _customCmds = [];
+    let _cmdFilter  = 'all';
+    let _cmdSearchQ = '';
+    let _modeData   = {};
+    let _modeSearchQ = '';
+    let _editingModeKey = null;
+
+    // ── Tabs ──────────────────────────────────────────────────
+    function switchCmdTab(tab) {
+        ['cmds','modos','rules','criar'].forEach(t => {
+            const page = document.getElementById('cmdPage' + t.charAt(0).toUpperCase() + t.slice(1));
+            if (page) page.style.display = (t === tab) ? 'flex' : 'none';
+            const btn = document.getElementById('cmdT-' + t);
+            if (btn) btn.classList.toggle('active', t === tab);
+        });
+        if (tab === 'cmds')  { loadCustomCmds(); }
+        if (tab === 'modos') { loadAllModes(); }
+        if (tab === 'rules') { loadRules(); }
+        if (tab === 'criar') { setCriarTipo('cmd'); }
     }
 
-    function filterCmds(q) {
-        const list = q ? CMDS_DB.filter(c =>
-            c.key.toLowerCase().includes(q.toLowerCase()) ||
-            c.desc.toLowerCase().includes(q.toLowerCase()) ||
-            c.cat.toLowerCase().includes(q.toLowerCase())
-        ) : CMDS_DB;
-        document.getElementById('cmdList').innerHTML = renderCmds(list);
+    // ═══════════════════════════════════════════════════════════
+    // ── TAB COMANDOS — CRUD
+    // ═══════════════════════════════════════════════════════════
+    async function loadCustomCmds() {
+        try {
+            const r = await fetch('/commands');
+            const d = await r.json();
+            _customCmds = d.commands || [];
+        } catch(e) { _customCmds = []; }
+        renderCmds();
+        const total = CMDS_BUILTIN.length + _customCmds.length;
+        document.getElementById('cmdsBadge').textContent = `${CMDS_BUILTIN.length} builtin · ${_customCmds.length} custom`;
+    }
+
+    function setCmdFilter(f) {
+        _cmdFilter = f;
+        document.querySelectorAll('[data-cf]').forEach(b => b.classList.toggle('active', b.dataset.cf === f));
+        renderCmds();
+    }
+
+    function filterCmds(q) { _cmdSearchQ = q.toLowerCase(); renderCmds(); }
+
+    function renderCmds() {
+        const list = document.getElementById('cmdList');
+        let builtin = _cmdFilter !== 'custom' ? CMDS_BUILTIN : [];
+        let custom  = _cmdFilter !== 'builtin' ? _customCmds  : [];
+        if (_cmdSearchQ) {
+            const q = _cmdSearchQ;
+            builtin = builtin.filter(c => c.key.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q));
+            custom  = custom.filter(c  => c.key.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q));
+        }
+        if (!builtin.length && !custom.length) {
+            list.innerHTML = '<div style="color:var(--text-faint);font-size:12px;text-align:center;padding:30px">Nenhum comando encontrado.</div>';
+            return;
+        }
+
+        // Agrupa builtin por categoria
+        const cats = [...new Set(builtin.map(c => c.cat))];
+        let html = cats.map(cat => `
+            <div style="margin-bottom:10px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                    ${cat} <span style="font-size:9px;padding:1px 5px;border-radius:6px;background:rgba(0,212,255,0.1);color:var(--accent)">BUILTIN</span>
+                </div>
+                ${builtin.filter(c=>c.cat===cat).map(c=>`
+                <div class="cmd-item" style="justify-content:space-between">
+                    <div style="flex:1;cursor:pointer;min-width:0" onclick="pasteCmd('${c.key.replace(/'/g,"\\'")}')">
+                        <span class="cmd-key">${c.key}</span>
+                        <span class="cmd-desc">${c.desc}</span>
+                    </div>
+                    <button class="btn-sm" style="font-size:10px;flex-shrink:0" onclick="pasteCmd('${c.key.replace(/'/g,"\\'")}')">▶ Usar</button>
+                </div>`).join('')}
+            </div>`).join('');
+
+        // Custom commands
+        if (custom.length) {
+            const custCats = [...new Set(custom.map(c => c.cat || 'Custom'))];
+            html += custCats.map(cat => `
+                <div style="margin-bottom:10px">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#00e68c;margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                        ${cat} <span style="font-size:9px;padding:1px 5px;border-radius:6px;background:rgba(0,230,140,0.1);color:#00e68c">CUSTOM</span>
+                    </div>
+                    ${custom.filter(c=>(c.cat||'Custom')===cat).map(c=>`
+                    <div class="cmd-item" style="justify-content:space-between">
+                        <div style="flex:1;cursor:pointer;min-width:0" onclick="pasteCmd('${(c.key||'').replace(/'/g,"\\'")}')">
+                            <span class="cmd-key">${c.key||''}</span>
+                            <span class="cmd-desc">${c.desc||''}</span>
+                        </div>
+                        <div style="display:flex;gap:4px;flex-shrink:0">
+                            <button class="btn-sm" style="font-size:10px" onclick="pasteCmd('${(c.key||'').replace(/'/g,"\\'")}')">▶</button>
+                            <button class="btn-sm" style="font-size:10px" onclick="openCmdForm('${c.id}')">✏</button>
+                            <button class="btn-sm" style="font-size:10px;border-color:var(--red);color:var(--red)" onclick="deleteCmd('${c.id}')">🗑</button>
+                        </div>
+                    </div>`).join('')}
+                </div>`).join('');
+        }
+        list.innerHTML = html;
     }
 
     function pasteCmd(cmd) {
@@ -4437,19 +4718,109 @@
         else chatInput.focus();
     }
 
-    // ── Comandos & Modos — tabs ───────────────────────────────
-    function switchCmdTab(tab) {
-        const isCmds = tab === 'cmds';
-        document.getElementById('cmdPageCmds').style.display  = isCmds ? 'flex'  : 'none';
-        document.getElementById('cmdPageModos').style.display = isCmds ? 'none'  : 'flex';
-        document.getElementById('cmdTabCmds').style.borderBottomColor  = isCmds ? 'var(--accent)' : 'transparent';
-        document.getElementById('cmdTabModos').style.borderBottomColor = isCmds ? 'transparent'   : 'var(--accent)';
-        document.getElementById('cmdTabCmds').style.color  = isCmds ? 'var(--text)'      : 'var(--text-faint)';
-        document.getElementById('cmdTabModos').style.color = isCmds ? 'var(--text-faint)' : 'var(--text)';
-        if (!isCmds) loadAllModes();
+    function openCmdForm(id) {
+        const form = document.getElementById('cmdForm');
+        document.getElementById('cmdFormTitle').textContent = id ? 'Editar Comando' : 'Novo Comando';
+        document.getElementById('cmdFormId').value = id || '';
+        if (id) {
+            const c = _customCmds.find(x => x.id === id);
+            if (c) {
+                document.getElementById('cmdFormKey').value  = c.key  || '';
+                document.getElementById('cmdFormCat').value  = c.cat  || '';
+                document.getElementById('cmdFormDesc').value = c.desc || '';
+            }
+        } else {
+            document.getElementById('cmdFormKey').value  = '';
+            document.getElementById('cmdFormCat').value  = '';
+            document.getElementById('cmdFormDesc').value = '';
+        }
+        form.style.display = '';
+        document.getElementById('cmdFormKey').focus();
+    }
+    function closeCmdForm() { document.getElementById('cmdForm').style.display = 'none'; }
+
+    async function saveCmdForm() {
+        const id   = document.getElementById('cmdFormId').value;
+        const key  = document.getElementById('cmdFormKey').value.trim();
+        const cat  = document.getElementById('cmdFormCat').value.trim() || 'Custom';
+        const desc = document.getElementById('cmdFormDesc').value.trim();
+        if (!key) { toast('Comandos', 'Preencha o campo Comando', 'warn'); return; }
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url    = id ? `/commands/${id}` : '/commands';
+            const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify({key, cat, desc}) });
+            const d = await r.json();
+            if (d.error) { toast('Erro', d.error, 'error'); return; }
+            toast('Comandos', id ? 'Comando atualizado' : 'Comando criado', 'success');
+            closeCmdForm();
+            loadCustomCmds();
+        } catch(e) { toast('Erro', e.message, 'error'); }
     }
 
-    // Ativar modo direto do painel
+    async function deleteCmd(id) {
+        if (!confirm('Apagar este comando?')) return;
+        try {
+            await fetch(`/commands/${id}`, {method:'DELETE'});
+            toast('Comandos', 'Apagado', 'success');
+            loadCustomCmds();
+        } catch(e) { toast('Erro', e.message, 'error'); }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ── TAB MODOS — CRUD
+    // ═══════════════════════════════════════════════════════════
+    function filterModes(q) { _modeSearchQ = q.toLowerCase(); _renderModesList(); }
+
+    async function loadAllModes() {
+        const container = document.getElementById('allModesList');
+        if (!container) return;
+        try {
+            const r = await fetch('/modes');
+            const d = await r.json();
+            _modeData = d.modes || {};
+            const active = d.active || '';
+            document.getElementById('activeModeLabel').textContent = active || '—';
+            _renderModesList(active);
+        } catch(e) {
+            container.innerHTML = '<div style="color:var(--red);font-size:12px">Erro ao carregar modos</div>';
+        }
+    }
+
+    function _renderModesList(active) {
+        const container = document.getElementById('allModesList');
+        if (!container) return;
+        if (!active) {
+            try { active = document.getElementById('activeModeLabel').textContent; } catch(e){}
+        }
+        const layerIcon = { 1:'👑', 2:'📋', 3:'🛡', 4:'🔬', 5:'🎨', 6:'🧘', 7:'⚙' };
+        const FAVS = new Set(['MORDOMO','ARQUITETO','ENGENHEIRO','PARCA']);
+        let entries = Object.entries(_modeData).filter(([k]) => !FAVS.has(k));
+        if (_modeSearchQ) entries = entries.filter(([k,v]) =>
+            k.toLowerCase().includes(_modeSearchQ) || (v.descricao||'').toLowerCase().includes(_modeSearchQ));
+        entries.sort((a,b) => (a[1].camada||9) - (b[1].camada||9) || a[0].localeCompare(b[0]));
+
+        container.innerHTML = entries.map(([key, info]) => {
+            const icon = layerIcon[info.camada] || '◆';
+            const isActive = key === active;
+            return `
+            <div style="position:relative">
+                <button class="mode-mini" onclick="activateMode('${key}')"
+                    style="${isActive ? 'border-color:var(--accent);background:rgba(0,212,255,0.1)' : ''}">
+                    <span style="font-size:14px">${icon}</span>
+                    <div style="flex:1;min-width:0">
+                        <div class="mode-mini-name">${key.replace(/_/g,' ')}</div>
+                        <div class="mode-mini-desc">${(info.descricao||'').substring(0,32)}</div>
+                    </div>
+                    <div style="display:flex;gap:2px;flex-shrink:0" onclick="event.stopPropagation()">
+                        <button class="btn-sm" style="font-size:9px;padding:2px 5px" onclick="openModeForm('${key}')">✏</button>
+                        <button class="btn-sm" style="font-size:9px;padding:2px 5px;border-color:var(--red);color:var(--red)" onclick="deleteMode('${key}')">🗑</button>
+                    </div>
+                </button>
+            </div>`;
+        }).join('');
+        if (!entries.length) container.innerHTML = '<div style="color:var(--text-faint);font-size:12px;grid-column:1/-1;padding:20px;text-align:center">Nenhum modo encontrado.</div>';
+    }
+
     function activateMode(name) {
         if (name === '__deactivate__') {
             pwrSend('desativar modo');
@@ -4461,43 +4832,279 @@
         closeModal('modalComandos');
     }
 
-    // Carrega todos os modos do servidor e preenche a lista
-    async function loadAllModes() {
-        const container = document.getElementById('allModesList');
-        if (!container) return;
+    function openModeForm(key) {
+        _editingModeKey = key || null;
+        document.getElementById('modeFormTitle').textContent = key ? `Editar Modo: ${key}` : 'Novo Modo';
+        document.getElementById('modeFormKey').value = key || '';
+        if (key && _modeData[key]) {
+            const m = _modeData[key];
+            document.getElementById('modeFormName').value    = key;
+            document.getElementById('modeFormName').disabled = true;
+            document.getElementById('modeFormDesc').value    = m.descricao || '';
+            document.getElementById('modeFormCamada').value  = m.camada || 6;
+            document.getElementById('modeFormPersona').value = m.persona || '';
+        } else {
+            document.getElementById('modeFormName').value    = '';
+            document.getElementById('modeFormName').disabled = false;
+            document.getElementById('modeFormDesc').value    = '';
+            document.getElementById('modeFormCamada').value  = '6';
+            document.getElementById('modeFormPersona').value = '';
+        }
+        document.getElementById('modeForm').style.display = '';
+        document.getElementById('modeFormName').focus();
+    }
+    function closeModeForm() { document.getElementById('modeForm').style.display = 'none'; _editingModeKey = null; }
+
+    async function saveModeForm() {
+        const isEdit = !!_editingModeKey;
+        const key    = _editingModeKey || document.getElementById('modeFormName').value.trim().toUpperCase().replace(/\s+/g,'_');
+        const body   = {
+            key,
+            descricao: document.getElementById('modeFormDesc').value.trim(),
+            camada:    parseInt(document.getElementById('modeFormCamada').value),
+            persona:   document.getElementById('modeFormPersona').value.trim(),
+        };
+        if (!key) { toast('Modos', 'Nome obrigatório', 'warn'); return; }
         try {
-            const r = await fetch('/modes');
+            const url    = isEdit ? `/modes/${key}` : '/modes/create';
+            const method = isEdit ? 'PUT' : 'POST';
+            const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
             const d = await r.json();
-            const modes = d.modes || {};
-            const active = d.active || '';
+            if (d.error) { toast('Modos', d.error, 'error'); return; }
+            toast('Modos', isEdit ? `Modo ${key} atualizado` : `Modo ${key} criado`, 'success');
+            closeModeForm();
+            loadAllModes();
+        } catch(e) { toast('Erro', e.message, 'error'); }
+    }
 
-            // Atualiza label do modo ativo
-            document.getElementById('activeModeLabel').textContent = active || '—';
+    async function deleteMode(key) {
+        if (!confirm(`Apagar modo "${key}"? Esta ação é permanente.`)) return;
+        try {
+            const r = await fetch(`/modes/${key}`, {method:'DELETE'});
+            const d = await r.json();
+            toast('Modos', d.result || 'Apagado', 'success');
+            loadAllModes();
+        } catch(e) { toast('Erro', e.message, 'error'); }
+    }
 
-            // Ícones por camada
-            const layerIcon = { 1:'👑', 2:'📋', 3:'🛡', 4:'🔬', 5:'🎨', 6:'🧘', 7:'⚙' };
+    // ═══════════════════════════════════════════════════════════
+    // ── TAB REGRAS — CRUD
+    // ═══════════════════════════════════════════════════════════
+    let _editingRuleId = null;
 
-            // Modos favoritos para não duplicar
-            const FAVS = new Set(['MORDOMO','ARQUITETO','ENGENHEIRO','PARCA']);
-
-            container.innerHTML = Object.entries(modes)
-                .filter(([k]) => !FAVS.has(k))
-                .sort((a,b) => (a[1].camada||9) - (b[1].camada||9) || a[0].localeCompare(b[0]))
-                .map(([key, info]) => {
-                    const icon = layerIcon[info.camada] || '◆';
-                    const isActive = key === active;
-                    return `<button class="mode-mini ${isActive ? 'active' : ''}"
-                        onclick="activateMode('${key}')"
-                        style="${isActive ? 'border-color:var(--accent);background:rgba(0,212,255,0.1)' : ''}">
-                        <span style="font-size:14px">${icon}</span>
-                        <div>
-                            <div class="mode-mini-name">${key.replace(/_/g,' ')}</div>
-                            <div class="mode-mini-desc">${(info.descricao||'').substring(0,38)}</div>
-                        </div>
-                    </button>`;
-                }).join('');
+    async function loadRules() {
+        const list = document.getElementById('rulesList');
+        list.innerHTML = '<div style="color:var(--text-faint);font-size:12px;text-align:center;padding:30px">Carregando...</div>';
+        try {
+            const r = await fetch('/rules');
+            const d = await r.json();
+            renderRules(d.rules || []);
         } catch(e) {
-            container.innerHTML = '<div style="color:var(--red);font-size:12px">Erro ao carregar modos</div>';
+            list.innerHTML = `<div style="color:var(--red);font-size:12px;padding:20px">Erro: ${e.message}</div>`;
+        }
+    }
+
+    function renderRules(rules) {
+        const list = document.getElementById('rulesList');
+        if (!rules.length) {
+            list.innerHTML = `<div style="color:var(--text-faint);font-size:12px;text-align:center;padding:40px">
+                Nenhuma regra criada ainda.<br><br>
+                <div style="font-size:11px;opacity:.7">Regras disparam ações automaticamente quando uma condição é satisfeita.<br>
+                Ex: quando você disser "bom dia" → ativar modo MORDOMO.</div>
+            </div>`;
+            return;
+        }
+        const actionIcon = {mode:'🎭', response:'💬', skill:'⚡'};
+        list.innerHTML = rules.map(r => `
+        <div class="rule-card ${r.enabled ? '' : 'disabled'}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:13px;font-weight:700;flex:1">${r.name}</span>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:var(--text-faint)">
+                    <input type="checkbox" ${r.enabled ? 'checked' : ''} style="accent-color:var(--accent)"
+                        onchange="toggleRule('${r.id}', this.checked)"> Ativa
+                </label>
+                <button class="btn-sm" style="font-size:10px" onclick="openRuleForm('${r.id}')">✏</button>
+                <button class="btn-sm" style="font-size:10px;border-color:var(--red);color:var(--red)" onclick="deleteRule('${r.id}')">🗑</button>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(0,212,255,0.1);color:var(--accent)">
+                    ${r.trigger_type === 'text' ? '💬 ' + (r.trigger_pattern||'?') : '⚡ Sempre'}
+                </span>
+                <span style="font-size:10px;color:var(--text-faint)">→</span>
+                <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(0,230,140,0.1);color:#00e68c">
+                    ${actionIcon[r.action_type]||'◆'} ${r.action_value||'?'}
+                </span>
+            </div>
+        </div>`).join('');
+    }
+
+    function openRuleForm(id) {
+        _editingRuleId = id || null;
+        document.getElementById('ruleFormTitle').textContent = id ? 'Editar Regra' : 'Nova Regra';
+        document.getElementById('ruleFormId').value = id || '';
+        if (!id) {
+            document.getElementById('ruleFormName').value = '';
+            document.getElementById('ruleFormTriggerType').value = 'text';
+            document.getElementById('ruleFormPattern').value = '';
+            document.getElementById('ruleFormActionType').value = 'mode';
+            document.getElementById('ruleFormActionValue').value = '';
+            document.getElementById('ruleFormEnabled').checked = true;
+        }
+        document.getElementById('ruleForm').style.display = '';
+        updateRuleTriggerUI();
+        document.getElementById('ruleFormName').focus();
+    }
+    function closeRuleForm() { document.getElementById('ruleForm').style.display = 'none'; _editingRuleId = null; }
+    function updateRuleTriggerUI() {
+        const t = document.getElementById('ruleFormTriggerType').value;
+        document.getElementById('ruleTriggerPatternBox').style.display = t === 'text' ? '' : 'none';
+    }
+
+    async function saveRuleForm() {
+        const body = {
+            name:            document.getElementById('ruleFormName').value.trim(),
+            trigger_type:    document.getElementById('ruleFormTriggerType').value,
+            trigger_pattern: document.getElementById('ruleFormPattern').value.trim(),
+            action_type:     document.getElementById('ruleFormActionType').value,
+            action_value:    document.getElementById('ruleFormActionValue').value.trim(),
+            enabled:         document.getElementById('ruleFormEnabled').checked,
+        };
+        if (!body.name) { toast('Regras', 'Nome obrigatório', 'warn'); return; }
+        try {
+            const id  = document.getElementById('ruleFormId').value;
+            const url = id ? `/rules/${id}` : '/rules';
+            const r = await fetch(url, {method: id ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+            const d = await r.json();
+            if (d.error) { toast('Regras', d.error, 'error'); return; }
+            toast('Regras', id ? 'Regra atualizada' : 'Regra criada', 'success');
+            closeRuleForm();
+            loadRules();
+        } catch(e) { toast('Erro', e.message, 'error'); }
+    }
+
+    async function toggleRule(id, enabled) {
+        try {
+            await fetch(`/rules/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({enabled})});
+        } catch(e) { toast('Erro', e.message, 'error'); }
+    }
+
+    async function deleteRule(id) {
+        if (!confirm('Apagar esta regra?')) return;
+        try {
+            await fetch(`/rules/${id}`, {method:'DELETE'});
+            toast('Regras', 'Apagada', 'success');
+            loadRules();
+        } catch(e) { toast('Erro', e.message, 'error'); }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ── TAB CRIAR — Formulário unificado
+    // ═══════════════════════════════════════════════════════════
+    let _criarTipo = 'cmd';
+    const _criarForms = {
+        cmd: `
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Comando / Frase</div>
+                    <input id="criarCmdKey" type="text" placeholder="ex: agenda de hoje"
+                        style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"></div>
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Categoria</div>
+                    <input id="criarCmdCat" type="text" placeholder="ex: Agenda"
+                        style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"></div>
+                </div>
+                <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Descrição</div>
+                <input id="criarCmdDesc" type="text" placeholder="O que este comando faz?"
+                    style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"></div>
+                <button class="btn-sm primary" style="height:34px;font-size:13px" onclick="criarSave()">⌨ Criar Comando</button>
+            </div>`,
+        mode: `
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:grid;grid-template-columns:1fr 1fr 90px;gap:8px">
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Nome (KEY)</div>
+                    <input id="criarModeName" type="text" placeholder="MINHA_PERSONA" style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none;text-transform:uppercase"></div>
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Descrição curta</div>
+                    <input id="criarModeDesc" type="text" placeholder="O que faz?" style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"></div>
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Camada</div>
+                    <select id="criarModeCamada" style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 4px;font-size:11px;outline:none">
+                        <option value="1">1-Estratégico</option><option value="2">2-Gestão</option>
+                        <option value="3">3-Controle</option><option value="4">4-Especializado</option>
+                        <option value="5">5-Inteligência</option><option value="6" selected>6-Comportamental</option>
+                        <option value="7">7-Composto</option>
+                    </select></div>
+                </div>
+                <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Persona (instrução para o LLM)</div>
+                <textarea id="criarModePersona" rows="4" placeholder="Você é... Sua missão é... Fale sempre..."
+                    style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px;font-size:12px;outline:none;resize:vertical;font-family:inherit"></textarea></div>
+                <button class="btn-sm primary" style="height:34px;font-size:13px" onclick="criarSave()">🎭 Criar Modo</button>
+            </div>`,
+        rule: `
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Nome da Regra</div>
+                    <input id="criarRuleName" type="text" placeholder="ex: Saudação matinal" style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"></div>
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Padrão de texto</div>
+                    <input id="criarRulePattern" type="text" placeholder='ex: bom dia|boa tarde' style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-family:monospace;font-size:12px;outline:none"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Ação</div>
+                    <select id="criarRuleAction" style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 6px;font-size:11px;outline:none">
+                        <option value="mode">🎭 Ativar Modo</option>
+                        <option value="response">💬 Resposta fixa</option>
+                        <option value="skill">⚡ Executar Skill</option>
+                    </select></div>
+                    <div><div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Valor</div>
+                    <input id="criarRuleValue" type="text" placeholder='ex: MORDOMO' style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"></div>
+                </div>
+                <button class="btn-sm primary" style="height:34px;font-size:13px" onclick="criarSave()">📋 Criar Regra</button>
+            </div>`
+    };
+
+    function setCriarTipo(tipo) {
+        _criarTipo = tipo;
+        ['cmd','mode','rule'].forEach(t => {
+            document.getElementById('criarT-'+t).classList.toggle('active', t === tipo);
+        });
+        document.getElementById('criarForm').innerHTML = _criarForms[tipo] || '';
+        document.getElementById('criarOutput').style.display = 'none';
+    }
+
+    async function criarSave() {
+        const out  = document.getElementById('criarOutput');
+        const outT = document.getElementById('criarOutputText');
+        out.style.display = 'none';
+        try {
+            let r, d;
+            if (_criarTipo === 'cmd') {
+                const key  = (document.getElementById('criarCmdKey')?.value||'').trim();
+                const cat  = (document.getElementById('criarCmdCat')?.value||'').trim()||'Custom';
+                const desc = (document.getElementById('criarCmdDesc')?.value||'').trim();
+                if (!key) { toast('Criar', 'Preencha o comando', 'warn'); return; }
+                r = await fetch('/commands', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({key,cat,desc})});
+                d = await r.json();
+            } else if (_criarTipo === 'mode') {
+                const name    = (document.getElementById('criarModeName')?.value||'').trim().toUpperCase().replace(/\s+/g,'_');
+                const desc    = (document.getElementById('criarModeDesc')?.value||'').trim();
+                const camada  = parseInt(document.getElementById('criarModeCamada')?.value||'6');
+                const persona = (document.getElementById('criarModePersona')?.value||'').trim();
+                if (!name) { toast('Criar', 'Nome obrigatório', 'warn'); return; }
+                r = await fetch('/modes/create', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({key:name, descricao:desc, camada, persona})});
+                d = await r.json();
+            } else if (_criarTipo === 'rule') {
+                const name    = (document.getElementById('criarRuleName')?.value||'').trim();
+                const pattern = (document.getElementById('criarRulePattern')?.value||'').trim();
+                const action  = document.getElementById('criarRuleAction')?.value || 'mode';
+                const value   = (document.getElementById('criarRuleValue')?.value||'').trim();
+                if (!name) { toast('Criar', 'Nome obrigatório', 'warn'); return; }
+                r = await fetch('/rules', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, trigger_type:'text', trigger_pattern:pattern, action_type:action, action_value:value})});
+                d = await r.json();
+            }
+            if (d?.error) { toast('Erro', d.error, 'error'); return; }
+            toast('Criar', d?.result || 'Criado com sucesso!', 'success');
+            outT.textContent = '✅ ' + (d?.result || 'Criado com sucesso!');
+            out.style.display = '';
+        } catch(e) {
+            outT.textContent = '❌ Erro: ' + e.message;
+            out.style.display = '';
         }
     }
 
@@ -4700,7 +5307,6 @@
         document.getElementById(id).classList.add('open');
         if (id === 'modalAgentes') loadAgents();
         if (id === 'modalComandos') {
-            filterCmds('');
             const si = document.getElementById('cmdSearch');
             if (si) si.value = '';
             switchCmdTab('cmds');

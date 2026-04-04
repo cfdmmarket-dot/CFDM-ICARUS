@@ -19,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.icarus_core import IcarusCore, ICARUS_PERSONA, set_log_fn
 
-app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.6.0")
+app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.7.0")
 
 # Buffer circular de logs — shared entre uvicorn handlers e icarus_core
 LOG_BUFFER: deque = deque(maxlen=500)
@@ -1023,6 +1023,175 @@ async def preview_skill_code(skill_name: str):
 
     code = file_path.read_text(encoding="utf-8")
     return {"name": skill_name, "code": code, "file": data[skill_name].get("file", "")}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ── Commands CRUD ──────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════
+_CUSTOM_CMDS = Path(__file__).parent.parent / "config" / "custom_commands.json"
+_COMMANDS_JSON = Path(__file__).parent.parent / "config" / "commands.json"
+_RULES_FILE = Path(__file__).parent.parent / "config" / "rules.json"
+
+def _load_custom_cmds():
+    try: return json.loads(_CUSTOM_CMDS.read_text(encoding="utf-8"))
+    except: return []
+
+def _save_custom_cmds(data):
+    _CUSTOM_CMDS.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def _load_cmd_json():
+    try: return json.loads(_COMMANDS_JSON.read_text(encoding="utf-8"))
+    except: return {"modes": {}}
+
+def _save_cmd_json(data):
+    _COMMANDS_JSON.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def _load_rules():
+    try: return json.loads(_RULES_FILE.read_text(encoding="utf-8"))
+    except: return []
+
+def _save_rules(rules):
+    _RULES_FILE.write_text(json.dumps(rules, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+@app.get("/commands")
+async def get_custom_commands():
+    return {"commands": _load_custom_cmds()}
+
+@app.post("/commands")
+async def create_command(request: Request):
+    body = await request.json()
+    key = (body.get("key") or "").strip()
+    if not key:
+        return JSONResponse({"error": "key obrigatório"}, status_code=400)
+    cmds = _load_custom_cmds()
+    cmd = {
+        "id": str(int(datetime.datetime.now().timestamp() * 1000)),
+        "key": key,
+        "desc": (body.get("desc") or "").strip(),
+        "cat": (body.get("cat") or "Custom").strip(),
+        "example": (body.get("example") or "").strip(),
+        "created": datetime.datetime.now().isoformat(),
+    }
+    cmds.append(cmd)
+    _save_custom_cmds(cmds)
+    return {"result": "Comando criado", "command": cmd}
+
+@app.put("/commands/{cmd_id}")
+async def update_command(cmd_id: str, request: Request):
+    body = await request.json()
+    cmds = _load_custom_cmds()
+    for i, c in enumerate(cmds):
+        if c.get("id") == cmd_id:
+            for f in ("key", "desc", "cat", "example"):
+                if f in body: cmds[i][f] = body[f]
+            _save_custom_cmds(cmds)
+            return {"result": "Atualizado", "command": cmds[i]}
+    return JSONResponse({"error": "Não encontrado"}, status_code=404)
+
+@app.delete("/commands/{cmd_id}")
+async def delete_command(cmd_id: str):
+    cmds = _load_custom_cmds()
+    new = [c for c in cmds if c.get("id") != cmd_id]
+    if len(new) == len(cmds):
+        return JSONResponse({"error": "Não encontrado"}, status_code=404)
+    _save_custom_cmds(new)
+    return {"result": "Apagado"}
+
+
+# ── Modes CRUD ─────────────────────────────────────────────────
+@app.post("/modes/create")
+async def create_mode(request: Request):
+    body = await request.json()
+    key = (body.get("key") or "").strip().upper().replace(" ", "_").replace("-", "_")
+    if not key:
+        return JSONResponse({"error": "key obrigatório"}, status_code=400)
+    data = _load_cmd_json()
+    data.setdefault("modes", {})
+    if key in data["modes"]:
+        return JSONResponse({"error": f"Modo '{key}' já existe"}, status_code=409)
+    data["modes"][key] = {
+        "descricao": (body.get("descricao") or "").strip(),
+        "camada":    int(body.get("camada") or 6),
+        "parametros": body.get("parametros") or [],
+        "persona":   (body.get("persona") or "").strip(),
+    }
+    _save_cmd_json(data)
+    icarus.reload_commands()
+    return {"result": f"Modo '{key}' criado"}
+
+@app.put("/modes/{mode_key}")
+async def update_mode(mode_key: str, request: Request):
+    body = await request.json()
+    data = _load_cmd_json()
+    key = mode_key.upper()
+    if key not in data.get("modes", {}):
+        return JSONResponse({"error": "Modo não encontrado"}, status_code=404)
+    for f in ("descricao", "camada", "parametros", "persona"):
+        if f in body: data["modes"][key][f] = body[f]
+    _save_cmd_json(data)
+    icarus.reload_commands()
+    return {"result": f"Modo '{key}' atualizado", "mode": data["modes"][key]}
+
+@app.delete("/modes/{mode_key}")
+async def delete_mode(mode_key: str):
+    data = _load_cmd_json()
+    key = mode_key.upper()
+    if key not in data.get("modes", {}):
+        return JSONResponse({"error": "Modo não encontrado"}, status_code=404)
+    del data["modes"][key]
+    _save_cmd_json(data)
+    icarus.reload_commands()
+    return {"result": f"Modo '{key}' apagado"}
+
+
+# ── Rules CRUD ─────────────────────────────────────────────────
+@app.get("/rules")
+async def get_rules():
+    return {"rules": _load_rules()}
+
+@app.post("/rules")
+async def create_rule(request: Request):
+    body = await request.json()
+    name = (body.get("name") or "").strip()
+    if not name:
+        return JSONResponse({"error": "name obrigatório"}, status_code=400)
+    rules = _load_rules()
+    rule = {
+        "id":              str(int(datetime.datetime.now().timestamp() * 1000)),
+        "name":            name,
+        "trigger_type":    body.get("trigger_type", "text"),
+        "trigger_pattern": (body.get("trigger_pattern") or "").strip(),
+        "action_type":     body.get("action_type", "response"),
+        "action_value":    (body.get("action_value") or "").strip(),
+        "conditions":      body.get("conditions") or {},
+        "enabled":         bool(body.get("enabled", True)),
+        "created":         datetime.datetime.now().isoformat(),
+    }
+    rules.append(rule)
+    _save_rules(rules)
+    return {"result": "Regra criada", "rule": rule}
+
+@app.put("/rules/{rule_id}")
+async def update_rule(rule_id: str, request: Request):
+    body = await request.json()
+    rules = _load_rules()
+    for i, r in enumerate(rules):
+        if r.get("id") == rule_id:
+            for f in ("name","trigger_type","trigger_pattern","action_type","action_value","conditions","enabled"):
+                if f in body: rules[i][f] = body[f]
+            _save_rules(rules)
+            return {"result": "Atualizado", "rule": rules[i]}
+    return JSONResponse({"error": "Regra não encontrada"}, status_code=404)
+
+@app.delete("/rules/{rule_id}")
+async def delete_rule(rule_id: str):
+    rules = _load_rules()
+    new = [r for r in rules if r.get("id") != rule_id]
+    if len(new) == len(rules):
+        return JSONResponse({"error": "Não encontrada"}, status_code=404)
+    _save_rules(new)
+    return {"result": "Regra apagada"}
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ from .skill_router import SkillRouter
 from .context_engine import ContextEngine
 
 
-ICARUS_VERSION = "1.6.0"
+ICARUS_VERSION = "1.7.0"
 
 COMMANDS_PATH = Path(__file__).parent.parent / "config" / "commands.json"
 
@@ -77,6 +77,12 @@ class IcarusCore:
         self.active_mode = None
         self.active_mode_persona = None
         self._load_commands()
+
+        # Estado de pausa (ICARUS espere / aguarde)
+        self._paused = False
+
+        # Paths
+        self._rules_path = Path(__file__).parent.parent / "config" / "rules.json"
 
     def _load_commands(self):
         """Carrega commands.json com modos e agentes"""
@@ -180,15 +186,81 @@ class IcarusCore:
             return t
         return None
 
+    def reload_commands(self):
+        """Recarrega commands.json (útil após CRUD de modos via API)"""
+        self._load_commands()
+
+    def _check_rules(self, text: str) -> dict | None:
+        """Verifica regras de execução automática. Retorna ação ou None."""
+        try:
+            rules = json.loads(self._rules_path.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+        t_lower = text.lower()
+        now = datetime.datetime.now()
+        for rule in rules:
+            if not rule.get("enabled", True):
+                continue
+            trigger_type = rule.get("trigger_type", "text")
+            # Trigger por texto
+            if trigger_type == "text":
+                pattern = rule.get("trigger_pattern", "")
+                if not pattern:
+                    continue
+                try:
+                    if not re.search(pattern, t_lower, re.IGNORECASE):
+                        continue
+                except Exception:
+                    if pattern.lower() not in t_lower:
+                        continue
+            # Condições opcionais: horário e dia da semana
+            conds = rule.get("conditions", {})
+            if "hours" in conds and now.hour not in conds["hours"]:
+                continue
+            if "days" in conds and now.weekday() not in conds["days"]:
+                continue
+            return {"type": rule.get("action_type", "response"), "value": rule.get("action_value", ""), "name": rule.get("name", "")}
+        return None
+
     def process(self, user_input: str) -> str:
         """Processa uma entrada do usuário e retorna resposta"""
         t_start = datetime.datetime.now()
         emit_log("INPUT", "ICARUS", f"→ {user_input[:100]}")
 
+        # ── Pause / Resume ─────────────────────────────────────────
+        t_lower = user_input.lower().strip()
+        _pause_kw = ["icarus espere", "icarus aguarde", "icarus pause", "espere icarus", "aguarde icarus", "icarus, espere", "icarus, aguarde"]
+        _resume_kw = ["pode continuar", "pode falar", "continue", "retome", "retomar", "icarus retome", "está liberado"]
+        if any(p in t_lower for p in _pause_kw):
+            self._paused = True
+            emit_log("INFO", "PAUSE", "ICARUS em modo de espera")
+            return "⏸ Entendido, estou aguardando. Diga _'pode continuar'_ quando quiser retomar."
+        if self._paused:
+            if any(p in t_lower for p in _resume_kw):
+                self._paused = False
+                emit_log("INFO", "PAUSE", "ICARUS retomou operação normal")
+                return "▶ Pronto! Estou de volta. Como posso ajudar?"
+            emit_log("INFO", "PAUSE", "Mensagem ignorada — ICARUS em pausa")
+            return "⏸ Em pausa. Diga _'pode continuar'_ para retomar."
+
         # Registra na memória de curto prazo
         self.context.add_message("user", user_input)
 
-        # 0. Respostas personalizadas — prioridade máxima
+        # 0. Regras de execução automática
+        rule = self._check_rules(user_input)
+        if rule:
+            emit_log("INFO", "RULE", f"Regra acionada: {rule['name']} → {rule['type']}:{rule['value'][:40]}")
+            if rule["type"] == "mode":
+                self.activate_mode(rule["value"])
+            elif rule["type"] == "response":
+                result = rule["value"]
+                self.context.add_message("assistant", result)
+                emit_log("OUTPUT", "ICARUS", f"← (regra) {result[:80]}")
+                return result
+            elif rule["type"] == "skill":
+                user_input = rule["value"] + " " + user_input  # injeta trigger no input
+
+        # 1. Respostas personalizadas — prioridade máxima
         try:
             from skills.custom_skill import Skill as CustomSkill
             cs = CustomSkill()
