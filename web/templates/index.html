@@ -1642,7 +1642,7 @@
         <div class="logo-mark">I</div>
         <div>
             <div class="logo-name">ICARUS</div>
-            <div class="logo-version">v1.3.0 — CFDM Holding</div>
+            <div class="logo-version">v1.7.1 — CFDM Holding</div>
         </div>
     </div>
 
@@ -1845,7 +1845,7 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Versão</span>
-                        <span class="info-value">v1.3.0</span>
+                        <span class="info-value" id="icarusVersionLabel">v1.7.1</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Cfdm Nexus</span>
@@ -2224,6 +2224,23 @@
                     <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Descrição</div>
                     <input type="text" id="cmdFormDesc" placeholder="Descrição curta do que faz"
                         style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Resposta <span style="color:var(--accent);font-weight:600">(o que o ICARUS responderá)</span></div>
+                    <textarea id="cmdFormResp" placeholder="ex: Estou Aqui Senhor... Posso ajudá-lo com algo?"
+                        style="width:100%;height:52px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:6px 8px;font-size:12px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box"></textarea>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Exceção <span style="color:#ff6b6b">(quando NÃO executar)</span></div>
+                        <input type="text" id="cmdFormExc" placeholder="ex: não|negativo|cancel"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none;font-family:monospace">
+                    </div>
+                    <div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Observação</div>
+                        <input type="text" id="cmdFormObs" placeholder="Notas internas sobre este comando"
+                            style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                    </div>
                 </div>
                 <div style="display:flex;gap:6px;justify-content:flex-end">
                     <button class="btn-sm" onclick="closeCmdForm()">Cancelar</button>
@@ -4873,16 +4890,21 @@
                         ${cat} <span style="font-size:9px;padding:1px 5px;border-radius:6px;background:rgba(0,230,140,0.1);color:#00e68c">CUSTOM</span>
                     </div>
                     ${custom.filter(c=>(c.cat||'Custom')===cat).map(c=>`
-                    <div class="cmd-item" style="justify-content:space-between">
-                        <div style="flex:1;cursor:pointer;min-width:0" onclick="pasteCmd('${(c.key||'').replace(/'/g,"\\'")}')">
-                            <span class="cmd-key">${c.key||''}</span>
-                            <span class="cmd-desc">${c.desc||''}</span>
+                    <div class="cmd-item" style="flex-direction:column;align-items:stretch;gap:4px">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <div style="flex:1;cursor:pointer;min-width:0" onclick="pasteCmd('${(c.key||'').replace(/'/g,"\\'")}')">
+                                <span class="cmd-key">${c.key||''}</span>
+                                <span class="cmd-desc">${c.desc||''}</span>
+                            </div>
+                            <div style="display:flex;gap:4px;flex-shrink:0">
+                                <button class="btn-sm" style="font-size:10px" onclick="pasteCmd('${(c.key||'').replace(/'/g,"\\'")}')">▶</button>
+                                <button class="btn-sm" style="font-size:10px" onclick="openCmdForm('${c.id}')">✏</button>
+                                <button class="btn-sm" style="font-size:10px;border-color:var(--red);color:var(--red)" onclick="deleteCmd('${c.id}')">🗑</button>
+                            </div>
                         </div>
-                        <div style="display:flex;gap:4px;flex-shrink:0">
-                            <button class="btn-sm" style="font-size:10px" onclick="pasteCmd('${(c.key||'').replace(/'/g,"\\'")}')">▶</button>
-                            <button class="btn-sm" style="font-size:10px" onclick="openCmdForm('${c.id}')">✏</button>
-                            <button class="btn-sm" style="font-size:10px;border-color:var(--red);color:var(--red)" onclick="deleteCmd('${c.id}')">🗑</button>
-                        </div>
+                        ${c.response ? `<div style="font-size:10px;color:var(--accent);padding:3px 6px;background:rgba(0,212,255,0.06);border-radius:4px;border-left:2px solid var(--accent)">💬 ${c.response.substring(0,80)}${c.response.length>80?'…':''}</div>` : ''}
+                        ${c.exception ? `<div style="font-size:10px;color:#ff6b6b;padding:3px 6px;background:rgba(255,107,107,0.06);border-radius:4px;border-left:2px solid #ff6b6b">⛔ Exceção: ${c.exception.substring(0,60)}${c.exception.length>60?'…':''}</div>` : ''}
+                        ${c.observation ? `<div style="font-size:10px;color:var(--text-dim);padding:3px 6px;background:rgba(255,255,255,0.03);border-radius:4px;border-left:2px solid var(--border)">📝 ${c.observation.substring(0,80)}${c.observation.length>80?'…':''}</div>` : ''}
                     </div>`).join('')}
                 </div>`).join('');
         }
@@ -4904,14 +4926,20 @@
         if (id) {
             const c = _customCmds.find(x => x.id === id);
             if (c) {
-                document.getElementById('cmdFormKey').value  = c.key  || '';
-                document.getElementById('cmdFormCat').value  = c.cat  || '';
-                document.getElementById('cmdFormDesc').value = c.desc || '';
+                document.getElementById('cmdFormKey').value  = c.key         || '';
+                document.getElementById('cmdFormCat').value  = c.cat         || '';
+                document.getElementById('cmdFormDesc').value = c.desc        || '';
+                document.getElementById('cmdFormResp').value = c.response    || '';
+                document.getElementById('cmdFormExc').value  = c.exception   || '';
+                document.getElementById('cmdFormObs').value  = c.observation || '';
             }
         } else {
             document.getElementById('cmdFormKey').value  = '';
             document.getElementById('cmdFormCat').value  = '';
             document.getElementById('cmdFormDesc').value = '';
+            document.getElementById('cmdFormResp').value = '';
+            document.getElementById('cmdFormExc').value  = '';
+            document.getElementById('cmdFormObs').value  = '';
         }
         form.style.display = '';
         document.getElementById('cmdFormKey').focus();
@@ -4919,15 +4947,18 @@
     function closeCmdForm() { document.getElementById('cmdForm').style.display = 'none'; }
 
     async function saveCmdForm() {
-        const id   = document.getElementById('cmdFormId').value;
-        const key  = document.getElementById('cmdFormKey').value.trim();
-        const cat  = document.getElementById('cmdFormCat').value.trim() || 'Custom';
-        const desc = document.getElementById('cmdFormDesc').value.trim();
+        const id          = document.getElementById('cmdFormId').value;
+        const key         = document.getElementById('cmdFormKey').value.trim();
+        const cat         = document.getElementById('cmdFormCat').value.trim() || 'Custom';
+        const desc        = document.getElementById('cmdFormDesc').value.trim();
+        const response    = document.getElementById('cmdFormResp').value.trim();
+        const exception   = document.getElementById('cmdFormExc').value.trim();
+        const observation = document.getElementById('cmdFormObs').value.trim();
         if (!key) { toast('Comandos', 'Preencha o campo Comando', 'warn'); return; }
         try {
             const method = id ? 'PUT' : 'POST';
             const url    = id ? `/commands/${id}` : '/commands';
-            const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify({key, cat, desc}) });
+            const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify({key, cat, desc, response, exception, observation}) });
             const d = await r.json();
             if (d.error) { toast('Erro', d.error, 'error'); return; }
             toast('Comandos', id ? 'Comando atualizado' : 'Comando criado', 'success');

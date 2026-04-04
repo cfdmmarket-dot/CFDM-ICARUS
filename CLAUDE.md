@@ -1,6 +1,6 @@
 # ICARUS — Contexto para o Claude Code
 > Intelligent Conversational Assistant for Research, Understanding & Strategy
-> CFDM Holding | v1.1.0
+> CFDM Holding | v1.7.2
 
 ---
 
@@ -71,7 +71,7 @@ Assistente pessoal de IA integrado ao ecossistema CFDM Holding:
 
 ---
 
-## Versão Atual: v1.6.0
+## Versão Atual: v1.7.2
 
 ### Features Confirmadas
 - [x] v1.0.0 — Motor principal (IcarusCore), SkillRouter, MemoryManager, ContextEngine
@@ -103,6 +103,22 @@ Assistente pessoal de IA integrado ao ecossistema CFDM Holding:
 - [x] v1.6.0 — Scroll universal nos modais (max-height + scrollbar estilizada)
 - [x] v1.6.0 — Fix contraste UI: text-faint/dim/border/bg-input todos corrigidos
 - [x] v1.6.0 — Fix POWER dropdown: z-index toolbar 200 vs app-body 1
+
+- [x] v1.7.0 — Modal Comandos redesenhado: 4 abas (Comandos / Modos / Regras / Criar)
+- [x] v1.7.0 — CRUD completo para Comandos, Modos e Regras de automação (API + UI)
+- [x] v1.7.0 — config/custom_commands.json — comandos personalizados do usuário
+- [x] v1.7.0 — config/rules.json — motor de regras (regex + horário + dia da semana)
+- [x] v1.7.0 — Pausa / Retomada: "ICARUS espere/aguarde" → "pode continuar"
+- [x] v1.7.0 — Painel Ecossistema (🌐 Apps): status Nexus + CfdmNote + launch/stop
+- [x] v1.7.0 — Fix atalhos desktop (case-sensitive Linux, DISPLAY env var)
+- [x] v1.7.0 — Fix Modal Skills: height:82vh + min-height:0 nos containers flex
+- [x] v1.7.1 — Fix /ecosystem/status: sync def (thread pool) + icarus.version
+- [x] v1.7.1 — Fix CfdmNote launch: DISPLAY propagado via os.environ
+- [x] v1.7.2 — custom_commands.json com campo response: ICARUS executa comandos criados pelo usuário
+- [x] v1.7.2 — Suporte a exception e observation nos comandos customizados
+- [x] v1.7.2 — Regra de fluxo conversacional: pausa leve após respostas longas (>60 palavras)
+- [x] v1.7.2 — ICARUS_PERSONA atualizado com regras de fluxo conversacional
+- [x] v1.7.2 — Modal Comandos: campos Resposta, Exceção e Observação no formulário
 
 ### Features Pendentes (próximas)
 - [x] v1.2.0 — Skill de notícias matinal (RSS nativo, sem dependências)

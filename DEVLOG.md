@@ -1,6 +1,128 @@
 # ICARUS — Development Log
 > Intelligent Conversational Assistant for Research, Understanding & Strategy
-> CFDM Holding | Versão atual: v1.6.0
+> CFDM Holding | Versão atual: v1.7.2
+
+---
+
+## [v1.7.2] — 2026-04-04
+
+### Comandos customizados executáveis + Fluxo conversacional
+
+#### Comandos customizados (custom_commands.json)
+- **`_check_custom_commands()`** em `icarus_core.py` — verifica `custom_commands.json` antes de qualquer skill
+- Campo **`response`** no comando: texto exato que o ICARUS responde quando a `key` é detectada
+- Campo **`exception`** (regex): se o input bater nessa expressão, o comando não dispara
+- Campo **`observation`**: nota interna do usuário, não processada pelo motor
+- Match por: exato (`t == key`), começo (`startswith key + " "`) ou com vírgula
+- Comando "ICARUS" → responde "Estou Aqui Senhor... Posso ajudá-lo com algo ou alguma coisa?"
+
+#### Regra de fluxo conversacional
+- **`_apply_conversation_flow()`** — aplicada após TODA resposta não-pausada
+- Respostas com > 60 palavras recebem: `_"Posso continuar com mais informações ou sugestões?"_`
+- `ICARUS_PERSONA` atualizado: proibido múltiplas perguntas simultâneas, sugestões longas divididas em partes
+- Flag `conversation_flow` (padrão: `True`) — preparado para toggle via API
+
+#### Modal Comandos — campos expandidos
+- Formulário de criação/edição agora inclui: Resposta, Exceção e Observação
+- Cards de comandos custom exibem preview colorido: resposta (azul), exceção (vermelho), observação (cinza)
+- `server.py` endpoints POST/PUT `/commands` salvam/atualizam os novos campos
+
+#### Versão
+- `ICARUS_VERSION = "1.7.2"` em `icarus_core.py`
+- `app = FastAPI(..., version="1.7.2")` em `web/server.py`
+
+---
+
+## [v1.7.1] — 2026-04-04
+
+### Fix — Ecossistema status + launch funcional
+
+#### Bug fixes críticos
+- **`NameError: ICARUS_VERSION`** — variável não existia no escopo de `server.py`; corrigido para `icarus.version` (instância do core)
+- **`async def ecosystem_status()` com `requests` síncrono** — bloqueava o event loop do uvicorn e retornava 500; convertido para `def` (FastAPI executa em thread pool automaticamente)
+- **`pkill cfdmnote` muito genérico** — padrão atualizado para `build/cfdmnote` (evita matar processos errados)
+- **DISPLAY não propagado para CfdmNote** — launcher agora lê `os.environ.get("DISPLAY", ":1")` e injeta no subprocesso
+- **Versão hardcoded `v1.3.0` no HTML** — corrigida para `v1.7.1` em logo e painel Info
+
+#### Resultado verificado
+```json
+GET /ecosystem/status →
+{
+  "icarus":   { "online": true, "version": "1.7.1" },
+  "nexus":    { "online": true, "agents": 21 },
+  "cfdmnote": { "running": true, "pid": 9741 }
+}
+```
+
+---
+
+## [v1.7.0] — 2026-04-04
+
+### Adicionado — Modal Comandos CRUD + Regras de Execução + Pause + Ecossistema
+
+#### ⌨ Modal Comandos — Redesign Completo (4 tabs)
+
+**Tab: Comandos**
+- Lista de 27 comandos builtin (read-only) com badge BUILTIN
+- Comandos custom (CRUD completo): criar, editar, apagar
+- Filtros: Todos / Builtin / Custom + busca em tempo real
+- Formulário inline (sem modal extra): abre no topo, não cobre a lista
+- `config/custom_commands.json` — persistência dos comandos do usuário
+- Endpoint `GET/POST /commands`, `PUT/DELETE /commands/{id}`
+
+**Tab: Modos**
+- Grid de favoritos + lista completa (todos os 31 modos)
+- Busca em tempo real por nome/descrição
+- Criar novo modo: nome (KEY), descrição, camada (1-7), persona
+- Editar modo existente: formulário pré-preenchido inline
+- Apagar modo: remove do `commands.json` e recarrega core
+- Endpoints: `POST /modes/create`, `PUT /modes/{key}`, `DELETE /modes/{key}`
+- `icarus.reload_commands()` chamado após cada CRUD → core atualizado sem restart
+
+**Tab: Regras de Execução**
+- Sistema de automação: trigger → ação
+- Tipos de gatilho: `text` (padrão regex) | `always` (toda mensagem)
+- Tipos de ação: `mode` (ativa modo) | `response` (resposta fixa) | `skill` (injeta no input)
+- Toggle on/off individual por regra (sem apagar)
+- Formulário inline com preview do padrão
+- `config/rules.json` — persistência
+- Endpoints: `GET/POST /rules`, `PUT/DELETE /rules/{id}`
+- `icarus_core._check_rules()` — avalia regras em toda mensagem antes do skill router
+
+**Tab: Criar**
+- 3 cards de tipo: Comando / Modo / Regra
+- Formulário dinâmico conforme seleção
+- Output de resultado inline (sucesso/erro)
+
+#### ⏸ Pause / Resume (icarus_core)
+- `"ICARUS espere"` / `"ICARUS aguarde"` → `_paused = True`, retorna "⏸ Estou aguardando"
+- `"pode continuar"` / `"está liberado"` → `_paused = False`, retorna "▶ Pronto!"
+- Enquanto pausado: toda mensagem retorna aviso de pausa sem processar
+- Adicionado aos comandos builtin no modal (visible + clickable)
+
+#### 🌐 Painel Ecossistema (substituiu tab "Nexus")
+- Tab "Nexus" → "🌐 Apps" no painel direito
+- Cards de status para cada app com dot colorido:
+  - ⚡ ICARUS — sempre ● Online, mostra versão
+  - 🤖 Cfdm Nexus — ● Online/Offline, conta agentes, botão Iniciar/Parar
+  - 📓 CfdmNote — ● Ativo/Fechado, PID do processo, botão Abrir/Fechar
+- Auto-refresh de status a cada 30 segundos
+- Seção Nexus: lista de agentes + campo de tarefa + executar/chat (mantida)
+- Seção CfdmNote: Abrir processo / Ver notas no chat / Abrir cofre
+- `GET /ecosystem/status` — polling unificado (ICARUS + Nexus + CfdmNote)
+- `POST /ecosystem/launch` — inicia Nexus ou CfdmNote com DISPLAY correto
+- `POST /ecosystem/stop` — encerra serviço via pkill
+- Botão toolbar: "⚡ Nexus" → "🌐 Apps"
+
+#### 🔧 Desktop shortcuts corrigidos
+- `ICARUS.desktop`: path `Proj-CFDM-ICARUS_` → `Proj-Cfdm-ICARUS_` (case-sensitive Linux)
+- `CfdmNote.desktop`: `Proj-CFDM-NOTE_/build_asan` → `Proj-Cfdm-Note_/build` (binary correto)
+- `icarus-launcher.sh`: `ICARUS_DIR` corrigido + versão atualizada para v1.7.0
+- Ambos marcados como executáveis (`chmod +x`)
+
+#### 🎨 Modal Skills — fix layout
+- `max-height: 82vh` → `height: 82vh` (flex:1 nos filhos não funciona com max-height)
+- `min-height: 0` adicionado em skPageList e skList (padrão correto para flex scroll)
 
 ---
 

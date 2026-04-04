@@ -19,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.icarus_core import IcarusCore, ICARUS_PERSONA, set_log_fn
 
-app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.7.0")
+app = FastAPI(title="ICARUS", description="Assistente Pessoal CFDM Holding", version="1.7.2")
 
 # Buffer circular de logs — shared entre uvicorn handlers e icarus_core
 LOG_BUFFER: deque = deque(maxlen=500)
@@ -1171,6 +1171,9 @@ async def create_command(request: Request):
         "id": str(int(datetime.datetime.now().timestamp() * 1000)),
         "key": key,
         "desc": (body.get("desc") or "").strip(),
+        "response": (body.get("response") or "").strip(),
+        "exception": (body.get("exception") or "").strip(),
+        "observation": (body.get("observation") or "").strip(),
         "cat": (body.get("cat") or "Custom").strip(),
         "example": (body.get("example") or "").strip(),
         "created": datetime.datetime.now().isoformat(),
@@ -1185,7 +1188,7 @@ async def update_command(cmd_id: str, request: Request):
     cmds = _load_custom_cmds()
     for i, c in enumerate(cmds):
         if c.get("id") == cmd_id:
-            for f in ("key", "desc", "cat", "example"):
+            for f in ("key", "desc", "response", "exception", "observation", "cat", "example"):
                 if f in body: cmds[i][f] = body[f]
             _save_custom_cmds(cmds)
             return {"result": "Atualizado", "command": cmds[i]}

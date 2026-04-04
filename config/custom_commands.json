@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "1775316614502",
+    "key": "ICARUS",
+    "desc": "recebendo esse comando o ICARUS so Respondera : Estou Aqui Senhor, fara uma Breve Pausa e perguntara se pode ajudar em Algumao ou Alguma coisa.",
+    "response": "Estou Aqui Senhor... 🫡\n\nPosso ajudá-lo com algo ou alguma coisa?",
+    "cat": "Assistente",
+    "example": "ICARUS",
+    "created": "2026-04-04T15:30:14.502958"
+  }
+]

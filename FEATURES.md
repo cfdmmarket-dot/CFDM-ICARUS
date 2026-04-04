@@ -20,8 +20,8 @@
 | C02 | Motor de processamento de linguagem natural (NLP) | ✅ | Alta |
 | C03 | Context awareness — deque de 20 mensagens | ✅ | Alta |
 | C04 | Skill router — detecção de intenção por regex | ✅ | Alta |
-| C05 | Sistema de modos operacionais (30+ modos) | ⬜ | Alta |
-| C06 | commands.json — sistema de comandos estruturado | ⬜ | Alta |
+| C05 | Sistema de modos operacionais (30+ modos) | ✅ | Alta |
+| C06 | commands.json — sistema de comandos estruturado | ✅ | Alta |
 | C07 | Goal Manager — definição e rastreamento de objetivos | ⬜ | Alta |
 | C08 | Planner — quebra de objetivos em tarefas | ⬜ | Alta |
 | C09 | Loop Autônomo — execução contínua sem intervenção | ⬜ | Média |

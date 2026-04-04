@@ -12,9 +12,10 @@ from .skill_router import SkillRouter
 from .context_engine import ContextEngine
 
 
-ICARUS_VERSION = "1.7.0"
+ICARUS_VERSION = "1.7.2"
 
 COMMANDS_PATH = Path(__file__).parent.parent / "config" / "commands.json"
+CUSTOM_CMDS_PATH = Path(__file__).parent.parent / "config" / "custom_commands.json"
 
 # ── Log hook — substituído pelo server.py para streaming em tempo real ────────
 _log_fn = None
@@ -56,6 +57,12 @@ ICARUS_PERSONA = """Você é ICARUS, o assistente pessoal de IA do CFDM Holding.
 - Respostas curtas para perguntas simples
 - Respostas estruturadas para tarefas complexas
 - Sempre indica qual agente/skill foi usado quando relevante
+
+**Regras de fluxo conversacional:**
+- NUNCA bombardear com múltiplas perguntas de uma vez — uma pergunta por vez
+- Após fornecer informações extensas, fazer pausa leve e perguntar se o usuário deseja continuar
+- Sugestões longas são divididas em partes — apresentar uma parte e aguardar aprovação
+- Nunca presumir que o usuário quer mais informações sem perguntar primeiro
 """
 
 
@@ -80,6 +87,10 @@ class IcarusCore:
 
         # Estado de pausa (ICARUS espere / aguarde)
         self._paused = False
+
+        # Fluxo conversacional — pausa leve após respostas longas
+        self.conversation_flow = True   # pode ser desligado via API futuramente
+        self._FLOW_MIN_WORDS = 60       # respostas com > N palavras recebem prompt de pausa
 
         # Paths
         self._rules_path = Path(__file__).parent.parent / "config" / "rules.json"
@@ -222,6 +233,46 @@ class IcarusCore:
             return {"type": rule.get("action_type", "response"), "value": rule.get("action_value", ""), "name": rule.get("name", "")}
         return None
 
+    def _check_custom_commands(self, text: str) -> str | None:
+        """Verifica custom_commands.json — retorna response se key combinar."""
+        try:
+            cmds = json.loads(CUSTOM_CMDS_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+        t = text.lower().strip()
+        for cmd in cmds:
+            key = cmd.get("key", "").lower().strip()
+            resp = cmd.get("response", "").strip()
+            if not key or not resp:
+                continue
+            # Verifica exceção — se o input bater na exceção, pula este comando
+            exc = cmd.get("exception", "").strip()
+            if exc:
+                try:
+                    if re.search(exc, t, re.IGNORECASE):
+                        continue
+                except Exception:
+                    if exc.lower() in t:
+                        continue
+            # Match: exato, ou input começa/é igual à key (ex: "ICARUS" sozinho)
+            if t == key or t.startswith(key + " ") or t.startswith(key + ","):
+                return resp
+        return None
+
+    def _apply_conversation_flow(self, response: str) -> str:
+        """Regra de fluxo: após respostas longas, ICARUS pausa e pergunta se continua."""
+        if not self.conversation_flow:
+            return response
+        # Não aplica em respostas de sistema (⏸, ▶) ou respostas já terminadas em pergunta
+        if response.startswith("⏸") or response.startswith("▶"):
+            return response
+        if response.rstrip().endswith("?"):
+            return response
+        word_count = len(response.split())
+        if word_count > self._FLOW_MIN_WORDS:
+            return response + "\n\n_Posso continuar com mais informações ou sugestões?_"
+        return response
+
     def process(self, user_input: str) -> str:
         """Processa uma entrada do usuário e retorna resposta"""
         t_start = datetime.datetime.now()
@@ -243,6 +294,15 @@ class IcarusCore:
             emit_log("INFO", "PAUSE", "Mensagem ignorada — ICARUS em pausa")
             return "⏸ Em pausa. Diga _'pode continuar'_ para retomar."
 
+        # 0-a. Comandos customizados (custom_commands.json — prioridade máxima)
+        custom_resp = self._check_custom_commands(user_input)
+        if custom_resp:
+            emit_log("INFO", "CUSTOM_CMD", f"Comando customizado: {user_input[:40]}")
+            self.context.add_message("user", user_input)
+            self.context.add_message("assistant", custom_resp)
+            emit_log("OUTPUT", "ICARUS", f"← (cmd) {custom_resp[:80]}")
+            return custom_resp
+
         # Registra na memória de curto prazo
         self.context.add_message("user", user_input)
 
@@ -260,7 +320,7 @@ class IcarusCore:
             elif rule["type"] == "skill":
                 user_input = rule["value"] + " " + user_input  # injeta trigger no input
 
-        # 1. Respostas personalizadas — prioridade máxima
+        # 1. Respostas personalizadas (custom_responses.json) — prioridade alta
         try:
             from skills.custom_skill import Skill as CustomSkill
             cs = CustomSkill()
@@ -268,6 +328,7 @@ class IcarusCore:
                 emit_log("INFO", "CUSTOM", "Resposta personalizada encontrada")
                 result = cs.execute(user_input, self.context)
                 if result:
+                    result = self._apply_conversation_flow(result)
                     self.context.add_message("assistant", result)
                     emit_log("OUTPUT", "ICARUS", f"← {result[:80]} ({_ms(t_start)}ms)")
                     return result
@@ -321,6 +382,9 @@ class IcarusCore:
         else:
             emit_log("INFO", "NEXUS", "Sem skill local — delegando ao Cfdm Nexus...")
             result = self._fallback_response(user_input)
+
+        # Aplica fluxo conversacional (pausa leve após respostas longas)
+        result = self._apply_conversation_flow(result)
 
         # Registra resposta no contexto
         self.context.add_message("assistant", result)

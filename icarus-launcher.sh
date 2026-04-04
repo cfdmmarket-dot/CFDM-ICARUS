@@ -1,8 +1,8 @@
 #!/bin/bash
-# ICARUS Launcher v1.3.0 — Inicia Cfdm Nexus + ICARUS e abre navegador
+# ICARUS Launcher v1.6.0 — Inicia Cfdm Nexus + ICARUS e abre navegador
 # Nexus roda em :8000 | ICARUS roda em :8001
 
-ICARUS_DIR="/home/cfdm/Proj-CFDM-ICARUS_"
+ICARUS_DIR="/home/cfdm/Proj-Cfdm-ICARUS_"
 NEXUS_DIR="/home/cfdm/Proj-Cfdm-NEXUS-AI-OS-(Triplex )_"
 
 # ── Display e DBUS ─────────────────────────────────────
@@ -34,7 +34,7 @@ fi
 if curl -s --max-time 1 http://localhost:8001/status > /dev/null 2>&1; then
     echo "[✓] ICARUS já está rodando em :8001"
 else
-    echo "[→] Iniciando ICARUS v1.3.0..."
+    echo "[→] Iniciando ICARUS v1.6.0..."
     cd "$ICARUS_DIR"
     nohup python3 -m uvicorn web.server:app --host 0.0.0.0 --port 8001 --reload > /tmp/icarus.log 2>&1 &
     ICARUS_PID=$!
