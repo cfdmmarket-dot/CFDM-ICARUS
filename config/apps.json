@@ -1,0 +1,56 @@
+{
+  "_doc": "Apps e serviços que o ICARUS pode iniciar/parar",
+  "apps": [
+    {
+      "name": "Cfdm Nexus",
+      "icon": "⚡",
+      "cmd": "python3 -m uvicorn web.server:app --host 0.0.0.0 --port 8000",
+      "cwd": "/home/cfdm/Proj-Cfdm-NEXUS-AI-OS-(Triplex )_",
+      "kill": "uvicorn.*8000",
+      "url": "http://localhost:8000",
+      "category": "CFDM"
+    },
+    {
+      "name": "CfdmNote",
+      "icon": "📓",
+      "cmd": "/home/cfdm/Proj-CFDM-NOTE_/build/cfdmnote",
+      "kill": "cfdmnote",
+      "category": "CFDM"
+    },
+    {
+      "name": "Chromium",
+      "icon": "🌐",
+      "cmd": "chromium-browser",
+      "kill": "chromium",
+      "category": "Navegadores"
+    },
+    {
+      "name": "Firefox",
+      "icon": "🦊",
+      "cmd": "firefox",
+      "kill": "firefox",
+      "category": "Navegadores"
+    },
+    {
+      "name": "Gerenciador de Arquivos",
+      "icon": "📁",
+      "cmd": "thunar",
+      "kill": "thunar",
+      "category": "Sistema"
+    },
+    {
+      "name": "Terminal",
+      "icon": "💻",
+      "cmd": "xterm",
+      "kill": "xterm",
+      "category": "Sistema"
+    },
+    {
+      "name": "Editor de Texto",
+      "icon": "📝",
+      "cmd": "gedit",
+      "kill": "gedit",
+      "category": "Sistema"
+    }
+  ]
+}

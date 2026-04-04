@@ -3,7 +3,28 @@ ICARUS Skill Router — Detecta intenção e roteia para skill correta
 """
 
 import re
+import json
 from pathlib import Path
+
+# Referência global para hot-reload de skills (usada por autocode_skill)
+_global_router = None
+
+DYNAMIC_JSON = Path(__file__).parent.parent / "config" / "dynamic_skills.json"
+
+
+def _load_dynamic_patterns() -> dict:
+    """Carrega padrões de skills criadas dinamicamente."""
+    try:
+        with open(DYNAMIC_JSON, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        result = {}
+        for name, info in data.items():
+            patterns = info.get("patterns", [])
+            if patterns:
+                result[name] = patterns
+        return result
+    except Exception:
+        return {}
 
 
 # Mapeamento de palavras-chave → intenção
@@ -54,6 +75,34 @@ INTENT_PATTERNS = {
         r"\bligar .*(sala|quarto|cozinha|banheiro)\b",
         r"\bdesligar .*(sala|quarto|cozinha|banheiro)\b",
     ],
+    "projeto": [
+        r"\bprojeto[s]?\b",
+        r"\bstatus do (icarus|note|nexus|cfdm)\b",
+        r"\bcomo (está|esta) o (icarus|note|nexus)\b",
+        r"\bpróximos? passos?\b",
+        r"\bbacklog\b",
+        r"\bhistórico.*sessão\b",
+        r"\bo que foi feito\b",
+        r"\bsessões? recentes?\b",
+        r"\bversão do (icarus|note|nexus)\b",
+        r"\bregist(r|ra).*mudança\b",
+        r"\bdelegar? (ao|para o) nexus\b",
+        r"\banalis[ae].*projeto\b",
+        r"\bvisão geral.*projeto\b",
+    ],
+    "autocode": [
+        r"\bcriar?\s+skill\b",
+        r"\bnova\s+skill\b",
+        r"\bautocodificar?\b",
+        r"\bcria\s+.*\b(skill|agente)\b",
+        r"\bgerar?\s+.*skill\b",
+        r"\bconstru[ií]r?\s+.*skill\b",
+        r"\bimplementar?\s+skill\b",
+        r"\bskills?\s+criadas?\b",
+        r"\blistar?\s+skills?\b",
+        r"\bdeletar?\s+skill\b",
+        r"\bremover?\s+skill\b",
+    ],
 }
 
 
@@ -62,6 +111,9 @@ class SkillRouter:
 
     def __init__(self):
         self.skills = self._load_skills()
+        # Expõe referência global para hot-reload de skills criadas por autocode
+        global _global_router
+        _global_router = self
 
     def _load_skills(self) -> dict:
         """Carrega skills disponíveis — inclui skills builtin"""
@@ -123,6 +175,20 @@ class SkillRouter:
         except Exception:
             pass
 
+        # Builtin: autocode (Agente Architect — cria skills dinamicamente)
+        try:
+            from skills.autocode_skill import Skill as AutocodeSkill
+            skills["autocode"] = AutocodeSkill()
+        except Exception:
+            pass
+
+        # Builtin: projeto (memória viva dos projetos CFDM)
+        try:
+            from skills.projeto_skill import Skill as ProjetoSkill
+            skills["projeto"] = ProjetoSkill()
+        except Exception:
+            pass
+
         # Carrega skills extras com SKILL_NAME
         skills_dir = Path(__file__).parent.parent / "skills"
         if skills_dir.exists():
@@ -149,6 +215,16 @@ class SkillRouter:
             for pattern in patterns:
                 if re.search(pattern, text_lower):
                     return intent
+
+        # Verifica padrões de skills criadas dinamicamente
+        dynamic = _load_dynamic_patterns()
+        for intent, patterns in dynamic.items():
+            for pattern in patterns:
+                try:
+                    if re.search(pattern, text_lower):
+                        return intent
+                except re.error:
+                    pass
 
         return "geral"
 

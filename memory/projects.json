@@ -1,0 +1,139 @@
+{
+  "_meta": {
+    "description": "Memória de projetos CFDM Holding — atualizada pelo ICARUS e pelo Claude Code",
+    "last_sync": "2026-04-04T00:00:00",
+    "version": "1.0"
+  },
+  "projects": {
+    "ICARUS": {
+      "nome": "ICARUS",
+      "subtitulo": "Intelligent Conversational Assistant for Research, Understanding & Strategy",
+      "path": "/home/cfdm/Proj-CFDM-ICARUS_",
+      "repo": "https://github.com/cfdmmarket-dot/CFDM-ICARUS",
+      "versao": "1.5.0",
+      "stack": ["Python 3.12", "FastAPI", "edge-tts", "Whisper", "SSE"],
+      "status": "ativo",
+      "porta": 8001,
+      "inicio": "python3 -m uvicorn web.server:app --port 8001",
+      "descricao": "Assistente pessoal de IA integrado ao ecossistema CFDM. Interface web dark JARVIS, voz bidirecional, 11 skills, 31 modos operacionais.",
+      "ultimas_mudancas": [
+        "v1.5.0 — Agente Architect: cria skills em linguagem natural via Nexus LLM",
+        "v1.5.0 — Terminal flutuante com SSE streaming em tempo real",
+        "v1.5.0 — Menu Modos no painel Comandos (Mordomo, Arquiteto, Engenheiro, Parça)",
+        "v1.5.0 — Modal Skills com listagem + criação inline",
+        "v1.4.0 — TTS Neural Microsoft edge-tts (pt-BR-AntonioNeural)",
+        "v1.4.0 — Respostas personalizadas (custom_skill) com ditado por voz",
+        "v1.4.0 — POWER ICARUS modal: Busca, Em Alta, Arquivos, Dorking",
+        "v1.3.1 — Tab Nexus integrado dentro do ICARUS",
+        "v1.3.0 — UI JARVIS HUD, wake word, modo voz fullscreen"
+      ],
+      "proximos_passos": [
+        "Wake word contínua com Whisper local (pocketsphinx)",
+        "Google Calendar API para agenda",
+        "Dashboard WebSocket estilo JARVIS",
+        "Integração CfdmNote via WebSocket",
+        "Loop autônomo: Goal Manager + Planner"
+      ],
+      "skills_ativas": [
+        "tarefa", "nexus", "financeiro", "noticias", "agenda",
+        "sistema", "busca", "rpi", "voz", "custom", "autocode"
+      ],
+      "dependencias_ok": true,
+      "notas": "Nexus deve estar rodando na porta 8000 para respostas com LLM. TTS funciona offline via edge-tts."
+    },
+    "CfdmNote": {
+      "nome": "CfdmNote",
+      "subtitulo": "KeePassXC + Notas Markdown — C++17/Qt5",
+      "path": "/home/cfdm/Proj-CFDM-NOTE_",
+      "repo": "https://github.com/cfdmmarket-dot/CfdmNote",
+      "versao": "2.10.1",
+      "stack": ["C++17", "Qt5", "CMake", "libgit2 (futuro)"],
+      "status": "ativo",
+      "binario": "/home/cfdm/Proj-CFDM-NOTE_/build/cfdmnote",
+      "compilar": "cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build -j$(nproc)",
+      "descricao": "KeePassXC completo + notas Markdown estilo Obsidian. Banco .kdbx nativo. Cofre AES-256. Interface preservada do KeePassXC com extras não invasivos.",
+      "ultimas_mudancas": [
+        "v2.10.1 — KdbxImportDialog + fix hierarquia CSV",
+        "v2.9.0 — PowerSearchDialog (busca + dorking + Em Alta + arquivos)",
+        "v2.8.0 — ToastNotification flutuante com barra de progresso",
+        "v2.7.0 — DependencyCheckDialog com status de libs",
+        "v2.6.0 — ICARUSBridge WebSocket (porta 8080)"
+      ],
+      "proximos_passos": [
+        "Fase 6 — Sync via libgit2 (push/pull do cofre)",
+        "Feature 010 — Agrupamento de notas por link",
+        "Feature 011 — Farejador de credenciais",
+        "Feature 013 — AppImage / .deb / .exe",
+        "Features 012-017 dependem do Cfdm Nexus"
+      ],
+      "regras_absolutas": [
+        "NUNCA Python, NUNCA PyQt",
+        "SEMPRE C++17 + Qt5 + CMake",
+        "NUNCA modificar third_party/",
+        "Aparência KeePassXC preservada integralmente",
+        "SEMPRE bump CFDMNOTE_VERSION em src/CfdmVersion.h"
+      ],
+      "notas": "Git identity: Cfdm-GitH / cfdm@users.noreply.github.com. Fase 6 (libgit2) é a próxima prioridade."
+    },
+    "CfdmNexus": {
+      "nome": "Cfdm Nexus",
+      "subtitulo": "AI OS com 286+ agentes — antigo CFDM Triplex",
+      "path": "/home/cfdm/Proj-Cfdm-NEXUS-AI-OS-(Triplex )_",
+      "versao": "1.0.0",
+      "stack": ["Python", "CrewAI", "LangChain", "FastAPI"],
+      "status": "ativo",
+      "porta": 8000,
+      "inicio": "python3 -m uvicorn web.server:app --host 0.0.0.0 --port 8000",
+      "descricao": "Sistema de IA com 286+ agentes especializados organizados em categorias. Motor LLM do ecossistema CFDM. ICARUS delega ao Nexus via HTTP POST /chat.",
+      "ultimas_mudancas": [
+        "Renomeado de Triplex para Cfdm Nexus",
+        "Integrado ao ICARUS como motor LLM na porta 8000",
+        "Painel de agentes acessível via ICARUS Tab ⚡ Nexus"
+      ],
+      "proximos_passos": [
+        "Agente Oracle (predição de mercado)",
+        "Agente Alquimista (monitoramento financeiro)",
+        "Agente Architect autônomo (auto-codificação avançada)",
+        "Integração com APIs financeiras reais"
+      ],
+      "notas": "Deve ser iniciado ANTES do ICARUS. O icarus-launcher.sh inicia Nexus(:8000) e ICARUS(:8001) juntos."
+    },
+    "Keepsidian": {
+      "nome": "Keepsidian",
+      "subtitulo": "KeePass + Obsidian — versão Python legada",
+      "path": "/home/cfdm/Proj-CDFM-Keepsidian-",
+      "repo": "https://github.com/cfdmmarket-dot/Keepsidian",
+      "versao": "v0.3.0-alpha",
+      "stack": ["Python"],
+      "status": "legado",
+      "descricao": "Projeto legado Python. Substituído pelo CfdmNote (C++17). Mantido separado, sem desenvolvimento ativo.",
+      "ultimas_mudancas": [
+        "v0.3.0-alpha — último commit (dfc64d2)"
+      ],
+      "proximos_passos": [],
+      "notas": "Não desenvolver mais. CfdmNote é o substituto oficial."
+    }
+  },
+  "sessoes_recentes": [
+    {
+      "data": "2026-04-04",
+      "projeto": "ICARUS",
+      "resumo": "Terminal SSE flutuante, Menu Modos, Modal Skills, Agente Architect (autocode_skill), 4 novos modos (Arquiteto/Engenheiro/Parça/Mordomo), fix contraste UI",
+      "versao_resultante": "1.5.0",
+      "arquivos_modificados": [
+        "web/server.py", "web/templates/index.html",
+        "core/icarus_core.py", "core/skill_router.py",
+        "skills/autocode_skill.py", "config/commands.json"
+      ]
+    },
+    {
+      "data": "2026-04-03",
+      "projeto": "ICARUS",
+      "resumo": "TTS Neural edge-tts, POWER ICARUS modal, Nexus toggle, custom_skill, deps panel, JARVIS HUD",
+      "versao_resultante": "1.4.0",
+      "arquivos_modificados": [
+        "web/server.py", "web/templates/index.html", "core/icarus_core.py"
+      ]
+    }
+  ]
+}

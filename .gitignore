@@ -39,4 +39,6 @@ Thumbs.db
 
 # Memory (personal data — não commitar)
 memory/*.json
+# Exceção: memória de projetos é documentação, não dado pessoal
+!memory/projects.json
 _Planejamento_/

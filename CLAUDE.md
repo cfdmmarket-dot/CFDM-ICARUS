@@ -71,7 +71,7 @@ Assistente pessoal de IA integrado ao ecossistema CFDM Holding:
 
 ---
 
-## Versão Atual: v1.2.0
+## Versão Atual: v1.6.0
 
 ### Features Confirmadas
 - [x] v1.0.0 — Motor principal (IcarusCore), SkillRouter, MemoryManager, ContextEngine
@@ -91,6 +91,18 @@ Assistente pessoal de IA integrado ao ecossistema CFDM Holding:
 - [x] v1.1.0 — skills/voz_skill.py — controle de voz via texto
 - [x] v1.1.0 — FEATURES.md — 120+ features catalogadas em 8 categorias
 - [x] v1.1.0 — _Planejamento_/ — 23 arquivos SYNCTHING como referência
+
+- [x] v1.5.0 — Agente Architect: autocode_skill.py + endpoints /autocode/* + Tab 🤖 no POWER modal
+- [x] v1.5.0 — dynamic_skills.json: skills criadas por LLM com routing automático de intents
+- [x] v1.5.0 — skill_router: _global_router + hot-load de skills em memória
+- [x] v1.6.0 — Terminal flutuante SSE real-time (Ctrl+`) com filtros e resize
+- [x] v1.6.0 — projeto_skill.py + memory/projects.json: memória viva dos projetos CFDM
+- [x] v1.6.0 — Modal 📁 Projetos: cards, sessões, registrar — integrado ao Nexus
+- [x] v1.6.0 — Modal 🔌 Skills: listagem builtin+dinâmicas + criação inline
+- [x] v1.6.0 — Modal 🎭 Modos em Comandos: 4 novos modos (Arquiteto, Engenheiro, Parça, Mordomo)
+- [x] v1.6.0 — Scroll universal nos modais (max-height + scrollbar estilizada)
+- [x] v1.6.0 — Fix contraste UI: text-faint/dim/border/bg-input todos corrigidos
+- [x] v1.6.0 — Fix POWER dropdown: z-index toolbar 200 vs app-body 1
 
 ### Features Pendentes (próximas)
 - [x] v1.2.0 — Skill de notícias matinal (RSS nativo, sem dependências)

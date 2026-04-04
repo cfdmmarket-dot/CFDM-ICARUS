@@ -1,0 +1,41 @@
+{
+  "_doc": "Respostas personalizadas — gatilho (palavra ou frase) → resposta exata do ICARUS",
+  "responses": [
+    {
+      "trigger": "icarus",
+      "match": "exact_word",
+      "response": "Estou aqui, senhor. Como posso ajudá-lo?",
+      "tts": true
+    },
+    {
+      "trigger": "bom dia",
+      "match": "contains",
+      "response": "Bom dia! Pronto para começar. O que vamos fazer hoje?",
+      "tts": true
+    },
+    {
+      "trigger": "boa tarde",
+      "match": "contains",
+      "response": "Boa tarde! Em que posso ajudar?",
+      "tts": true
+    },
+    {
+      "trigger": "boa noite",
+      "match": "contains",
+      "response": "Boa noite! Precisa de algo antes de descansar?",
+      "tts": true
+    },
+    {
+      "trigger": "obrigado",
+      "match": "contains",
+      "response": "Disponha, senhor.",
+      "tts": true
+    },
+    {
+      "trigger": "até logo",
+      "match": "contains",
+      "response": "Até logo. Estarei aqui quando precisar.",
+      "tts": true
+    }
+  ]
+}

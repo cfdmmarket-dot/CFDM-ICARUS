@@ -1,6 +1,143 @@
 # ICARUS — Development Log
 > Intelligent Conversational Assistant for Research, Understanding & Strategy
-> CFDM Holding | Versão atual: v1.3.1
+> CFDM Holding | Versão atual: v1.6.0
+
+---
+
+## [v1.6.0] — 2026-04-04
+
+### Adicionado — Memória de Projetos + Scroll Universal + Contraste UI
+
+#### 📁 Memória Viva de Projetos (projeto_skill)
+- **`memory/projects.json`** — fonte de verdade dos projetos CFDM Holding:
+  - ICARUS, CfdmNote, Cfdm Nexus, Keepsidian com histórico completo
+  - Últimas mudanças, próximos passos, stack, portas, regras absolutas por projeto
+  - Histórico de sessões de desenvolvimento com arquivos modificados
+- **`skills/projeto_skill.py`** — skill completa de gestão de projetos:
+  - `"status dos projetos"` → overview de todos com badges de status
+  - `"como está o CfdmNote"` → detalhes completos com stack e roadmap
+  - `"próximos passos do ICARUS"` → backlog organizado
+  - `"o que foi feito recentemente"` → sessões de desenvolvimento
+  - `"analisa o projeto X"` → delega ao Nexus LLM com contexto do projeto
+  - `"delegar ao Nexus: refatora Y"` → convoca agentes Nexus com contexto
+  - `registrar mudança no projeto X: descrição` → atualiza memória
+- **`core/skill_router.py`** — 13 novos padrões de intent `"projeto"`
+- **Endpoints REST:**
+  - `GET /projects` — memória completa JSON
+  - `POST /projects/{key}/log` — registra sessão (Claude Code usa automaticamente)
+  - `PATCH /projects/{key}/steps` — atualiza próximos passos
+- **Modal 📁 Projetos** na toolbar (ao lado de Agentes):
+  - Tab **Projetos** — cards com status 🟢/🟡/🔴, mudanças, próximos passos, botões 💬/🤖
+  - Tab **Sessões** — histórico completo com scroll
+  - Tab **✏ Registrar** — formulário para registrar sessão manual
+
+#### 🖥 Terminal Flutuante com SSE Real-Time
+- **`web/server.py`** — `/logs/stream` SSE endpoint (substitui polling 2s por push <150ms)
+- **`core/icarus_core.py`** — `set_log_fn()` + `emit_log()` + `_ms()`: hook de log global
+- Logs ricos em cada etapa: INPUT, ROUTER (intent), SKILL (nome + ms), NEXUS, OUTPUT
+- **Terminal drawer** fixo na base, abre/fecha com `Ctrl+\`` ou botão 🖥 Terminal
+- Filtros: TUDO / ENTRADA / ROTEADOR / SKILL / NEXUS / ERROS
+- Redimensionável por arrasto, auto-scroll inteligente
+- Campo de comando direto no rodapé (envia ao ICARUS sem abrir chat)
+- Auto-abre quando usuário envia mensagem (mostra processamento em tempo real)
+
+#### 🔌 Modal Skills
+- **`GET /skills`** — endpoint que lista todas as skills com metadados (icon, desc, patterns, loaded)
+- **Modal 🔌 Skills** na toolbar ao lado de 📊 Sistema:
+  - Tab **Todas** — cards com BUILTIN/CRIADA badge, status ativa, padrões, KB
+  - Botões: ▶ Testar, 👁 Código, 🗑 Deletar (dinâmicas)
+  - Filtros: Todas / Builtin / Criadas + busca
+  - Tab **+ Adicionar** — formulário com sugestões + campo 🎤 + opções avançadas (nome, padrões)
+
+#### 🎭 Menu Modos
+- **4 novos modos** em `config/commands.json`:
+  - `ARQUITETO` — design de sistemas, soluções técnicas de alto nível
+  - `ENGENHEIRO` — implementação técnica, código, debugging
+  - `PARCA` — parceiro informal, casual e direto
+  - `MORDOMO` — persona expandida com mais detalhe
+- **Tab 🎭 Modos** no modal Comandos (ao lado de ⌨ Comandos):
+  - Cards favoritos: Mordomo, Arquiteto, Engenheiro, Parça (1 clique ativa)
+  - Grid com todos os 31 modos organizados por camada com ícone
+  - Modo ativo exibido no rodapé do painel
+- Atalho no POWER: "🎭 Ver todos os modos…"
+
+#### 🤖 Agente Architect (Auto-Codificação)
+- **`skills/autocode_skill.py`** — cria skills Python em linguagem natural:
+  - Envia ao Nexus LLM com prompt-template padronizado
+  - Valida sintaxe via `ast.parse()`, extrai `SKILL_NAME` e `TRIGGER_PATTERNS`
+  - Hot-load via importlib + injeção no `_global_router`
+  - Listar, deletar skills dinâmicas por chat
+- **`config/dynamic_skills.json`** — criado na primeira skill gerada
+- **`core/skill_router.py`** — `_global_router` global, `_load_dynamic_patterns()`, intent `autocode`
+- **Tab 🤖 Architect** no POWER ICARUS: campo + 🎤 + sugestões rápidas + lista de criadas
+
+#### 🎨 Contraste e Legibilidade (UI Fix)
+- `--text-faint: #1e4a5a` → `#5a8fa8` (era quase invisível)
+- `--text-dim: #5a90a8` → `#90bdd0`
+- `--text: #c8ecf8` → `#d8f0fa`
+- `--bg-input: #030a12` → `#071320`
+- `--border: #0a2535` → `#0f2f42`
+- CSS global: `modal [style*="text-faint"] → text-dim`, labels uppercase legíveis
+- `.pwr-menu-label` → `rgba(255,255,255,0.45)` (era 0.25)
+- `.modal-section-title` → `var(--text-dim)` (era text-faint)
+- Placeholders, timestamps terminal, botões pwr-cmd todos corrigidos
+
+#### 📜 Scroll Universal nos Modais
+- `.modal-body` → `overflow-y: auto; max-height: 65vh` (regra global)
+- Scrollbar fina estilizada (4px, cor accent)
+- Modal Agentes → `max-height: 85vh` + contador de agentes visível
+- Modal Projetos, Skills, Comandos/Modos todos com scroll correto
+
+#### Fix: Menu POWER não expandia
+- `.toolbar` separado de `.app-body` com `z-index: 200` vs `z-index: 1`
+- `.app-body` vinha depois no DOM e cobria o dropdown
+
+---
+
+## [v1.5.0] — 2026-04-04
+
+### Adicionado — Agente Architect (Auto-Codificação de Skills)
+
+- **`skills/autocode_skill.py`** — Skill completa do Agente Architect:
+  - Aceita comandos em linguagem natural ("criar skill para X")
+  - Envia descrição ao Nexus LLM com prompt-template padronizado
+  - Extrai bloco `python` da resposta, valida sintaxe via `ast.parse()`
+  - Escreve arquivo `skills/<nome>_skill.py` automaticamente
+  - Registra padrões de trigger em `config/dynamic_skills.json`
+  - Hot-load via importlib + injeção no `_global_router` em memória
+  - Listar skills dinâmicas: "listar skills criadas"
+  - Deletar skill: "deletar skill <nome>"
+
+- **`core/skill_router.py`** atualizado:
+  - Intent `"autocode"` com 11 padrões regex
+  - `_global_router` — referência global para hot-reload
+  - `_load_dynamic_patterns()` — carrega padrões de `dynamic_skills.json` em cada `detect_intent()`
+  - Skills dinâmicas ganham intent routing automático após criação
+  - `SkillRouter.__init__` expõe `_global_router = self`
+
+- **`web/server.py`** — 4 novos endpoints:
+  - `GET /autocode/skills` — lista skills dinâmicas com metadados
+  - `POST /autocode/create` — cria skill via API REST
+  - `DELETE /autocode/skills/{name}` — deleta skill dinâmica
+  - `GET /autocode/preview/{name}` — retorna código-fonte da skill
+  - Versão bumped: 1.4.0 → **1.5.0**
+
+- **`web/templates/index.html`** — Tab 🤖 Architect no POWER ICARUS:
+  - Campo de descrição + botão 🎤 ditar + botão ⚡ Criar
+  - Sugestões rápidas: Clima, CEP, Moedas, Senhas, Motivação, Timer
+  - Lista de skills dinâmicas com preview 👁, recriar 🔄, deletar 🗑
+  - Output em tempo real com status da criação
+  - `architectCreate()`, `architectLoadSkills()`, `architectPreview()`, `architectDelete()`
+
+- **`config/dynamic_skills.json`** — criado automaticamente na primeira skill gerada
+
+### Decisão Arquitetural
+```
+Architect = Agente autônomo de criação de skills
+Input: linguagem natural ("criar skill para verificar clima")
+Pipeline: Nexus LLM → extração de código → validação → escrita → hot-load
+Output: nova skill Python funcionando no ICARUS sem reinicialização
+```
 
 ---
 

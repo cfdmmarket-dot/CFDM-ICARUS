@@ -12,9 +12,23 @@ from .skill_router import SkillRouter
 from .context_engine import ContextEngine
 
 
-ICARUS_VERSION = "1.4.0"
+ICARUS_VERSION = "1.6.0"
 
 COMMANDS_PATH = Path(__file__).parent.parent / "config" / "commands.json"
+
+# ── Log hook — substituído pelo server.py para streaming em tempo real ────────
+_log_fn = None
+
+def set_log_fn(fn):
+    global _log_fn
+    _log_fn = fn
+
+def emit_log(level: str, tag: str, msg: str):
+    if _log_fn:
+        _log_fn(level, tag, msg)
+
+def _ms(t_start) -> int:
+    return int((datetime.datetime.now() - t_start).total_seconds() * 1000)
 
 ICARUS_PERSONA = """Você é ICARUS, o assistente pessoal de IA do CFDM Holding.
 
@@ -168,17 +182,37 @@ class IcarusCore:
 
     def process(self, user_input: str) -> str:
         """Processa uma entrada do usuário e retorna resposta"""
+        t_start = datetime.datetime.now()
+        emit_log("INPUT", "ICARUS", f"→ {user_input[:100]}")
+
         # Registra na memória de curto prazo
         self.context.add_message("user", user_input)
+
+        # 0. Respostas personalizadas — prioridade máxima
+        try:
+            from skills.custom_skill import Skill as CustomSkill
+            cs = CustomSkill()
+            if cs.has_match(user_input):
+                emit_log("INFO", "CUSTOM", "Resposta personalizada encontrada")
+                result = cs.execute(user_input, self.context)
+                if result:
+                    self.context.add_message("assistant", result)
+                    emit_log("OUTPUT", "ICARUS", f"← {result[:80]} ({_ms(t_start)}ms)")
+                    return result
+        except Exception:
+            pass
 
         # 1. Comandos de modo (ICARUS, ativar modo X)
         mode_name = self._detect_mode_command(user_input)
         if mode_name:
             if any(w in user_input.lower() for w in ["desativar", "desactivar", "sair do modo", "modo normal"]):
+                emit_log("INFO", "MODE", "Desativando modo operacional")
                 result = self.deactivate_mode()
             else:
+                emit_log("INFO", "MODE", f"Ativando modo: {mode_name.upper()}")
                 result = self.activate_mode(mode_name)
             self.context.add_message("assistant", result)
+            emit_log("OUTPUT", "ICARUS", f"← {result[:80]} ({_ms(t_start)}ms)")
             return result
 
         # 2. Comandos de agente
@@ -186,23 +220,34 @@ class IcarusCore:
         if agent_cmd:
             t = agent_cmd
             if "montar equipe" in t:
+                emit_log("INFO", "AGENT", "Montando equipe de agentes")
                 result = self.build_team(t)
             elif "encontrar agente" in t or "buscar agente" in t:
+                emit_log("INFO", "AGENT", "Buscando agente compatível")
                 result = self.find_agent(t)
             elif "convocar" in t or "chamar" in t:
+                emit_log("INFO", "AGENT", "Convocando agente especializado")
                 result = self.assign_agent(t)
             else:
                 result = self.assign_agent(t)
             self.context.add_message("assistant", result)
+            emit_log("OUTPUT", "ICARUS", f"← {result[:80]} ({_ms(t_start)}ms)")
             return result
 
         # 3. Skill router — detecção de intenção por regex
+        emit_log("INFO", "ROUTER", "Detectando intenção...")
         intent = self.router.detect_intent(user_input)
+        emit_log("INFO", "ROUTER", f"Intent: {intent}")
+
         skill = self.router.get_skill(intent)
 
         if skill:
+            skill_name = type(skill).__module__.replace("skills.", "")
+            emit_log("INFO", "SKILL", f"Executando: {skill_name} [{intent}]")
             result = skill.execute(user_input, self.context)
+            emit_log("INFO", "SKILL", f"Concluído em {_ms(t_start)}ms")
         else:
+            emit_log("INFO", "NEXUS", "Sem skill local — delegando ao Cfdm Nexus...")
             result = self._fallback_response(user_input)
 
         # Registra resposta no contexto
@@ -211,6 +256,7 @@ class IcarusCore:
         # Salva na memória de longo prazo se relevante
         self.memory.maybe_save(user_input, result, intent)
 
+        emit_log("OUTPUT", "ICARUS", f"← {str(result)[:80]} ({_ms(t_start)}ms)")
         return result
 
     def _fallback_response(self, user_input: str) -> str:
@@ -239,11 +285,7 @@ class IcarusCore:
             pass
 
         # Segundo fallback: resposta básica sem LLM
-        return (
-            f"[ICARUS{mode_str}] Olá! Recebi sua mensagem: \"{user_input}\"\n\n"
-            "Dica: O Cfdm Nexus precisa estar online (:8000) para respostas inteligentes.\n"
-            "Use o launcher unificado para iniciar os dois sistemas."
-        )
+        return "Nexus offline. Inicie o Cfdm Nexus na porta 8000 para respostas inteligentes."
 
     def run_interactive(self):
         """Loop interativo de conversação"""

@@ -14,8 +14,8 @@
             --bg-base:    #020c14;
             --bg-panel:   #040f1a;
             --bg-card:    #071625;
-            --bg-hover:   #0a1e30;
-            --bg-input:   #030a12;
+            --bg-hover:   #0c1f2e;
+            --bg-input:   #071320;
             --accent:     #00d4ff;
             --accent-dim: rgba(0,212,255,0.08);
             --accent2:    #0080ff;
@@ -23,10 +23,10 @@
             --green:      #00ff88;
             --green-dim:  rgba(0,255,136,0.10);
             --red:        #ff3355;
-            --text:       #c8ecf8;
-            --text-dim:   #5a90a8;
-            --text-faint: #1e4a5a;
-            --border:     #0a2535;
+            --text:       #d8f0fa;
+            --text-dim:   #90bdd0;
+            --text-faint: #5a8fa8;
+            --border:     #0f2f42;
             --border-acc: #00a0cc;
             --radius:     4px;
             --radius-lg:  8px;
@@ -74,7 +74,8 @@
             z-index: 0;
         }
 
-        .toolbar, .app-body, .statusbar { position: relative; z-index: 1; }
+        .app-body, .statusbar { position: relative; z-index: 1; }
+        .toolbar { position: relative; z-index: 200; }
 
         /* ── Animations ────────────────────────────────── */
         @keyframes hudGlow {
@@ -233,6 +234,63 @@
             gap: 8px;
         }
 
+        /* ── POWER dropdown ── */
+        .pwr-dropdown {
+            position: relative;
+        }
+        .pwr-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 210px;
+            background: #0e1623;
+            border: 1px solid rgba(0,212,255,0.25);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            z-index: 2000;
+            padding: 6px 0;
+            animation: pwrMenuIn .15s ease;
+        }
+        .pwr-menu.open { display: block; }
+        @keyframes pwrMenuIn {
+            from { opacity:0; transform:translateY(-6px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .pwr-menu-item {
+            padding: 7px 16px;
+            font-size: 12.5px;
+            color: #c8e0f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background .1s;
+        }
+        .pwr-menu-item:hover { background: rgba(0,212,255,0.1); color: #fff; }
+        .pwr-menu-sep { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+        .pwr-menu-label {
+            padding: 4px 16px 2px;
+            font-size: 9.5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.45);
+        }
+        .pwr-badge {
+            margin-left: auto;
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .pwr-badge.online  { background: rgba(0,230,140,.2); color: #00e68c; }
+        .pwr-badge.offline { background: rgba(255,51,85,.18); color: #ff3355; }
+        .pwr-badge.loading { background: rgba(255,200,0,.15); color: #ffc800; }
+
+        /* Nexus toggle button */
+        #nexusToggleBtn.nexus-on  { border-color: #00e68c; color: #00e68c; }
+        #nexusToggleBtn.nexus-off { border-color: #ff3355; color: #ff3355; }
+
         .status-pill {
             display: flex;
             align-items: center;
@@ -349,7 +407,7 @@
             padding: 1px 5px;
             background: var(--bg-card);
             border-radius: 10px;
-            color: var(--text-faint);
+            color: var(--text-dim);
         }
         .nav-item.active .badge { background: var(--accent-dim); color: var(--accent); }
 
@@ -1243,8 +1301,8 @@
         .modal-overlay.open { display: flex; }
 
         .modal {
-            background: rgba(4,12,20,0.97);
-            border: 1px solid rgba(0,212,255,0.35);
+            background: rgba(5,14,24,0.98);
+            border: 1px solid rgba(0,212,255,0.4);
             border-radius: var(--radius);
             width: 560px;
             max-width: 95vw;
@@ -1301,12 +1359,48 @@
 
         .modal-section { display: flex; flex-direction: column; gap: 10px; }
 
+        /* ── Scroll em todos os modal-body — regra global ── */
+        .modal-body {
+            overflow-y: auto !important;
+            max-height: 65vh;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,212,255,0.2) transparent;
+        }
+        .modal-body::-webkit-scrollbar { width: 4px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.2); border-radius: 2px; }
+
+        /* ── Legibilidade global — garante mínimo de contraste ── */
+        input::placeholder, textarea::placeholder { color: #3a6878 !important; }
+        select option { background: #071a28; color: #d0e8f4; }
+
+        /* Textos de seção, rótulos e notas nos modais */
+        .modal [style*="color:var(--text-faint)"],
+        .modal [style*="color: var(--text-faint)"] { color: var(--text-dim) !important; }
+
+        /* Lables de 10px uppercase dentro de modais — eram quase invisíveis */
+        .modal [style*="font-size:10px"][style*="uppercase"],
+        .modal [style*="font-size: 10px"][style*="uppercase"] { color: #7ab0c4 !important; }
+
+        /* Texto faint nas abas POWER, cmd-groups */
+        .pwr-cmd-group-title { font-size: 10.5px !important; font-weight: 700; }
+        .pwr-cmd-btn {
+            color: #c0d8e8 !important;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .pwr-cmd-btn:hover { color: #fff !important; border-color: rgba(0,212,255,0.3) !important; background: rgba(0,212,255,0.07) !important; }
+
+        /* Dep table e outros textos de status */
+        .dep-status { font-weight: 700; }
+        code { color: #8dd4ec; background: rgba(0,212,255,0.08); padding: 1px 5px; border-radius: 3px; }
+
         .modal-section-title {
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: var(--text-faint);
+            color: var(--text-dim);
             padding-bottom: 4px;
             border-bottom: 1px solid var(--border);
         }
@@ -1320,7 +1414,7 @@
         }
 
         .setting-label { font-size: 12.5px; color: var(--text); }
-        .setting-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+        .setting-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 
         .setting-control select,
         .setting-control input[type="text"],
@@ -1509,19 +1603,49 @@
 
     <button class="tb-btn" id="tbVoiceMode" onclick="toggleVoiceMode()" title="Modo Voz JARVIS — wake word ICARUS">🎙 MODO VOZ</button>
     <div class="toolbar-sep"></div>
+    <!-- ── POWER dropdown cascata ── -->
+    <div class="pwr-dropdown" id="pwrDropdown">
+        <button class="tb-btn pwr-main-btn" id="pwrMainBtn" onclick="togglePwrMenu()"
+            title="POWER ICARUS — Ctrl+Shift+F"
+            style="border-color:var(--gold);color:var(--gold);font-weight:700">⚡ POWER ▾</button>
+        <div class="pwr-menu" id="pwrMenu">
+            <div class="pwr-menu-item" onclick="openModal('modalPower');closePwrMenu()">🔍 Busca Poderosa</div>
+            <div class="pwr-menu-item" onclick="switchPwr('emalta');openModal('modalPower');closePwrMenu()">📈 Em Alta / Trending</div>
+            <div class="pwr-menu-item" onclick="switchPwr('arquivos');openModal('modalPower');closePwrMenu()">📁 Arquivos Locais</div>
+            <div class="pwr-menu-item" onclick="switchPwr('link');openModal('modalPower');closePwrMenu()">🔗 Verificar Link</div>
+            <div class="pwr-menu-sep"></div>
+            <div class="pwr-menu-label">SERVIÇOS</div>
+            <div class="pwr-menu-item" id="pwrNexusItem" onclick="toggleNexus()">
+                <span id="pwrNexusIcon">⚡</span> Cfdm Nexus <span id="pwrNexusBadge" class="pwr-badge">…</span>
+            </div>
+            <div class="pwr-menu-item" onclick="launchApp('CfdmNote');closePwrMenu()">📓 CfdmNote</div>
+            <div class="pwr-menu-sep"></div>
+            <div class="pwr-menu-label">APPS</div>
+            <div id="pwrAppsList"></div>
+            <div class="pwr-menu-sep"></div>
+            <div class="pwr-menu-item" onclick="openModal('modalApps');closePwrMenu()">⚙ Gerenciar Apps…</div>
+        </div>
+    </div>
+    <div class="toolbar-sep"></div>
     <button class="tb-btn active" id="tbChat" onclick="setView('chat')">💬 Chat</button>
     <button class="tb-btn" onclick="setView('tasks')">✅ Tarefas</button>
     <button class="tb-btn" onclick="openModal('modalAgentes')">🤖 Agentes</button>
+    <button class="tb-btn" onclick="openModal('modalProjetos')">📁 Projetos</button>
     <button class="tb-btn" onclick="openModal('modalComandos')">⌨ Comandos</button>
-    <button class="tb-btn" onclick="openModal('modalLogs')">🖥 Logs</button>
+    <button class="tb-btn" id="tbTerminal" onclick="toggleTerminal()" title="Terminal de logs em tempo real (Ctrl+`)">🖥 Terminal</button>
     <button class="tb-btn" onclick="openModal('modalSistema')">📊 Sistema</button>
+    <button class="tb-btn" onclick="openModal('modalSkills')">🔌 Skills</button>
 
     <div class="toolbar-right">
         <button class="tb-btn" onclick="openModal('modalManual')" title="Manual de referência rápida">📖 Manual</button>
         <button class="tb-btn" onclick="openModal('modalFerramentas')" title="Ferramentas">🔧 Ferramentas</button>
         <button class="tb-btn" onclick="openModal('modalSettings')" title="Configurações">⚙ Config</button>
         <div class="toolbar-sep"></div>
-        <button class="tb-btn" onclick="switchPanel('nexus')" title="Cfdm Nexus — 286+ agentes" style="border-color:var(--border-acc);color:var(--accent)">⚡ Nexus</button>
+        <button class="tb-btn" onclick="switchPanel('nexus')" title="Cfdm Nexus — painel de agentes" style="border-color:var(--border-acc);color:var(--accent)">⚡ Nexus</button>
+        <button class="tb-btn" id="nexusToggleBtn" onclick="toggleNexus()" title="Ligar/desligar Nexus"
+            style="font-size:11px;padding:4px 8px">
+            <span id="nexusToggleIcon">●</span> <span id="nexusToggleLabel">Nexus</span>
+        </button>
         <div class="status-pill">
             <div class="status-dot" id="statusDot"></div>
             <span id="statusText">Online</span>
@@ -1828,11 +1952,86 @@
 </div>
 
 <!-- ── Modal: Agentes ──────────────────────────────────────── -->
+<!-- ── Modal: Projetos ──────────────────────────────────────── -->
+<div class="modal-overlay" id="modalProjetos" onclick="closeModalOutside(event,'modalProjetos')">
+<div class="modal" style="width:700px;max-height:85vh">
+    <div class="modal-header">
+        <div class="modal-title">📁 Projetos CFDM Holding</div>
+        <div style="display:flex;gap:6px;align-items:center">
+            <span id="projSyncLabel" style="font-size:10px;color:var(--text-faint)">—</span>
+            <button class="btn-sm" onclick="loadProjetos()">↺</button>
+            <button class="modal-close" onclick="closeModal('modalProjetos')">✕</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;background:var(--bg-input);border-bottom:1px solid var(--border);flex-shrink:0">
+        <button class="proj-tab active" id="projTabCards" onclick="switchProjTab('cards')"
+            style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text);cursor:pointer;border-bottom:2px solid var(--accent);transition:all .15s">
+            📋 Projetos
+        </button>
+        <button class="proj-tab" id="projTabSessoes" onclick="switchProjTab('sessoes')"
+            style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s">
+            🕐 Sessões
+        </button>
+        <button class="proj-tab" id="projTabLog" onclick="switchProjTab('log')"
+            style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s">
+            ✏ Registrar
+        </button>
+    </div>
+
+    <!-- ── Tab: Cards de projetos ── -->
+    <div id="projPageCards" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;max-height:65vh">
+        <div style="color:var(--text-faint);text-align:center;padding:30px">Carregando...</div>
+    </div>
+
+    <!-- ── Tab: Sessões recentes ── -->
+    <div id="projPageSessoes" style="display:none;flex:1;overflow-y:auto;padding:14px;max-height:65vh">
+        <div id="projSessoesList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
+    <!-- ── Tab: Registrar sessão manual ── -->
+    <div id="projPageLog" style="display:none;flex-direction:column;padding:16px;gap:12px;overflow-y:auto;max-height:65vh">
+        <div style="font-size:11px;color:var(--text-faint)">
+            Registre o que foi feito em uma sessão de desenvolvimento para que o ICARUS fique atualizado.
+        </div>
+        <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:5px">Projeto</div>
+            <select id="projLogKey" style="width:100%;height:32px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none">
+                <option value="ICARUS">ICARUS</option>
+                <option value="CfdmNote">CfdmNote</option>
+                <option value="CfdmNexus">Cfdm Nexus</option>
+                <option value="Keepsidian">Keepsidian</option>
+            </select>
+        </div>
+        <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:5px">Resumo da sessão</div>
+            <textarea id="projLogResumo" rows="3" placeholder="O que foi feito nesta sessão..."
+                style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 10px;font-size:12.5px;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+        </div>
+        <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:5px">Mudanças implementadas (uma por linha)</div>
+            <textarea id="projLogMudancas" rows="4" placeholder="v1.5.0 — Terminal SSE flutuante&#10;v1.5.0 — Menu Modos&#10;..."
+                style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 10px;font-size:12.5px;font-family:monospace;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+        </div>
+        <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:5px">Versão resultante (opcional)</div>
+            <input type="text" id="projLogVersao" placeholder="ex: 1.5.0"
+                style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12.5px;outline:none">
+        </div>
+        <button class="btn-sm primary" style="height:36px;font-size:13px;font-weight:700" onclick="projLogSave()">
+            💾 Salvar Sessão
+        </button>
+        <div id="projLogResult" style="display:none;padding:10px;border-radius:var(--radius);font-size:12px"></div>
+    </div>
+</div>
+</div>
+
 <div class="modal-overlay" id="modalAgentes" onclick="closeModalOutside(event,'modalAgentes')">
-<div class="modal" style="width:680px">
+<div class="modal" style="width:720px;max-height:85vh">
     <div class="modal-header">
         <div class="modal-title">🤖 Agentes — Cfdm Nexus</div>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             <input type="text" id="agentSearch" placeholder="Buscar agente..." oninput="filterAgents(this.value)"
                 style="height:26px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:11.5px;outline:none;width:160px">
             <select id="agentFilter" onchange="filterAgents(document.getElementById('agentSearch').value)"
@@ -1847,10 +2046,11 @@
                 <option value="vendas">Vendas</option>
                 <option value="operacoes">Operações</option>
             </select>
+            <span id="agentCountLabel" style="font-size:10px;color:var(--text-faint)"></span>
             <button class="modal-close" onclick="closeModal('modalAgentes')">✕</button>
         </div>
     </div>
-    <div class="modal-body" style="gap:8px">
+    <div class="modal-body" style="gap:8px;overflow-y:auto;max-height:68vh">
         <div id="agentGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">
             <div style="color:var(--text-faint);font-size:12px;grid-column:1/-1;padding:8px">Carregando agentes...</div>
         </div>
@@ -1867,19 +2067,109 @@
 
 <!-- ── Modal: Comandos ─────────────────────────────────────── -->
 <div class="modal-overlay" id="modalComandos" onclick="closeModalOutside(event,'modalComandos')">
-<div class="modal" style="width:580px">
+<div class="modal" style="width:620px;max-height:80vh">
     <div class="modal-header">
-        <div class="modal-title">⌨ Comandos Rápidos</div>
+        <div class="modal-title">⌨ Comandos &amp; Modos</div>
         <button class="modal-close" onclick="closeModal('modalComandos')">✕</button>
     </div>
-    <div class="modal-body" style="gap:14px">
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;background:var(--bg-input);border-bottom:1px solid var(--border);flex-shrink:0">
+        <button class="cmd-tab active" id="cmdTabCmds" onclick="switchCmdTab('cmds')"
+            style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text);cursor:pointer;border-bottom:2px solid var(--accent);transition:all .15s">
+            ⌨ Comandos
+        </button>
+        <button class="cmd-tab" id="cmdTabModos" onclick="switchCmdTab('modos')"
+            style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s">
+            🎭 Modos
+        </button>
+    </div>
+
+    <!-- Página: Comandos -->
+    <div id="cmdPageCmds" class="modal-body" style="gap:14px;max-height:55vh;overflow-y:auto">
         <input type="text" id="cmdSearch" placeholder="Filtrar comandos..." oninput="filterCmds(this.value)"
             style="height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none;width:100%;transition:border-color 0.15s"
             onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
         <div id="cmdList" style="display:flex;flex-direction:column;gap:4px"></div>
     </div>
+
+    <!-- Página: Modos -->
+    <div id="cmdPageModos" style="display:none;flex-direction:column;max-height:55vh;overflow-y:auto;padding:14px;gap:12px">
+
+        <!-- Destaque — modos favoritos -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:4px">⭐ Favoritos</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px">
+            <button class="mode-card" onclick="activateMode('MORDOMO')"
+                style="--mc:rgba(0,212,255,0.2);--mc-b:rgba(0,212,255,0.4)">
+                <span class="mc-icon">🧑‍💼</span>
+                <div><div class="mc-name">Mordomo</div><div class="mc-desc">Elegante e organizado</div></div>
+            </button>
+            <button class="mode-card" onclick="activateMode('ARQUITETO')"
+                style="--mc:rgba(138,43,226,0.2);--mc-b:rgba(138,43,226,0.5)">
+                <span class="mc-icon">🏛</span>
+                <div><div class="mc-name">Arquiteto</div><div class="mc-desc">Design de sistemas</div></div>
+            </button>
+            <button class="mode-card" onclick="activateMode('ENGENHEIRO')"
+                style="--mc:rgba(59,130,246,0.2);--mc-b:rgba(59,130,246,0.5)">
+                <span class="mc-icon">⚙</span>
+                <div><div class="mc-name">Engenheiro</div><div class="mc-desc">Código &amp; implementação</div></div>
+            </button>
+            <button class="mode-card" onclick="activateMode('PARCA')"
+                style="--mc:rgba(0,230,140,0.2);--mc-b:rgba(0,230,140,0.5)">
+                <span class="mc-icon">🤙</span>
+                <div><div class="mc-name">Parça</div><div class="mc-desc">Casual e direto</div></div>
+            </button>
+        </div>
+
+        <!-- Todos os modos -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:4px">Todos os modos</div>
+        <div id="allModesList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px"></div>
+
+        <!-- Modo ativo -->
+        <div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg-input);border-radius:var(--radius);margin-top:4px">
+            <span style="font-size:11px;color:var(--text-faint)">Modo ativo:</span>
+            <span style="font-size:12px;font-weight:600;color:var(--accent)" id="activeModeLabel">—</span>
+            <button class="btn-sm" style="margin-left:auto;font-size:10px" onclick="activateMode('__deactivate__')">Desativar</button>
+        </div>
+    </div>
 </div>
 </div>
+
+<style>
+/* ── Mode cards ── */
+.mode-card {
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;
+    background: var(--mc, rgba(255,255,255,0.05));
+    border: 1px solid var(--mc-b, rgba(255,255,255,0.1));
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s;
+    color: var(--text);
+    font-family: inherit;
+}
+.mode-card:hover { filter: brightness(1.2); transform: translateY(-1px); }
+.mc-icon { font-size: 20px; flex-shrink: 0; }
+.mc-name { font-size: 13px; font-weight: 700; line-height: 1.2; }
+.mc-desc { font-size: 10.5px; color: var(--text-faint); margin-top: 2px; }
+
+.mode-mini {
+    display:flex;align-items:center;gap:6px;
+    padding:7px 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all .12s;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+}
+.mode-mini:hover { border-color: var(--border-acc); background: rgba(0,212,255,0.06); }
+.mode-mini-name { font-weight: 600; }
+.mode-mini-desc { font-size: 10px; color: var(--text-faint); }
+</style>
 
 <!-- ── Modal: Logs ─────────────────────────────────────────── -->
 <div class="modal-overlay" id="modalLogs" onclick="closeModalOutside(event,'modalLogs')">
@@ -1960,6 +2250,123 @@
 </div>
 </div>
 
+<!-- ── Modal: Skills ───────────────────────────────────────── -->
+<div class="modal-overlay" id="modalSkills" onclick="closeModalOutside(event,'modalSkills')">
+<div class="modal" style="width:660px;max-height:82vh">
+
+    <div class="modal-header">
+        <div class="modal-title">🔌 Skills ICARUS</div>
+        <div style="display:flex;gap:6px;align-items:center">
+            <span id="skillsCountBadge" style="font-size:10px;color:var(--text-faint)">—</span>
+            <button class="btn-sm" onclick="loadSkillsModal()">↺</button>
+            <button class="modal-close" onclick="closeModal('modalSkills')">✕</button>
+        </div>
+    </div>
+
+    <!-- Tabs: Lista | + Nova -->
+    <div style="display:flex;background:var(--bg-input);border-bottom:1px solid var(--border);flex-shrink:0">
+        <button class="sk-tab active" id="skTabList" onclick="switchSkTab('list')"
+            style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text);cursor:pointer;border-bottom:2px solid var(--accent);transition:all .15s">
+            📋 Todas as Skills
+        </button>
+        <button class="sk-tab" id="skTabNew" onclick="switchSkTab('new')"
+            style="padding:8px 20px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s">
+            ✨ + Adicionar Skill
+        </button>
+    </div>
+
+    <!-- ── Tab: Lista ── -->
+    <div id="skPageList" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+
+        <!-- Barra de busca + filtros -->
+        <div style="padding:12px 14px 0;display:flex;gap:8px;flex-shrink:0">
+            <input id="skSearch" type="text" placeholder="Buscar skill..."
+                oninput="filterSkills(this.value)"
+                style="flex:1;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none;transition:border-color .15s"
+                onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+            <button class="term-filter-btn active" id="skF-all"     data-sf="all"     onclick="setSkFilter('all')">Todas</button>
+            <button class="term-filter-btn"         id="skF-builtin" data-sf="builtin" onclick="setSkFilter('builtin')">Builtin</button>
+            <button class="term-filter-btn"         id="skF-dynamic" data-sf="dynamic" onclick="setSkFilter('dynamic')">Criadas</button>
+        </div>
+
+        <!-- Lista de skills -->
+        <div id="skList" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+            <div style="color:var(--text-faint);font-size:12px;text-align:center;padding:30px">Carregando skills...</div>
+        </div>
+    </div>
+
+    <!-- ── Tab: + Nova Skill ── -->
+    <div id="skPageNew" style="display:none;flex-direction:column;padding:16px;gap:14px;overflow-y:auto;max-height:65vh">
+
+        <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-lg);padding:14px">
+            <div style="font-size:11px;color:var(--accent);font-weight:700;margin-bottom:6px">🤖 Agente Architect</div>
+            <div style="font-size:11.5px;color:var(--text-faint);line-height:1.6">
+                Descreva em linguagem natural o que a skill deve fazer.<br>
+                O Architect gera o código Python, valida e registra automaticamente.
+            </div>
+        </div>
+
+        <!-- Descrição -->
+        <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:6px">Descrição da skill</div>
+            <div style="display:flex;gap:6px">
+                <input type="text" id="skNewDesc"
+                    placeholder="ex: verificar clima, calcular IMC, consultar CEP..."
+                    onkeydown="if(event.key==='Enter')skCreate()"
+                    style="flex:1;height:34px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 12px;font-size:13px;outline:none;transition:border-color .15s"
+                    onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+                <button class="btn-sm" onclick="dictateInto('skNewDesc')" title="Ditar por voz">🎤</button>
+            </div>
+        </div>
+
+        <!-- Sugestões rápidas -->
+        <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:6px">Sugestões</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='verificar clima e previsão do tempo'">🌤 Clima</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='consultar CEP e retornar endereço completo'">📮 CEP</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='calcular e converter moedas entre países'">💱 Moedas</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='gerar senha segura com critérios configuráveis'">🔑 Senhas</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='frases motivacionais e citações inspiradoras'">💪 Motivação</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='calcular IMC e orientação de saúde'">⚖ IMC</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='cronômetro e temporizador com alertas'">⏱ Timer</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('skNewDesc').value='calcular dias até uma data ou evento'">📆 Dias</button>
+            </div>
+        </div>
+
+        <!-- Opções avançadas (colapsável) -->
+        <details style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px">
+            <summary style="font-size:11px;color:var(--text-faint);cursor:pointer;font-weight:600">⚙ Opções avançadas</summary>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:4px">Nome da skill (opcional — gerado automaticamente)</div>
+                    <input type="text" id="skNewName" placeholder="ex: clima, cep, imc"
+                        style="width:100%;height:28px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 10px;font-size:12px;outline:none">
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:4px">Padrões de ativação (regex, um por linha)</div>
+                    <textarea id="skNewPatterns" rows="3" placeholder="\\bclima\\b&#10;\\bprevisão\\b&#10;\\btempo em\\b"
+                        style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 10px;font-size:11.5px;font-family:monospace;outline:none;resize:vertical"></textarea>
+                </div>
+            </div>
+        </details>
+
+        <!-- Botão criar + output -->
+        <button class="btn-sm primary" id="skCreateBtn" onclick="skCreate()"
+            style="height:36px;font-size:13px;font-weight:700">
+            ⚡ Criar Skill com Architect
+        </button>
+
+        <div id="skCreateOutput" style="display:none;border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-lg);padding:12px;background:rgba(0,212,255,0.03)">
+            <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Output</div>
+            <pre id="skCreateText" style="font-size:11px;color:var(--text);white-space:pre-wrap;word-break:break-word;margin:0;max-height:260px;overflow-y:auto"></pre>
+        </div>
+
+    </div>
+
+</div>
+</div>
+
 <!-- ── Modal: Ferramentas ──────────────────────────────────── -->
 <div class="modal-overlay" id="modalFerramentas" onclick="closeModalOutside(event,'modalFerramentas')">
 <div class="modal" style="width:600px">
@@ -2031,6 +2438,727 @@
 </div>
 </div>
 
+<!-- ── Modal: POWER ICARUS ─────────────────────────────────── -->
+<div class="modal-overlay" id="modalPower" onclick="closeModalOutside(event,'modalPower')">
+<div class="modal" style="width:90vw;max-width:1100px;max-height:90vh">
+    <div class="modal-header">
+        <div class="modal-title" style="color:var(--gold);text-shadow:0 0 10px rgba(255,215,0,0.5)">
+            ⚡ POWER ICARUS
+            <span style="font-size:9px;color:var(--text-faint);font-family:'Share Tech Mono',monospace;font-weight:400;margin-left:10px">Ctrl+Shift+F</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalPower')">✕</button>
+    </div>
+
+    <!-- Power tabs -->
+    <div style="display:flex;gap:2px;background:var(--bg-input);padding:4px;flex-shrink:0;border-bottom:1px solid var(--border)">
+        <button class="pwr-tab active" data-tab="busca"    onclick="switchPwr('busca')"   >🔍 Busca</button>
+        <button class="pwr-tab"        data-tab="emalta"   onclick="switchPwr('emalta')"  >📈 Em Alta</button>
+        <button class="pwr-tab"        data-tab="arquivos" onclick="switchPwr('arquivos')">📁 Arquivos</button>
+        <button class="pwr-tab"        data-tab="link"     onclick="switchPwr('link')"    >🔗 Verificar Link</button>
+        <button class="pwr-tab"        data-tab="cmds"      onclick="switchPwr('cmds')"     >⚡ Comandos ICARUS</button>
+        <button class="pwr-tab"        data-tab="architect" onclick="switchPwr('architect')" >🤖 Architect</button>
+    </div>
+
+    <div class="modal-body" style="padding:14px;flex:1;overflow-y:auto">
+
+    <!-- ── Tab: Busca ── -->
+    <div class="pwr-page active" id="pwrPage-busca">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input type="text" id="pwrSearchInput" placeholder="Buscar na web..."
+                onkeydown="if(event.key==='Enter')pwrSearchEngine('google')"
+                style="flex:1;height:34px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 12px;font-size:13px;outline:none;transition:border-color .15s"
+                onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+            <button class="btn-sm primary" onclick="pwrSearchEngine('google')">▶ Buscar</button>
+        </div>
+
+        <!-- Motores de busca -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+            <button class="pwr-engine-btn" onclick="pwrSearchEngine('google')">🔍 Google</button>
+            <button class="pwr-engine-btn" onclick="pwrSearchEngine('youtube')" style="border-color:#ff0000;color:#ff4444">▶ YouTube</button>
+            <button class="pwr-engine-btn" onclick="pwrSearchEngine('github')" style="border-color:#6e40c9;color:#a78bfa">🐙 GitHub</button>
+            <button class="pwr-engine-btn" onclick="pwrSearchEngine('wikipedia')" style="border-color:#888;color:#ccc">📖 Wikipedia</button>
+            <button class="pwr-engine-btn" onclick="pwrSearchEngine('duckduckgo')" style="border-color:#de5833;color:#f97316">🦆 DuckDuckGo</button>
+        </div>
+
+        <!-- Google Dorking -->
+        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:10px">🎯 Google Dorking</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">site:</div>
+                    <input type="text" id="dorkSite" placeholder="ex: github.com" oninput="updateDorkPreview()"
+                        class="pwr-dork-input">
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">filetype:</div>
+                    <input type="text" id="dorkFiletype" placeholder="ex: pdf, xlsx" oninput="updateDorkPreview()"
+                        class="pwr-dork-input">
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">intitle:</div>
+                    <input type="text" id="dorkIntitle" placeholder="palavras no título" oninput="updateDorkPreview()"
+                        class="pwr-dork-input">
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">inurl:</div>
+                    <input type="text" id="dorkInurl" placeholder="palavras na URL" oninput="updateDorkPreview()"
+                        class="pwr-dork-input">
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">"frase exata"</div>
+                    <input type="text" id="dorkExact" placeholder="frase exata entre aspas" oninput="updateDorkPreview()"
+                        class="pwr-dork-input">
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">termos livres</div>
+                    <input type="text" id="dorkFree" placeholder="termos adicionais" oninput="updateDorkPreview()"
+                        class="pwr-dork-input">
+                </div>
+            </div>
+            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-family:monospace;font-size:11.5px;color:var(--accent);margin-bottom:8px;word-break:break-all;min-height:30px" id="dorkPreview">
+                —
+            </div>
+            <div style="display:flex;gap:6px">
+                <button class="btn-sm primary" onclick="runDork()">🔍 Executar Dork no Google</button>
+                <button class="btn-sm" onclick="copyDork()">📋 Copiar</button>
+                <button class="btn-sm" onclick="clearDork()">✕ Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tab: Em Alta ── -->
+    <div class="pwr-page" id="pwrPage-emalta">
+        <!-- Sub-tabs regiões -->
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px">
+            <button class="pwr-region-tab active" data-region="br"      onclick="switchRegion('br')"     >🇧🇷 Brasil</button>
+            <button class="pwr-region-tab"         data-region="pt"      onclick="switchRegion('pt')"     >🇵🇹 Portugal</button>
+            <button class="pwr-region-tab"         data-region="us"      onclick="switchRegion('us')"     >🇺🇸 USA &amp; Global</button>
+            <button class="pwr-region-tab"         data-region="asia"    onclick="switchRegion('asia')"   >🌏 Ásia</button>
+            <button class="pwr-region-tab"         data-region="eu"      onclick="switchRegion('eu')"     >🌍 Europa</button>
+            <button class="pwr-region-tab"         data-region="latam"   onclick="switchRegion('latam')"  >🌎 América Latina</button>
+            <button class="pwr-region-tab"         data-region="fin"     onclick="switchRegion('fin')"    >💰 Finanças</button>
+            <button class="pwr-region-tab"         data-region="criadores" onclick="switchRegion('criadores')">🎯 Criadores</button>
+        </div>
+
+        <!-- Brasil -->
+        <div class="pwr-region active" id="region-br">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(255,51,85,0.4)">
+                    <div class="pwr-group-title" style="color:#ff5544">📺 Vídeo</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=BR')">YouTube BR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.tiktok.com/trending')">TikTok Trending</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.kwai.com/')">Kwai BR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://globoplay.globo.com/')">Globoplay</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">📰 Notícias</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://news.google.com/home?hl=pt-BR&gl=BR')">Google News BR</button>
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://trends.google.com.br/trends/?geo=BR')">Google Trends BR 🔥</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.uol.com.br/')">UOL</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://g1.globo.com/')">G1</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.folha.uol.com.br/')">Folha</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,255,136,0.4)">
+                    <div class="pwr-group-title" style="color:var(--green)">🛒 Mercado</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://www.mercadolivre.com.br/')">Mercado Livre 🔥</button>
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://hotmart.com/en/market')">Hotmart 🔥</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.com.br/')">Amazon BR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://shopee.com.br/')">Shopee BR</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(138,43,226,0.4)">
+                    <div class="pwr-group-title" style="color:#a78bfa">💬 Redes</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.instagram.com/explore/')">Instagram Explore</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://twitter.com/explore?lang=pt')">Twitter/X BR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.facebook.com/')">Facebook</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.linkedin.com/feed/')">LinkedIn BR</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portugal -->
+        <div class="pwr-region" id="region-pt">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">📰 Notícias</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://news.google.com/home?hl=pt-PT&gl=PT')">Google News PT</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://trends.google.pt/trends/?geo=PT')">Google Trends PT</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.publico.pt/')">Público</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://observador.pt/')">Observador</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://expresso.pt/')">Expresso</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.rtp.pt/noticias/')">RTP</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,51,85,0.4)">
+                    <div class="pwr-group-title" style="color:#ff5544">📺 Vídeo</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=PT')">YouTube PT</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.rtp.pt/play/')">RTP Play</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://sicnoticias.pt/')">SIC</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://tvi24.iol.pt/')">TVI24</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,255,136,0.4)">
+                    <div class="pwr-group-title" style="color:var(--green)">🛒 Comércio</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.es/')">Amazon.es</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.fnac.pt/')">FNAC</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.worten.pt/')">Worten</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.olx.pt/')">OLX PT</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(138,43,226,0.4)">
+                    <div class="pwr-group-title" style="color:#a78bfa">💬 Redes</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.instagram.com/explore/')">Instagram</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://twitter.com/explore?lang=pt')">Twitter PT</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.linkedin.com/feed/')">LinkedIn</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.reddit.com/r/portugal/')">Reddit r/portugal</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- USA & Global -->
+        <div class="pwr-region" id="region-us">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">📰 News</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://news.google.com/home?hl=en-US&gl=US')">Google News USA</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://trends.google.com/trends/?geo=US')">Google Trends USA</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.reddit.com/r/all/')">Reddit r/all</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://news.ycombinator.com/')">Hacker News</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.reuters.com/')">Reuters</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(110,64,201,0.4)">
+                    <div class="pwr-group-title" style="color:#a78bfa">💻 Tech</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://github.com/trending')">GitHub Trending 🔥</button>
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://www.producthunt.com/')">Product Hunt 🔥</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://dev.to/')">DEV.to</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.theverge.com/')">TheVerge</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://techcrunch.com/')">TechCrunch</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,255,136,0.4)">
+                    <div class="pwr-group-title" style="color:var(--green)">🛒 Comércio</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.com/')">Amazon USA</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.clickbank.com/')">ClickBank</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.jvzoo.com/')">JVZoo</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.warriorplus.com/')">WarriorPlus</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,215,0,0.4)">
+                    <div class="pwr-group-title" style="color:var(--gold)">🎯 Criadores</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://explodingtopics.com/')">Exploding Topics 🔥</button>
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://answerthepublic.com/')">AnswerThePublic 🔥</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://buzzsumo.com/')">BuzzSumo</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://substack.com/')">Substack</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://medium.com/')">Medium</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ásia -->
+        <div class="pwr-region" id="region-asia">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(255,51,85,0.4)">
+                    <div class="pwr-group-title" style="color:#ff5544">🇯🇵 Japão</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.yahoo.co.jp/')">Yahoo Japan</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.nicovideo.jp/')">NicoNico</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.rakuten.co.jp/')">Rakuten</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.co.jp/')">Amazon JP</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,215,0,0.4)">
+                    <div class="pwr-group-title" style="color:var(--gold)">🇨🇳 China</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://www.bilibili.com/')">Bilibili 🔥</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://weibo.com/')">Weibo</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.taobao.com/')">Taobao</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.alibaba.com/')">Alibaba</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.aliexpress.com/')">AliExpress</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">🇰🇷 Coreia</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.naver.com/')">Naver</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.kakao.com/')">Kakao</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.coupang.com/')">Coupang</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.webtoons.com/')">Webtoon</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=KR')">YouTube KR</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,140,0,0.4)">
+                    <div class="pwr-group-title" style="color:#f97316">🇮🇳 India</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://trends.google.co.in/trends/?geo=IN')">Google Trends IN</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.flipkart.com/')">Flipkart</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.in/')">Amazon IN</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://timesofindia.indiatimes.com/')">Times of India</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Europa -->
+        <div class="pwr-region" id="region-eu">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">📰 Notícias</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.euronews.com/')">Euronews</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.bbc.com/news/world/europe')">BBC Europe</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.dw.com/en/')">DW</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.lemonde.fr/')">Le Monde</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://elpais.com/')">El País</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,51,85,0.4)">
+                    <div class="pwr-group-title" style="color:#ff5544">📺 Vídeo</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=GB')">YouTube UK</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=DE')">YouTube DE</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=FR')">YouTube FR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.ardmediathek.de/')">ARD Mediathek</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,255,136,0.4)">
+                    <div class="pwr-group-title" style="color:var(--green)">🛒 Comércio</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.co.uk/')">Amazon UK</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.de/')">Amazon DE</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.fr/')">Amazon FR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.zalando.com/')">Zalando</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.booking.com/')">Booking.com</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- América Latina -->
+        <div class="pwr-region" id="region-latam">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">📰 Notícias</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://news.google.com/home?hl=es-419&gl=US')">Google News LATAM</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.infobae.com/')">Infobae</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.bbc.com/mundo')">BBC Mundo</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.eluniversal.com.mx/')">El Universal MX</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.clarin.com/')">Clarín AR</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,255,136,0.4)">
+                    <div class="pwr-group-title" style="color:var(--green)">🛒 Comércio</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.mercadolibre.com.mx/')">Mercado Livre MX</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.mercadolibre.com.co/')">Mercado Livre CO</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.mercadolibre.com.ar/')">Mercado Livre AR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.amazon.com.mx/')">Amazon MX</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,51,85,0.4)">
+                    <div class="pwr-group-title" style="color:#ff5544">📺 Vídeo</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=MX')">YouTube MX</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=AR')">YouTube AR</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.youtube.com/feed/trending?gl=CO')">YouTube CO</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.tiktok.com/trending')">TikTok LATAM</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finanças -->
+        <div class="pwr-region" id="region-fin">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">📈 Mercados</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://www.bloomberg.com/')">Bloomberg 🔥</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.reuters.com/finance/')">Reuters Finance</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://finance.yahoo.com/')">Yahoo Finance</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.investing.com/')">Investing.com</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,215,0,0.4)">
+                    <div class="pwr-group-title" style="color:var(--gold)">₿ Cripto</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn pwr-hot" onclick="openExt('https://coinmarketcap.com/')">CoinMarketCap 🔥</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.coingecko.com/')">CoinGecko</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.binance.com/en/markets/')">Binance</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.tradingview.com/markets/cryptocurrencies/')">TradingView Crypto</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,255,136,0.4)">
+                    <div class="pwr-group-title" style="color:var(--green)">🏦 Economia</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://tradingeconomics.com/')">Trading Economics</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://data.worldbank.org/')">World Bank</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.imf.org/en/Data')">IMF Data</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.statista.com/')">Statista</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(138,43,226,0.4)">
+                    <div class="pwr-group-title" style="color:#a78bfa">📊 Bolsas</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.nyse.com/')">NYSE</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.nasdaq.com/')">NASDAQ</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.b3.com.br/')">B3 (Bovespa)</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.euronext.com/')">Euronext</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">💹 Forex</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://www.xe.com/')">XE Currency</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.forexfactory.com/')">Forex Factory</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.goldprice.org/')">Gold Price</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://oilprice.com/')">Oil Price</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Criadores -->
+        <div class="pwr-region" id="region-criadores">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">
+                <div class="pwr-url-group" style="border-color:rgba(0,212,255,0.4)">
+                    <div class="pwr-group-title" style="color:var(--accent)">🔍 Pesquisa</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://answerthepublic.com/')">AnswerThePublic</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://explodingtopics.com/')">Exploding Topics</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://trends.google.com/')">Google Trends</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://sparktoro.com/')">SparkToro</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.semrush.com/')">Semrush</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,215,0,0.4)">
+                    <div class="pwr-group-title" style="color:var(--gold)">✍️ Escrita</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://substack.com/')">Substack</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://medium.com/')">Medium</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.notion.so/')">Notion</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://ghost.org/')">Ghost</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://hashnode.com/')">Hashnode</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(255,51,85,0.4)">
+                    <div class="pwr-group-title" style="color:#ff5544">🎨 Design</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://dribbble.com/')">Dribbble</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.behance.net/')">Behance</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.pinterest.com/')">Pinterest</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://unsplash.com/')">Unsplash</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.pexels.com/')">Pexels</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.freepik.com/')">Freepik</button>
+                    </div>
+                </div>
+                <div class="pwr-url-group" style="border-color:rgba(0,255,136,0.4)">
+                    <div class="pwr-group-title" style="color:var(--green)">📊 Analytics</div>
+                    <div class="pwr-url-grid">
+                        <button class="pwr-url-btn" onclick="openExt('https://search.google.com/search-console/')">Google Search Console</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://analytics.google.com/')">Google Analytics</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://ahrefs.com/')">Ahrefs</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://www.similarweb.com/')">SimilarWeb</button>
+                        <button class="pwr-url-btn" onclick="openExt('https://socialblade.com/')">SocialBlade</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tab: Arquivos ── -->
+    <div class="pwr-page" id="pwrPage-arquivos">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:flex-end">
+            <div style="flex:1;min-width:200px">
+                <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">Diretório</div>
+                <input type="text" id="fileDir" value="/home" placeholder="/home/usuario"
+                    style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"
+                    onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div>
+                <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">Tipo</div>
+                <select id="fileType" style="height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 6px;font-size:12px;outline:none">
+                    <option value="all">Todos</option>
+                    <option value="docs">📄 Documentos</option>
+                    <option value="images">🖼 Imagens</option>
+                    <option value="video">🎬 Vídeo</option>
+                    <option value="code">💻 Código</option>
+                    <option value="archives">📦 Arquivos</option>
+                </select>
+            </div>
+            <div style="flex:1;min-width:140px">
+                <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">Nome (filtro)</div>
+                <input type="text" id="fileName" placeholder="parte do nome..."
+                    style="width:100%;height:30px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 8px;font-size:12px;outline:none"
+                    onkeydown="if(event.key==='Enter')runFileSearch()"
+                    onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:6px">
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-dim);cursor:pointer;margin-bottom:2px">
+                    <input type="checkbox" id="fileRecursive" checked> Subpastas
+                </label>
+                <button class="btn-sm primary" onclick="runFileSearch()">🔍 Buscar</button>
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div id="fileResults" style="max-height:380px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius)">
+            <div style="padding:16px;text-align:center;color:var(--text-faint);font-size:12px">
+                Informe um diretório e clique em Buscar
+            </div>
+        </div>
+        <div id="fileStatus" style="font-size:11px;color:var(--text-faint);margin-top:6px"></div>
+    </div>
+
+    <!-- ── Tab: Verificar Link ── -->
+    <div class="pwr-page" id="pwrPage-link">
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input type="text" id="linkInput" placeholder="https://exemplo.com/link-suspeito"
+                style="flex:1;height:34px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 12px;font-size:13px;outline:none;transition:border-color .15s"
+                onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button class="btn-sm" style="border-color:rgba(255,100,0,0.5);color:#ff8c42"
+                onclick="checkLinkWith('virustotal')">🛡 VirusTotal</button>
+            <button class="btn-sm" style="border-color:rgba(66,133,244,0.5);color:#4285f4"
+                onclick="checkLinkWith('gsb')">🔵 Google Safe Browsing</button>
+            <button class="btn-sm" style="border-color:rgba(0,200,150,0.5);color:#00c896"
+                onclick="checkLinkWith('urlvoid')">🌐 URLVoid</button>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-dim)">
+            ⚠ Estas ferramentas verificam URLs em bases de dados de ameaças públicas.<br>
+            Não clique no link suspeito diretamente — copie a URL e cole aqui.
+        </div>
+    </div>
+
+    <!-- ── Tab: Comandos ICARUS ── -->
+    <div class="pwr-page" id="pwrPage-cmds">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+
+            <div class="pwr-cmd-group" style="border-color:rgba(0,212,255,0.3)">
+                <div class="pwr-cmd-group-title" style="color:var(--accent)">📋 Tarefas</div>
+                <button class="pwr-cmd-btn" onclick="pwrSend('minhas tarefas')">Ver tarefas pendentes</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('O que tenho pra fazer hoje?')">Tarefas de hoje</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('Cria um plano de ação para minha semana')">Plano semanal</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('priorizar tarefas')">Priorizar tarefas</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('agenda de hoje')">Agenda de hoje</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('próximos compromissos')">Próximos compromissos</button>
+            </div>
+
+            <div class="pwr-cmd-group" style="border-color:rgba(0,255,136,0.3)">
+                <div class="pwr-cmd-group-title" style="color:var(--green)">⚡ Sistema</div>
+                <button class="pwr-cmd-btn" onclick="pwrSend('/status')">Status do ICARUS</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('/memoria')">Ver memórias</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('/modos')">Listar modos</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('/modo')">Modo ativo</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('visão geral financeira')">Visão financeira</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('briefing matinal')">Briefing matinal</button>
+            </div>
+
+            <div class="pwr-cmd-group" style="border-color:rgba(255,215,0,0.3)">
+                <div class="pwr-cmd-group-title" style="color:var(--gold)">⚡ Nexus</div>
+                <button class="pwr-cmd-btn" onclick="pwrSend('Qual o status do Cfdm Nexus?')">Status Nexus</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('listar agentes nexus')">Listar agentes</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('convocar agente de marketing')">Agente Marketing</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('convocar agente de financeiro')">Agente Financeiro</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('montar equipe para análise de mercado')">Equipe análise</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('convocar agente de conteúdo')">Agente Conteúdo</button>
+            </div>
+
+            <div class="pwr-cmd-group" style="border-color:rgba(138,43,226,0.3)">
+                <div class="pwr-cmd-group-title" style="color:#a78bfa">🎭 Modos</div>
+                <button class="pwr-cmd-btn" onclick="pwrSend('ativar modo FOCO')">Modo FOCO</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('ativar modo MORNING')">Modo MORNING</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('ativar modo FINANCAS')">Modo FINANCAS</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('ativar modo CRIATIVO')">Modo CRIATIVO</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('ativar modo MESTRE DOS MAGOS')">GOD MODE 🔥</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('desativar modo')">Desativar modo</button>
+                <button class="pwr-cmd-btn" style="border-color:rgba(0,212,255,0.3)" onclick="openModal('modalComandos');setTimeout(()=>switchCmdTab('modos'),50);closePwrMenu()">🎭 Ver todos os modos…</button>
+            </div>
+
+            <div class="pwr-cmd-group" style="border-color:rgba(255,51,85,0.3)">
+                <div class="pwr-cmd-group-title" style="color:var(--red)">🤖 Agentes</div>
+                <button class="pwr-cmd-btn" onclick="pwrSend('Me dá 5 ideias de vídeo para YouTube sobre IA')">Ideias YouTube</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('Analisa tendências de mercado para afiliados')">Tendências afiliados</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('Cria copy para post de Instagram sobre produtividade')">Copy Instagram</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('notícias de tecnologia')">Notícias Tech</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('notícias de IA')">Notícias IA</button>
+                <button class="pwr-cmd-btn" onclick="pwrSend('Qual o status dos meus projetos CFDM?')">Status projetos</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Tab: Architect (Auto-Codificação) ── -->
+    <div class="pwr-page" id="pwrPage-architect">
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <div style="font-size:22px">🤖</div>
+            <div>
+                <div style="font-weight:700;color:var(--accent)">Agente Architect</div>
+                <div style="font-size:11px;color:var(--text-faint)">Cria novas skills em linguagem natural usando o Cfdm Nexus LLM</div>
+            </div>
+        </div>
+
+        <!-- Criar nova skill -->
+        <div style="border:1px solid rgba(0,212,255,0.25);border-radius:var(--radius-lg);padding:14px;margin-bottom:16px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:10px">✨ Criar Nova Skill</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+                <input type="text" id="architectDesc" placeholder="Descreva o que a skill deve fazer..."
+                    onkeydown="if(event.key==='Enter')architectCreate()"
+                    style="flex:1;height:34px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:0 12px;font-size:13px;outline:none;transition:border-color .15s"
+                    onfocus="this.style.borderColor='var(--border-acc)'" onblur="this.style.borderColor='var(--border)'">
+                <button class="btn-sm" onclick="dictateInto('architectDesc')" title="Ditar descrição por voz">🎤</button>
+                <button class="btn-sm primary" onclick="architectCreate()">⚡ Criar</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">
+                <button class="pwr-engine-btn" onclick="document.getElementById('architectDesc').value='verificar clima em tempo real'">🌤 Clima</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('architectDesc').value='consultar CEP e endereço'">📮 CEP</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('architectDesc').value='calcular e converter moedas'">💱 Moedas</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('architectDesc').value='gerar senhas seguras aleatórias'">🔑 Senhas</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('architectDesc').value='frases motivacionais aleatórias'">💪 Motivação</button>
+                <button class="pwr-engine-btn" onclick="document.getElementById('architectDesc').value='cronômetro e temporizador'">⏱ Timer</button>
+            </div>
+        </div>
+
+        <!-- Skills dinâmicas existentes -->
+        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim)">Skills Criadas</div>
+                <button class="btn-sm" onclick="architectLoadSkills()" style="font-size:10px">🔄 Atualizar</button>
+            </div>
+            <div id="architectSkillsList" style="min-height:60px">
+                <div style="color:var(--text-faint);font-size:12px;text-align:center;padding:20px">Carregando skills...</div>
+            </div>
+        </div>
+
+        <!-- Output da criação -->
+        <div id="architectOutput" style="display:none;margin-top:14px;border:1px solid rgba(0,212,255,0.2);border-radius:var(--radius-lg);padding:14px;background:rgba(0,212,255,0.03)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:8px">Output</div>
+            <pre id="architectOutputText" style="font-size:11px;color:var(--text);white-space:pre-wrap;word-break:break-word;margin:0;max-height:300px;overflow-y:auto"></pre>
+        </div>
+
+    </div>
+
+    </div><!-- /modal-body -->
+</div>
+</div>
+
+<style>
+/* ── POWER ICARUS styles ── */
+.pwr-tab {
+    flex: 1; height: 30px; background: transparent; border: none;
+    border-radius: 4px; color: var(--text-faint); font-size: 12px;
+    cursor: pointer; transition: all 0.12s; white-space: nowrap; padding: 0 8px;
+    font-family: 'Share Tech Mono', monospace;
+}
+.pwr-tab.active { background: var(--bg-panel); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.pwr-tab:hover:not(.active) { color: var(--text-dim); }
+
+.pwr-page { display: none; }
+.pwr-page.active { display: block; }
+
+.pwr-region { display: none; }
+.pwr-region.active { display: block; }
+
+.pwr-region-tab {
+    padding: 4px 10px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--bg-input);
+    color: var(--text-dim); font-size: 12px; cursor: pointer; transition: all .15s;
+    font-family: 'Share Tech Mono', monospace;
+}
+.pwr-region-tab.active {
+    background: var(--accent); color: #000; border-color: var(--accent);
+}
+
+.pwr-url-group {
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.pwr-group-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 8px;
+}
+.pwr-url-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+}
+.pwr-url-btn {
+    padding: 4px 6px; font-size: 10.5px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--bg-input);
+    color: var(--text-dim); cursor: pointer; transition: all .12s;
+    text-align: center; font-family: 'Share Tech Mono', monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pwr-url-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.pwr-url-btn.pwr-hot { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.05); }
+.pwr-url-btn.pwr-hot:hover { background: rgba(255,215,0,0.12); }
+
+.pwr-engine-btn {
+    height: 30px; padding: 0 14px;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--bg-card); color: var(--text-dim);
+    font-size: 12px; cursor: pointer; transition: all .12s;
+    font-family: 'Share Tech Mono', monospace;
+}
+.pwr-engine-btn:hover { background: var(--bg-hover); color: var(--text); }
+
+.pwr-dork-input {
+    width: 100%; height: 28px; background: var(--bg-input);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); padding: 0 8px; font-size: 12px; outline: none;
+    transition: border-color .15s;
+}
+.pwr-dork-input:focus { border-color: var(--border-acc); }
+
+.pwr-cmd-group {
+    padding: 10px 12px; background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    display: flex; flex-direction: column; gap: 4px;
+}
+.pwr-cmd-group-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 4px;
+}
+.pwr-cmd-btn {
+    height: 26px; padding: 0 8px; text-align: left;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text-dim);
+    font-size: 11.5px; cursor: pointer; transition: all .12s;
+    font-family: 'Share Tech Mono', monospace; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.pwr-cmd-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* File results table */
+#fileResults table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#fileResults thead tr { background: var(--bg-card); border-bottom: 1px solid var(--border); }
+#fileResults th { padding: 7px 10px; text-align: left; font-weight: 600; color: var(--text-faint); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+#fileResults td { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-dim); }
+#fileResults tbody tr:hover { background: var(--bg-hover); cursor: pointer; }
+#fileResults .file-name { color: var(--text); font-weight: 500; }
+#fileResults .file-path { color: var(--text-faint); font-size: 10.5px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+
 <!-- ── Modal: Configurações ─────────────────────────────────── -->
 <div class="modal-overlay" id="modalSettings" onclick="closeModalOutside(event,'modalSettings')">
 <div class="modal">
@@ -2069,11 +3197,35 @@
             </div>
             <div class="setting-row">
                 <div><div class="setting-label">TTS (fala do ICARUS)</div>
-                <div class="setting-sub">Requer pyttsx3 instalado no servidor</div></div>
+                <div class="setting-sub">edge-tts Neural (Microsoft) → OpenAI → pyttsx3</div></div>
                 <label class="toggle">
-                    <input type="checkbox" id="ttsEnabled" onchange="saveSetting('ttsEnabled',this.checked)">
+                    <input type="checkbox" id="ttsEnabled" checked onchange="saveSetting('ttsEnabled',this.checked)">
                     <span class="toggle-slider"></span>
                 </label>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Voz do ICARUS</div>
+                    <div class="setting-sub">Microsoft Neural — melhor qualidade</div>
+                </div>
+                <div class="setting-control" style="display:flex;gap:6px;align-items:center">
+                    <select id="ttsVoiceSelect" onchange="setTTSVoice(this.value)"
+                        style="padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:12px">
+                        <option value="antonio">Masculino — António (BR)</option>
+                        <option value="francisca">Feminino — Francisca (BR)</option>
+                        <option value="duarte">Masculino — Duarte (PT)</option>
+                        <option value="raquel">Feminino — Raquel (PT)</option>
+                    </select>
+                    <button class="btn-sm" onclick="previewTTSVoice()" title="Ouvir prévia">▶</button>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div><div class="setting-label">Velocidade da fala</div></div>
+                <div class="setting-control" style="display:flex;align-items:center;gap:8px">
+                    <input type="range" id="ttsRate" min="-30" max="50" value="0" step="5"
+                        oninput="document.getElementById('ttsRateVal').textContent=(this.value>0?'+':'')+this.value+'%';saveSetting('ttsRate',this.value)">
+                    <span id="ttsRateVal" style="font-size:11px;color:var(--text-dim);width:36px">+0%</span>
+                </div>
             </div>
         </div>
 
@@ -2120,7 +3272,7 @@
             <div class="modal-section-title">ℹ Sistema</div>
             <div class="setting-row">
                 <span class="setting-label">Versão ICARUS</span>
-                <span style="font-size:12px;color:var(--accent)">v1.2.0</span>
+                <span style="font-size:12px;color:var(--accent)">v1.4.0</span>
             </div>
             <div class="setting-row">
                 <span class="setting-label">Porta web</span>
@@ -2133,9 +3285,132 @@
             <button class="btn-sm" onclick="sendCmd('/status');closeModal('modalSettings')">Ver status completo</button>
         </div>
 
+        <!-- ── Respostas Personalizadas ── -->
+        <div class="modal-section">
+            <div class="modal-section-title" style="display:flex;align-items:center;gap:10px">
+                🗣 Respostas Personalizadas
+                <span style="font-size:10px;color:var(--text-faint);margin-left:4px">gatilho → resposta exata</span>
+            </div>
+
+            <!-- Formulário adicionar -->
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px">
+                <div style="display:flex;gap:6px;align-items:center">
+                    <div style="flex:1">
+                        <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">Gatilho (palavra/frase que você vai dizer)</div>
+                        <div style="display:flex;gap:4px">
+                            <input id="crTrigger" type="text" placeholder='ex: "icarus" ou "bom dia"'
+                                style="flex:1;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:12px">
+                            <button onclick="dictateInto('crTrigger')" title="Ditar gatilho por voz" style="
+                                width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border-acc);
+                                background:var(--bg-card);color:var(--accent);cursor:pointer;font-size:13px;
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0
+                            ">🎤</button>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">
+                        <div style="font-size:10px;color:var(--text-faint)">Modo</div>
+                        <select id="crMatch" style="padding:5px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:11px">
+                            <option value="exact_word">palavra exata</option>
+                            <option value="contains" selected>contém</option>
+                            <option value="startswith">começa com</option>
+                            <option value="exact">frase exata</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:10px;color:var(--text-faint);margin-bottom:3px">Resposta do ICARUS (o que ele vai dizer)</div>
+                    <div style="display:flex;gap:4px">
+                        <input id="crResponse" type="text" placeholder='ex: "Estou aqui, senhor. Como posso ajudá-lo?"'
+                            style="flex:1;padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:12px">
+                        <button onclick="dictateInto('crResponse')" title="Ditar resposta por voz" style="
+                            width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border-acc);
+                            background:var(--bg-card);color:var(--accent);cursor:pointer;font-size:13px;
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0
+                        ">🎤</button>
+                        <button onclick="previewResponse()" title="Ouvir prévia da resposta" style="
+                            width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border-acc);
+                            background:var(--bg-card);color:var(--green);cursor:pointer;font-size:13px;
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0
+                        ">▶</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-sm primary" onclick="addCustomResponse()" style="margin-bottom:10px">+ Adicionar resposta</button>
+
+            <!-- Lista -->
+            <div id="crList" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto"></div>
+        </div>
+
+        <!-- ── Dependências ── -->
+        <div class="modal-section">
+            <div class="modal-section-title" style="display:flex;align-items:center;gap:10px">
+                📦 Dependências
+                <button class="btn-sm" id="depsRefreshBtn" onclick="loadDeps()" style="margin-left:auto">↺ Verificar</button>
+            </div>
+
+            <!-- resumo -->
+            <div id="depsSummary" style="
+                font-size:11.5px; padding:7px 10px; border-radius:6px;
+                background:var(--bg-input); color:var(--text-dim);
+                margin-bottom:8px; display:none
+            "></div>
+
+            <!-- filtros -->
+            <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap" id="depsFilters">
+                <button class="deps-filter active" data-f="all"      onclick="filterDeps('all')">Todas</button>
+                <button class="deps-filter"         data-f="missing" onclick="filterDeps('missing')">Faltando</button>
+                <button class="deps-filter"         data-f="python"  onclick="filterDeps('python')">Python</button>
+                <button class="deps-filter"         data-f="system"  onclick="filterDeps('system')">Sistema</button>
+            </div>
+
+            <!-- tabela -->
+            <div id="depsTableWrap" style="overflow-x:auto">
+                <table id="depsTable" style="
+                    width:100%; border-collapse:collapse;
+                    font-size:11.5px; color:var(--text-dim)
+                ">
+                    <thead>
+                        <tr style="color:var(--text-faint);border-bottom:1px solid var(--border)">
+                            <th style="text-align:left;padding:4px 6px;font-weight:600">Status</th>
+                            <th style="text-align:left;padding:4px 6px;font-weight:600">Pacote</th>
+                            <th style="text-align:left;padding:4px 6px;font-weight:600">Feature</th>
+                            <th style="text-align:left;padding:4px 6px;font-weight:600">Versão</th>
+                            <th style="text-align:left;padding:4px 6px;font-weight:600">Instalar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="depsTbody">
+                        <tr><td colspan="5" style="padding:14px;text-align:center;color:var(--text-faint)">
+                            Clique em ↺ Verificar para checar dependências
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- botão copiar instalação em lote -->
+            <div id="depsCopyWrap" style="display:none;margin-top:8px">
+                <button class="btn-sm" onclick="copyMissingInstall()" style="gap:4px">
+                    📋 Copiar pip install dos faltantes
+                </button>
+                <span id="depsCopied" style="font-size:11px;color:var(--green);margin-left:8px;display:none">✓ Copiado!</span>
+            </div>
+        </div>
+
     </div>
 </div>
 </div>
+
+<style>
+.deps-filter {
+    font-size: 11px; padding: 3px 10px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--bg-input);
+    color: var(--text-dim); cursor: pointer; transition: all .15s;
+}
+.deps-filter.active, .deps-filter:hover {
+    background: var(--accent); color: #000; border-color: var(--accent);
+}
+#depsTable tbody tr:hover { background: rgba(255,255,255,0.03); }
+#depsTable td { padding: 5px 6px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+</style>
 
 <!-- ── Modal: Manual de Referência Rápida ──────────────────── -->
 <div class="modal-overlay" id="modalManual" onclick="closeModalOutside(event,'modalManual')">
@@ -2387,9 +3662,14 @@
     }
 
     // ── Send ─────────────────────────────────────────────
+    let lastInputWasVoice = false;
+
     async function sendMessage() {
         const text = chatInput.value.trim();
         if (!text || sending) return;
+
+        const usedVoice = lastInputWasVoice;
+        lastInputWasVoice = false;
 
         sending = true;
         appendMsg('user', text);
@@ -2397,6 +3677,9 @@
         chatInput.style.height = 'auto';
         sendBtn.disabled = true;
         appendTyping();
+
+        // Auto-abre o terminal durante processamento (se não estiver aberto)
+        if (!_termOpen) openTerminal();
 
         try {
             const res = await fetch('/chat', {
@@ -2408,11 +3691,18 @@
             removeTyping();
             const reply = data.response || data.error || 'Sem resposta';
             appendMsg('assistant', reply);
-            // Auto-TTS quando modo voz ativo no chat normal
-            if (voiceMode && voiceState !== 'speak') speakTTS(reply);
-            if (text.toLowerCase().includes('tarefa') || text.startsWith('/tarefa')) loadTasks();
+            // Auto-TTS: sempre fala se a entrada foi por voz, ou se modo voz ativo
+            if (usedVoice || (voiceMode && voiceState !== 'speak')) {
+                speakTTS(reply);
+                toast('ICARUS respondeu', reply.replace(/\*\*/g,'').substring(0,80), 'info', 3500);
+            }
+            if (text.toLowerCase().includes('tarefa') || text.startsWith('/tarefa')) {
+                loadTasks();
+                toast('Tarefas', 'Lista atualizada', 'task', 2500);
+            }
         } catch (e) {
             removeTyping();
+            toast('Conexão falhou', 'Servidor ICARUS offline em :8001', 'error', 0);
             appendMsg('assistant', '⚠ Não foi possível conectar ao servidor ICARUS.\nVerifique se está rodando em http://localhost:8001');
         }
 
@@ -2545,6 +3835,7 @@
             });
             const d = await res.json();
             appendMsg('assistant', `[Nexus — ${nexusSelectedAgent}]\n${d.response || d.error}`);
+            toast('⚡ Nexus', `Agente ${nexusSelectedAgent} respondeu`, 'nexus', 4000);
             switchPanel('info'); // volta para o chat view
             document.getElementById('nexusTaskInput').value = '';
         } catch(e) {
@@ -2636,6 +3927,96 @@
         }
     }
 
+    // ── POWER dropdown ───────────────────────────────────
+    function togglePwrMenu() {
+        document.getElementById('pwrMenu').classList.toggle('open');
+    }
+    function closePwrMenu() {
+        document.getElementById('pwrMenu').classList.remove('open');
+    }
+    document.addEventListener('click', e => {
+        if (!document.getElementById('pwrDropdown').contains(e.target)) closePwrMenu();
+    });
+
+    // ── Nexus toggle ─────────────────────────────────────
+    let _nexusOnline = false;
+    let _nexusStarting = false;
+
+    async function toggleNexus() {
+        closePwrMenu();
+        if (_nexusStarting) return;
+        const btn = document.getElementById('nexusToggleBtn');
+        if (_nexusOnline) {
+            // Desligar
+            btn.textContent = '⏹ Parando…';
+            const r = await fetch('/nexus/stop', {method:'POST'}).then(x=>x.json()).catch(()=>({ok:false}));
+            toast(_nexusOnline ? 'Nexus parado' : 'Nexus já offline', r.msg||'', r.ok?'warn':'error', 3000);
+            _nexusOnline = false;
+            updateNexusUI(false);
+        } else {
+            // Ligar
+            _nexusStarting = true;
+            btn.textContent = '⏳ Iniciando…';
+            toast('Nexus', 'Iniciando servidor… aguarde ~5s', 'info', 4000);
+            const r = await fetch('/nexus/start', {method:'POST'}).then(x=>x.json()).catch(()=>({ok:false,msg:'Erro'}));
+            _nexusStarting = false;
+            if (r.ok) {
+                toast('Nexus', r.msg, 'success', 3000);
+                // Aguarda 5s e verifica
+                setTimeout(checkNexus, 5000);
+            } else {
+                toast('Nexus falhou', r.msg, 'error', 0);
+                updateNexusUI(false);
+            }
+        }
+    }
+
+    function updateNexusUI(online) {
+        _nexusOnline = online;
+        const btn   = document.getElementById('nexusToggleBtn');
+        const badge = document.getElementById('pwrNexusBadge');
+        if (online) {
+            btn.className = 'tb-btn nexus-on';
+            btn.innerHTML = '⏹ Nexus ON';
+            if (badge) { badge.className = 'pwr-badge online'; badge.textContent = 'ONLINE'; }
+        } else {
+            btn.className = 'tb-btn nexus-off';
+            btn.innerHTML = '▶ Nexus OFF';
+            if (badge) { badge.className = 'pwr-badge offline'; badge.textContent = 'OFFLINE'; }
+        }
+    }
+
+    // ── App launcher ─────────────────────────────────────
+    async function launchApp(name, cmd) {
+        closePwrMenu();
+        const body = cmd ? {cmd} : {name};
+        const r = await fetch('/apps/launch', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(body)
+        }).then(x=>x.json()).catch(()=>({ok:false,msg:'Erro'}));
+        toast(r.ok ? `▶ ${name||cmd}` : 'Falha', r.msg, r.ok?'success':'error', 3000);
+    }
+
+    async function killApp(name) {
+        const r = await fetch('/apps/kill', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({name})
+        }).then(x=>x.json()).catch(()=>({ok:false,msg:'Erro'}));
+        toast(r.ok ? `⏹ ${name}` : 'Falha', r.msg, r.ok?'warn':'error', 3000);
+    }
+
+    async function loadPwrApps() {
+        const data = await fetch('/apps').then(r=>r.json()).catch(()=>({apps:[]}));
+        const apps = (data.apps||[]).filter(a => a.name !== 'Cfdm Nexus' && a.name !== 'CfdmNote');
+        const el = document.getElementById('pwrAppsList');
+        if (!el) return;
+        el.innerHTML = apps.map(a =>
+            `<div class="pwr-menu-item" onclick="launchApp('${a.name.replace(/'/g,"\\'")}');closePwrMenu()">
+                ${a.icon||'▶'} ${a.name}
+            </div>`
+        ).join('');
+    }
+
     async function checkNexus() {
         try {
             const res = await fetch('/nexus/status', {signal: AbortSignal.timeout(3000)});
@@ -2646,6 +4027,7 @@
                 document.getElementById('sbNexus').textContent = 'Online';
                 document.getElementById('nexusStatusInline').textContent = '●';
                 document.getElementById('nexusStatusInline').style.color = 'var(--green)';
+                updateNexusUI(true);
                 try {
                     const ar = await fetch('/nexus/agents', {signal: AbortSignal.timeout(2000)});
                     if (ar.ok) {
@@ -2662,6 +4044,7 @@
         document.getElementById('sbNexus').textContent = 'Offline';
         document.getElementById('nexusStatusInline').textContent = '○';
         document.getElementById('nexusStatusInline').style.color = 'var(--text-faint)';
+        updateNexusUI(false);
     }
 
     function openCfdmNote() {
@@ -2803,16 +4186,20 @@
                         setTimeout(() => { btn.classList.remove('ready'); btn.textContent = '🎤'; }, 1500);
                         chatInput.value = data.text.trim();
                         autoResize(chatInput);
+                        toast('🎤 Transcrição OK', data.text.trim().substring(0,70), 'voice', 2500);
                         const autoSend = document.getElementById('autoSendVoice');
-                        if (!autoSend || autoSend.checked) sendMessage();
+                        if (!autoSend || autoSend.checked) { lastInputWasVoice = true; sendMessage(); }
                     } else {
                         btn.textContent = '🎤';
+                        toast('Não entendi', 'Áudio muito curto ou silencioso — tente novamente', 'warn', 3000);
                         chatInput.placeholder = 'Não entendi — tente novamente';
                         setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 2500);
                     }
                 } catch(err) {
                     btn.classList.remove('transcribing');
                     btn.textContent = '🎤';
+                    toast('Erro na transcrição', err.message || 'Verifique o servidor ICARUS', 'error', 5000,
+                        err.status === 500 ? 'pip install openai-whisper' : '');
                     chatInput.placeholder = 'Erro na transcrição — tente novamente';
                     setTimeout(() => chatInput.placeholder = 'Mensagem para ICARUS...', 2500);
                 }
@@ -3050,6 +4437,70 @@
         else chatInput.focus();
     }
 
+    // ── Comandos & Modos — tabs ───────────────────────────────
+    function switchCmdTab(tab) {
+        const isCmds = tab === 'cmds';
+        document.getElementById('cmdPageCmds').style.display  = isCmds ? 'flex'  : 'none';
+        document.getElementById('cmdPageModos').style.display = isCmds ? 'none'  : 'flex';
+        document.getElementById('cmdTabCmds').style.borderBottomColor  = isCmds ? 'var(--accent)' : 'transparent';
+        document.getElementById('cmdTabModos').style.borderBottomColor = isCmds ? 'transparent'   : 'var(--accent)';
+        document.getElementById('cmdTabCmds').style.color  = isCmds ? 'var(--text)'      : 'var(--text-faint)';
+        document.getElementById('cmdTabModos').style.color = isCmds ? 'var(--text-faint)' : 'var(--text)';
+        if (!isCmds) loadAllModes();
+    }
+
+    // Ativar modo direto do painel
+    function activateMode(name) {
+        if (name === '__deactivate__') {
+            pwrSend('desativar modo');
+            document.getElementById('activeModeLabel').textContent = '—';
+        } else {
+            pwrSend('ativar modo ' + name);
+            document.getElementById('activeModeLabel').textContent = name;
+        }
+        closeModal('modalComandos');
+    }
+
+    // Carrega todos os modos do servidor e preenche a lista
+    async function loadAllModes() {
+        const container = document.getElementById('allModesList');
+        if (!container) return;
+        try {
+            const r = await fetch('/modes');
+            const d = await r.json();
+            const modes = d.modes || {};
+            const active = d.active || '';
+
+            // Atualiza label do modo ativo
+            document.getElementById('activeModeLabel').textContent = active || '—';
+
+            // Ícones por camada
+            const layerIcon = { 1:'👑', 2:'📋', 3:'🛡', 4:'🔬', 5:'🎨', 6:'🧘', 7:'⚙' };
+
+            // Modos favoritos para não duplicar
+            const FAVS = new Set(['MORDOMO','ARQUITETO','ENGENHEIRO','PARCA']);
+
+            container.innerHTML = Object.entries(modes)
+                .filter(([k]) => !FAVS.has(k))
+                .sort((a,b) => (a[1].camada||9) - (b[1].camada||9) || a[0].localeCompare(b[0]))
+                .map(([key, info]) => {
+                    const icon = layerIcon[info.camada] || '◆';
+                    const isActive = key === active;
+                    return `<button class="mode-mini ${isActive ? 'active' : ''}"
+                        onclick="activateMode('${key}')"
+                        style="${isActive ? 'border-color:var(--accent);background:rgba(0,212,255,0.1)' : ''}">
+                        <span style="font-size:14px">${icon}</span>
+                        <div>
+                            <div class="mode-mini-name">${key.replace(/_/g,' ')}</div>
+                            <div class="mode-mini-desc">${(info.descricao||'').substring(0,38)}</div>
+                        </div>
+                    </button>`;
+                }).join('');
+        } catch(e) {
+            container.innerHTML = '<div style="color:var(--red);font-size:12px">Erro ao carregar modos</div>';
+        }
+    }
+
     // ── Agents modal ─────────────────────────────────────
     let _allAgents = [];
 
@@ -3067,7 +4518,10 @@
 
     function renderAgents(agents) {
         const grid = document.getElementById('agentGrid');
-        document.getElementById('agentCount2').textContent = agents.length + ' agentes';
+        const lbl = document.getElementById('agentCountLabel');
+        if (lbl) lbl.textContent = agents.length + ' agentes';
+        const lbl2 = document.getElementById('agentCount2');
+        if (lbl2) lbl2.textContent = agents.length + ' agentes';
         if (!agents.length) {
             grid.innerHTML = '<div style="color:var(--text-faint);font-size:12px;grid-column:1/-1">Nenhum agente encontrado</div>';
             return;
@@ -3228,7 +4682,7 @@
     }
 
     // ── Cascata ───────────────────────────────────────────
-    const ALL_MODALS = ['modalAgentes','modalComandos','modalLogs','modalSistema','modalFerramentas','modalManual','modalSettings'];
+    const ALL_MODALS = ['modalPower','modalAgentes','modalProjetos','modalComandos','modalLogs','modalSistema','modalSkills','modalFerramentas','modalManual','modalSettings'];
     function openAllMenus() {
         closeModal('modalFerramentas');
         let delay = 0;
@@ -3245,10 +4699,18 @@
     function openModal(id) {
         document.getElementById(id).classList.add('open');
         if (id === 'modalAgentes') loadAgents();
-        if (id === 'modalComandos') { filterCmds(''); document.getElementById('cmdSearch').value = ''; }
+        if (id === 'modalComandos') {
+            filterCmds('');
+            const si = document.getElementById('cmdSearch');
+            if (si) si.value = '';
+            switchCmdTab('cmds');
+        }
         if (id === 'modalLogs') { fetchLogs(); if (!logInterval) logInterval = setInterval(fetchLogs, 2000); }
-        if (id === 'modalSistema') loadSystemStats();
+        if (id === 'modalSistema')  loadSystemStats();
+        if (id === 'modalProjetos') { switchProjTab('cards'); loadProjetos(); }
+        if (id === 'modalSkills') { switchSkTab('list'); loadSkillsModal(); }
         if (id === 'modalFerramentas') { switchFerr('scripts'); renderQuickNotes(); }
+        if (id === 'modalSettings') { loadDeps(); loadCustomResponses(); }
     }
     function closeModal(id) {
         document.getElementById(id).classList.remove('open');
@@ -3272,6 +4734,509 @@
             p.classList.toggle('active', p.id === 'manPage-' + tab));
     }
 
+    // ── POWER ICARUS ────────────────────────────────────
+
+    function switchPwr(tab) {
+        document.querySelectorAll('.pwr-tab').forEach(t =>
+            t.classList.toggle('active', t.dataset.tab === tab));
+        document.querySelectorAll('.pwr-page').forEach(p =>
+            p.classList.toggle('active', p.id === 'pwrPage-' + tab));
+        if (tab === 'architect') architectLoadSkills();
+    }
+
+    // ── Architect (Auto-Codificação) ─────────────────────────────────────────
+    async function architectCreate() {
+        const desc = document.getElementById('architectDesc').value.trim();
+        if (!desc) { toast('Architect', 'Descreva o que a skill deve fazer', 'warn'); return; }
+
+        const out = document.getElementById('architectOutput');
+        const outText = document.getElementById('architectOutputText');
+        out.style.display = 'block';
+        outText.textContent = '⏳ Gerando skill com o Nexus LLM...\nAguarde, isso pode levar alguns segundos.';
+
+        toast('Architect', `Criando skill: "${desc}"...`, 'info', 8000);
+
+        try {
+            const r = await fetch('/autocode/create', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({description: desc})
+            });
+            const data = await r.json();
+            const result = data.result || data.error || 'Sem resposta';
+            outText.textContent = result;
+
+            if (result.includes('criada com sucesso')) {
+                toast('Architect', 'Skill criada com sucesso!', 'success', 4000);
+                architectLoadSkills();
+                document.getElementById('architectDesc').value = '';
+            } else {
+                toast('Architect', 'Verifique o output', 'warn', 4000);
+            }
+        } catch(e) {
+            outText.textContent = `Erro: ${e.message}`;
+            toast('Architect', 'Erro ao criar skill', 'error');
+        }
+    }
+
+    async function architectLoadSkills() {
+        const list = document.getElementById('architectSkillsList');
+        if (!list) return;
+        try {
+            const r = await fetch('/autocode/skills');
+            const data = await r.json();
+            if (!data.skills || data.skills.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-faint);font-size:12px;text-align:center;padding:20px">Nenhuma skill dinâmica criada ainda.<br>Use o campo acima para criar a primeira!</div>';
+                return;
+            }
+            list.innerHTML = data.skills.map(s => `
+                <div style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;background:var(--bg-input)">
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:12px;color:var(--text)">🔧 ${s.name}</div>
+                        <div style="font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.description || '—'}</div>
+                        <div style="font-size:10px;color:var(--text-faint);margin-top:2px">
+                            <span style="color:${s.exists ? 'var(--green)' : 'var(--red)'}">${s.exists ? '✅ Arquivo OK' : '❌ Arquivo ausente'}</span>
+                            &nbsp;·&nbsp; ${s.patterns.length} padrões
+                            &nbsp;·&nbsp; ${(s.size_bytes/1024).toFixed(1)} KB
+                        </div>
+                    </div>
+                    <button class="btn-sm" onclick="architectPreview('${s.name}')" title="Ver código">👁</button>
+                    <button class="btn-sm" onclick="pwrSend('criar skill para ${s.description}')" title="Recriar">🔄</button>
+                    <button class="btn-sm" style="border-color:var(--red);color:var(--red)" onclick="architectDelete('${s.name}')" title="Deletar">🗑</button>
+                </div>
+            `).join('');
+        } catch(e) {
+            list.innerHTML = `<div style="color:var(--red);font-size:12px;padding:10px">Erro ao carregar: ${e.message}</div>`;
+        }
+    }
+
+    async function architectPreview(name) {
+        try {
+            const r = await fetch(`/autocode/preview/${name}`);
+            const data = await r.json();
+            const out = document.getElementById('architectOutput');
+            const outText = document.getElementById('architectOutputText');
+            out.style.display = 'block';
+            outText.textContent = data.code || data.error || '—';
+        } catch(e) {
+            toast('Architect', `Erro: ${e.message}`, 'error');
+        }
+    }
+
+    async function architectDelete(name) {
+        if (!confirm(`Deletar skill "${name}"?`)) return;
+        try {
+            const r = await fetch(`/autocode/skills/${name}`, {method:'DELETE'});
+            const data = await r.json();
+            toast('Architect', data.result || 'Deletado', 'success');
+            architectLoadSkills();
+        } catch(e) {
+            toast('Architect', `Erro: ${e.message}`, 'error');
+        }
+    }
+
+    function switchRegion(region) {
+        document.querySelectorAll('.pwr-region-tab').forEach(t =>
+            t.classList.toggle('active', t.dataset.region === region));
+        document.querySelectorAll('.pwr-region').forEach(r =>
+            r.classList.toggle('active', r.id === 'region-' + region));
+    }
+
+    const SEARCH_ENGINES = {
+        google:     q => `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+        youtube:    q => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+        github:     q => `https://github.com/search?q=${encodeURIComponent(q)}`,
+        wikipedia:  q => `https://pt.wikipedia.org/w/index.php?search=${encodeURIComponent(q)}`,
+        duckduckgo: q => `https://duckduckgo.com/?q=${encodeURIComponent(q)}`,
+    };
+
+    function pwrSearchEngine(engine) {
+        const q = document.getElementById('pwrSearchInput').value.trim();
+        if (!q) { document.getElementById('pwrSearchInput').focus(); return; }
+        const url = SEARCH_ENGINES[engine] ? SEARCH_ENGINES[engine](q) : SEARCH_ENGINES.google(q);
+        openExt(url);
+    }
+
+    function openExt(url) {
+        window.open(url, '_blank');
+    }
+
+    function updateDorkPreview() {
+        const site     = document.getElementById('dorkSite').value.trim();
+        const filetype = document.getElementById('dorkFiletype').value.trim();
+        const intitle  = document.getElementById('dorkIntitle').value.trim();
+        const inurl    = document.getElementById('dorkInurl').value.trim();
+        const exact    = document.getElementById('dorkExact').value.trim();
+        const free     = document.getElementById('dorkFree').value.trim();
+        const parts = [];
+        if (site)     parts.push(`site:${site}`);
+        if (filetype) parts.push(`filetype:${filetype}`);
+        if (intitle)  parts.push(`intitle:"${intitle}"`);
+        if (inurl)    parts.push(`inurl:${inurl}`);
+        if (exact)    parts.push(`"${exact}"`);
+        if (free)     parts.push(free);
+        const query = parts.join(' ');
+        document.getElementById('dorkPreview').textContent = query || '—';
+    }
+
+    function runDork() {
+        const query = document.getElementById('dorkPreview').textContent.trim();
+        if (!query || query === '—') { toast('Dork vazio', 'Preencha pelo menos um campo', 'warn', 2500); return; }
+        openExt('https://www.google.com/search?q=' + encodeURIComponent(query));
+    }
+
+    function copyDork() {
+        const query = document.getElementById('dorkPreview').textContent.trim();
+        if (!query || query === '—') return;
+        navigator.clipboard.writeText(query).then(() => toast('Copiado!', query.substring(0,60), 'success', 2000));
+    }
+
+    function clearDork() {
+        ['dorkSite','dorkFiletype','dorkIntitle','dorkInurl','dorkExact','dorkFree'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('dorkPreview').textContent = '—';
+    }
+
+    async function runFileSearch() {
+        const dir       = document.getElementById('fileDir').value.trim() || '/home';
+        const type      = document.getElementById('fileType').value;
+        const name      = document.getElementById('fileName').value.trim();
+        const recursive = document.getElementById('fileRecursive').checked;
+        const resultsEl = document.getElementById('fileResults');
+        const statusEl  = document.getElementById('fileStatus');
+
+        resultsEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-faint);font-size:12px">⟳ Buscando...</div>';
+        statusEl.textContent = '';
+
+        try {
+            const params = new URLSearchParams({dir, type, name, recursive: recursive ? '1' : '0'});
+            const res = await fetch('/files/search?' + params.toString());
+            if (!res.ok) {
+                const err = await res.json();
+                resultsEl.innerHTML = `<div style="padding:16px;color:var(--red);font-size:12px">⚠ ${err.error || 'Erro na busca'}</div>`;
+                return;
+            }
+            const data = await res.json();
+            const files = data.results || [];
+
+            if (!files.length) {
+                resultsEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-faint);font-size:12px">Nenhum arquivo encontrado</div>';
+                statusEl.textContent = 'Nenhum resultado';
+                return;
+            }
+
+            statusEl.textContent = `${files.length} arquivo${files.length !== 1 ? 's' : ''} encontrado${files.length !== 1 ? 's' : ''} em ${data.dir}${data.total >= 500 ? ' (limite 500)' : ''}`;
+
+            resultsEl.innerHTML = `<table>
+                <thead><tr>
+                    <th>Nome</th><th>Caminho</th><th>Tamanho</th><th>Modificado</th>
+                </tr></thead>
+                <tbody>
+                ${files.map(f => `<tr ondblclick="navigator.clipboard.writeText('${f.path.replace(/'/g,"\\'")}').then(()=>toast('Caminho copiado','${f.path.replace(/'/g,"\\'").substring(0,60)}','success',2000))" title="Duplo clique para copiar o caminho">
+                    <td class="file-name">${f.name}</td>
+                    <td><div class="file-path" title="${f.path}">${f.path}</div></td>
+                    <td style="white-space:nowrap">${f.size_kb} KB</td>
+                    <td style="white-space:nowrap;color:var(--text-faint)">${f.modified}</td>
+                </tr>`).join('')}
+                </tbody>
+            </table>`;
+        } catch(e) {
+            resultsEl.innerHTML = `<div style="padding:16px;color:var(--red);font-size:12px">⚠ Erro: ${e.message}</div>`;
+        }
+    }
+
+    function checkLinkWith(service) {
+        const url = document.getElementById('linkInput').value.trim();
+        if (!url) { document.getElementById('linkInput').focus(); return; }
+        const encoded = encodeURIComponent(url);
+        const targets = {
+            virustotal: `https://www.virustotal.com/gui/search/${encoded}`,
+            gsb:        `https://transparencyreport.google.com/safe-browsing/search?url=${encoded}`,
+            urlvoid:    `https://www.urlvoid.com/scan/${encoded}`,
+        };
+        if (targets[service]) openExt(targets[service]);
+    }
+
+    function pwrSend(msg) {
+        closeModal('modalPower');
+        sendQuick(msg);
+    }
+
+    // Ctrl+Shift+F → abre POWER modal
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+            e.preventDefault();
+            openModal('modalPower');
+        }
+    });
+
+    // ── Respostas Personalizadas ──────────────────────────
+    let _crData = [];
+
+    // Dita por voz para um campo de input (PTT com Whisper ou Web Speech)
+    async function dictateInto(fieldId) {
+        const field = document.getElementById(fieldId);
+        const btn = field.nextElementSibling; // botão 🎤 ao lado do input
+
+        // Verifica Whisper
+        const vStatus = await fetch('/voice/status').then(r=>r.json()).catch(()=>null);
+        const hasWhisper = vStatus && (vStatus.engines?.faster_whisper || vStatus.engines?.whisper);
+
+        if (hasWhisper) {
+            // PTT via MediaRecorder + Whisper
+            btn.textContent = '⏺';
+            btn.style.borderColor = 'var(--red)';
+            btn.style.color = 'var(--red)';
+            toast('🎤 Ditando...', 'Fale agora — clique de novo para parar', 'voice', 0);
+
+            let dictChunks = [];
+            const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+            const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg'].find(m=>MediaRecorder.isTypeSupported(m))||'';
+            const rec = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+            rec.ondataavailable = e => { if(e.data.size>0) dictChunks.push(e.data); };
+            rec.onstop = async () => {
+                stream.getTracks().forEach(t=>t.stop());
+                btn.textContent = '⟳';
+                const blob = new Blob(dictChunks, {type: mimeType||'audio/webm'});
+                try {
+                    const resp = await fetch('/voice/transcribe', {
+                        method:'POST', headers:{'Content-Type':'audio/webm'}, body:blob
+                    });
+                    const data = await resp.json();
+                    if (data.text && data.text.trim().length > 1) {
+                        field.value = data.text.trim();
+                        toast('✓ Ditado', data.text.trim().substring(0,60), 'success', 2000);
+                    } else {
+                        toast('Não entendi', 'Tente novamente', 'warn', 2000);
+                    }
+                } catch(e) {
+                    toast('Erro na transcrição', e.message, 'error', 3000);
+                }
+                btn.textContent = '🎤';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            };
+            rec.start();
+
+            // Segundo clique para parar
+            btn.onclick = () => { if(rec.state==='recording') { rec.stop(); btn.onclick = ()=>dictateInto(fieldId); } };
+        } else {
+            // Web Speech fallback
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { toast('Sem suporte a voz', 'Use Chrome ou instale Whisper', 'error', 3000); return; }
+            const r = new SR();
+            r.lang = 'pt-BR'; r.interimResults = false;
+            btn.textContent = '⏺'; btn.style.color = 'var(--red)';
+            r.onresult = e => { field.value = e.results[0][0].transcript; toast('✓ Ditado', field.value.substring(0,60), 'success', 2000); };
+            r.onend = () => { btn.textContent = '🎤'; btn.style.color = ''; };
+            r.start();
+        }
+    }
+
+    function previewResponse() {
+        const text = document.getElementById('crResponse').value.trim();
+        if (!text) { toast('Campo vazio', 'Digite uma resposta primeiro', 'warn', 2000); return; }
+        speakTTS(text);
+        toast('▶ Prévia', text.substring(0,60), 'voice', 2000);
+    }
+
+    async function loadCustomResponses() {
+        const data = await fetch('/custom-responses').then(r => r.json()).catch(() => ({responses:[]}));
+        _crData = data.responses || [];
+        renderCRList();
+    }
+
+    function renderCRList() {
+        const el = document.getElementById('crList');
+        if (!_crData.length) {
+            el.innerHTML = '<div style="font-size:11.5px;color:var(--text-faint);padding:6px">Nenhuma resposta cadastrada ainda.</div>';
+            return;
+        }
+        el.innerHTML = _crData.map((r, i) => `
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg-card);border-radius:6px;border:1px solid var(--border)">
+                <div style="flex:1;min-width:0">
+                    <span style="font-size:11px;color:var(--accent);font-weight:600">"${r.trigger}"</span>
+                    <span style="font-size:10px;color:var(--text-faint);margin:0 5px">[${r.match||'contains'}]</span>
+                    <span style="font-size:11px;color:var(--text)">→ ${r.response}</span>
+                </div>
+                <button onclick="previewCR(${i})" title="Ouvir" style="
+                    background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:2px 5px
+                ">▶</button>
+                <button onclick="editCR(${i})" title="Editar" style="
+                    background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:12px;padding:2px 5px
+                ">✎</button>
+                <button onclick="deleteCustomResponse(${i})" title="Remover" style="
+                    background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;padding:2px 5px
+                ">✕</button>
+            </div>`).join('');
+    }
+
+    async function addCustomResponse() {
+        const trigger  = document.getElementById('crTrigger').value.trim();
+        const response = document.getElementById('crResponse').value.trim();
+        const match    = document.getElementById('crMatch').value;
+        if (!trigger || !response) { toast('Preencha gatilho e resposta', '', 'warn', 2500); return; }
+
+        // Verifica se é edição
+        const editIdx = parseInt(document.getElementById('crTrigger').dataset.editIdx ?? '-1');
+        if (editIdx >= 0) {
+            _crData[editIdx] = { trigger, match, response, tts: true };
+            document.getElementById('crTrigger').dataset.editIdx = '-1';
+            document.querySelector('[onclick="addCustomResponse()"]').textContent = '+ Adicionar resposta';
+        } else {
+            _crData.push({ trigger, match, response, tts: true });
+        }
+
+        await fetch('/custom-responses', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({responses: _crData})
+        });
+        document.getElementById('crTrigger').value = '';
+        document.getElementById('crResponse').value = '';
+        renderCRList();
+        toast('Resposta salva', `"${trigger}" → "${response}"`, 'success', 2500);
+    }
+
+    function editCR(i) {
+        const r = _crData[i];
+        document.getElementById('crTrigger').value = r.trigger;
+        document.getElementById('crResponse').value = r.response;
+        document.getElementById('crMatch').value = r.match || 'contains';
+        document.getElementById('crTrigger').dataset.editIdx = i;
+        document.querySelector('[onclick="addCustomResponse()"]').textContent = '✓ Salvar edição';
+        document.getElementById('crTrigger').focus();
+    }
+
+    function previewCR(i) {
+        const text = _crData[i].response;
+        speakTTS(text);
+        toast('▶ Prévia', text.substring(0,60), 'voice', 2000);
+    }
+
+    async function deleteCustomResponse(i) {
+        await fetch(`/custom-responses/${i}`, {method: 'DELETE'});
+        _crData.splice(i, 1);
+        renderCRList();
+        toast('Resposta removida', '', 'info', 1500);
+    }
+
+    // ── Dependências ─────────────────────────────────────
+    let _depsData = [];
+    let _depsFilter = 'all';
+
+    async function loadDeps() {
+        const btn = document.getElementById('depsRefreshBtn');
+        const tbody = document.getElementById('depsTbody');
+        btn.textContent = '⟳';
+        btn.disabled = true;
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--text-faint)">Verificando...</td></tr>';
+        try {
+            const data = await fetch('/deps').then(r => r.json());
+            _depsData = data.deps || [];
+            renderDepsTable();
+            const sum = document.getElementById('depsSummary');
+            sum.style.display = '';
+            if (data.all_ok) {
+                sum.style.color = 'var(--green)';
+                sum.textContent = '✅ Todas as dependências obrigatórias estão instaladas.';
+            } else {
+                sum.style.color = 'var(--yellow, #f5a623)';
+                sum.textContent = `⚠ Faltando obrigatórias: ${data.missing_required.join(', ')}`;
+            }
+            // botão copiar
+            const missing = _depsData.filter(d => !d.found && d.type === 'python');
+            const copyWrap = document.getElementById('depsCopyWrap');
+            copyWrap.style.display = missing.length ? '' : 'none';
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--red)">Erro ao verificar dependências</td></tr>';
+        }
+        btn.textContent = '↺ Verificar';
+        btn.disabled = false;
+    }
+
+    function filterDeps(f) {
+        _depsFilter = f;
+        document.querySelectorAll('.deps-filter').forEach(b =>
+            b.classList.toggle('active', b.dataset.f === f));
+        renderDepsTable();
+    }
+
+    function renderDepsTable() {
+        const tbody = document.getElementById('depsTbody');
+        let rows = _depsData;
+        if (_depsFilter === 'missing') rows = rows.filter(d => !d.found);
+        if (_depsFilter === 'python')  rows = rows.filter(d => d.type === 'python');
+        if (_depsFilter === 'system')  rows = rows.filter(d => d.type === 'system');
+
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="padding:10px;text-align:center;color:var(--text-faint)">Nenhum resultado</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map(d => {
+            const icon  = d.found ? '✅' : (d.required ? '❌' : '⚠');
+            const color = d.found ? 'var(--green)' : (d.required ? 'var(--red)' : 'var(--yellow,#f5a623)');
+            const ver   = d.found ? (d.version || 'ok') : '—';
+            const badge = d.required ? '<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:rgba(255,51,85,.18);color:var(--red);margin-left:4px">obrig.</span>' : '';
+            const inst  = d.found ? '<span style="color:var(--text-faint)">—</span>'
+                : `<code style="font-size:10px;color:var(--accent);cursor:pointer" title="Clique para copiar"
+                        onclick="copyCmd('${d.install}')">${d.install}</code>`;
+            return `<tr>
+                <td style="color:${color};font-size:13px">${icon}</td>
+                <td><b>${d.name}</b>${badge}</td>
+                <td style="color:var(--text-dim)">${d.feature}</td>
+                <td style="color:var(--text-faint)">${ver}</td>
+                <td>${inst}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function copyCmd(cmd) {
+        navigator.clipboard.writeText(cmd).then(() => {
+            const c = document.getElementById('depsCopied');
+            c.style.display = ''; setTimeout(() => c.style.display = 'none', 2000);
+        });
+    }
+
+    function copyMissingInstall() {
+        const missing = _depsData.filter(d => !d.found && d.type === 'python');
+        const pkgs = missing.map(d => d.install.replace('pip install ', '')).join(' ');
+        copyCmd('pip install ' + pkgs);
+    }
+
+    // ── TTS voice settings ────────────────────────────────
+    async function setTTSVoice(voiceId) {
+        saveSetting('ttsVoice', voiceId);
+        await fetch('/voice/config', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({voice: voiceId})
+        }).catch(()=>{});
+    }
+
+    function previewTTSVoice() {
+        const voiceId = document.getElementById('ttsVoiceSelect').value;
+        const previews = {
+            antonio:   'Olá. Eu sou o ICARUS, seu assistente pessoal. Como posso ajudá-lo?',
+            francisca: 'Olá. Eu sou o ICARUS, seu assistente pessoal. Como posso ajudá-lo?',
+            duarte:    'Olá. Eu sou o ICARUS, o seu assistente pessoal. Em que posso ajudar?',
+            raquel:    'Olá. Eu sou o ICARUS, o seu assistente pessoal. Em que posso ajudar?',
+        };
+        const text = previews[voiceId] || 'ICARUS online.';
+        fetch('/voice/speak', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({text, voice: voiceId})
+        }).then(async r => {
+            if (r.ok && r.headers.get('Content-Type')?.includes('audio/')) {
+                const blob = await r.blob();
+                const url  = URL.createObjectURL(blob);
+                const a = new Audio(url);
+                a.onended = () => URL.revokeObjectURL(url);
+                a.play();
+            }
+        }).catch(()=>{});
+    }
+
     // ── Settings ─────────────────────────────────────────
     function saveSetting(key, val) { localStorage.setItem('icarus_' + key, val); }
 
@@ -3282,6 +5247,28 @@
         if (fs) { applyFontSize(fs); document.getElementById('fontSize').value = fs; }
         const autoSend = localStorage.getItem('icarus_autoSendVoice');
         if (autoSend === 'false') document.getElementById('autoSendVoice').checked = false;
+        // Carrega voz TTS salva e sincroniza com servidor
+        const savedVoice = localStorage.getItem('icarus_ttsVoice');
+        if (savedVoice) {
+            const sel = document.getElementById('ttsVoiceSelect');
+            if (sel) sel.value = savedVoice;
+            fetch('/voice/config', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({voice: savedVoice})
+            }).catch(()=>{});
+        }
+        const savedRate = localStorage.getItem('icarus_ttsRate');
+        if (savedRate) {
+            const el = document.getElementById('ttsRate');
+            if (el) { el.value = savedRate; document.getElementById('ttsRateVal').textContent = (savedRate>0?'+':'')+savedRate+'%'; }
+        }
+        // TTS enabled state
+        const ttsOn = localStorage.getItem('icarus_ttsEnabled');
+        if (ttsOn !== null) {
+            ttsEnabled = ttsOn !== 'false';
+            const el = document.getElementById('ttsEnabled');
+            if (el) el.checked = ttsEnabled;
+        }
     }
 
     function applyFontSize(size) {
@@ -3417,14 +5404,17 @@
             if (hasWhisper) {
                 const eng = status.engines?.faster_whisper ? 'faster-whisper' : 'whisper';
                 orbSetState('wake', '', `OFFLINE · ${eng.toUpperCase()} · SEGURE PARA FALAR`);
+                toast('🎤 Modo Voz ativo', `Engine: ${eng} — Segure o orb para falar`, 'voice', 3000);
                 whisperMode = true;
             } else {
                 // Tenta Web Speech como última opção
                 orbSetState('wake', '', 'DIGA "ICARUS" PARA ATIVAR · ESC PARA FECHAR');
+                toast('🎤 Modo Voz ativo', 'Diga "ICARUS" para ativar · Web Speech API', 'voice', 3000);
                 whisperMode = false;
                 startWakeWordLoop();
             }
         } else {
+            toast('Modo Voz desativado', '', 'info', 2000);
             btn.classList.remove('voice-on');
             btn.textContent = '🎙 MODO VOZ';
             orb.className = '';
@@ -3611,6 +5601,7 @@
         orbSetState('process', cmd, 'PROCESSANDO...');
         stopVoiceRecog();
         appendMsg('user', cmd);
+        appendTyping();
 
         try {
             const res = await fetch('/chat', {
@@ -3619,8 +5610,8 @@
                 body: JSON.stringify({message: cmd})
             });
             const data = await res.json();
-            const reply = data.response || 'Sem resposta';
             removeTyping();
+            const reply = data.response || 'Sem resposta';
             appendMsg('assistant', reply);
             orbSetState('speak', '', 'RESPONDENDO...');
             await speakTTS(reply);
@@ -3666,15 +5657,72 @@
         loadTTSVoice(); // tenta na carga inicial
     }
 
-    function speakTTS(text) {
+    // Limpa texto para TTS — remove prefixos técnicos, markdown, URLs, código
+    function cleanForTTS(text) {
+        return text
+            .replace(/\[ICARUS[^\]]*\]/g, '')          // remove [ICARUS] [ICARUS MODO X]
+            .replace(/^\s*\[.*?\]\s*/gm, '')            // remove qualquer [prefixo] no início de linha
+            .replace(/https?:\/\/\S+/g, '')             // remove URLs
+            .replace(/```[\s\S]*?```/g, 'bloco de código') // substitui code blocks
+            .replace(/`[^`]+`/g, '')                    // remove inline code
+            .replace(/\*\*/g,'').replace(/\*/g,'')      // remove negrito/itálico
+            .replace(/#{1,6}\s/g,'')                    // remove headings
+            .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')    // links → texto
+            .replace(/pip install \S+/g, '')            // remove comandos pip
+            .replace(/sudo \S+/g, '')                   // remove comandos sudo
+            .replace(/\n{2,}/g,' ').replace(/\n/g,' ') // quebras → espaço
+            .replace(/\s{2,}/g,' ')                     // espaços duplos
+            .trim()
+            .substring(0, 400);                         // máx 400 chars
+    }
+
+    // TTS server-side via edge-tts (Microsoft Neural) — retorna MP3, browser reproduz
+    // Mesma abordagem do JARVIS (BrunoCotaXavier/jarvis)
+    let _ttsAudio = null; // Audio atual tocando
+
+    async function speakServerTTS(text) {
+        try {
+            const r = await fetch('/voice/speak', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text})
+            });
+            if (!r.ok) return false;
+
+            const ct = r.headers.get('Content-Type') || '';
+            if (ct.includes('audio/')) {
+                // edge-tts ou OpenAI TTS — retornou MP3, reproduz no browser
+                const blob = await r.blob();
+                const url  = URL.createObjectURL(blob);
+                if (_ttsAudio) { _ttsAudio.pause(); URL.revokeObjectURL(_ttsAudio.src); }
+                _ttsAudio = new Audio(url);
+                return new Promise(resolve => {
+                    _ttsAudio.onended = () => { URL.revokeObjectURL(url); resolve(true); };
+                    _ttsAudio.onerror = () => { URL.revokeObjectURL(url); resolve(false); };
+                    _ttsAudio.play().catch(() => resolve(false));
+                });
+            }
+            // pyttsx3/espeak — reproduziu localmente, retornou JSON
+            const data = await r.json().catch(() => ({}));
+            return data.ok === true;
+        } catch { return false; }
+    }
+
+    function stopServerTTS() {
+        if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio = null; }
+    }
+
+    async function speakTTS(text) {
+        if (!ttsEnabled) return;
+        const clean = cleanForTTS(text);
+        if (!clean) return;
+        // Tenta server-side primeiro (mais confiável, sem limitações de browser)
+        const serverOk = await speakServerTTS(clean);
+        if (serverOk) return;
+        // Fallback browser speechSynthesis
         return new Promise(resolve => {
-            if (!ttsEnabled || !window.speechSynthesis) { resolve(); return; }
+            if (!window.speechSynthesis) { resolve(); return; }
             stopTTS();
-            const clean = text
-                .replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s/g,'')
-                .replace(/`[^`]+`/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
-                .replace(/\n{2,}/g,' — ').replace(/\n/g,' ')
-                .substring(0, 600);
             if (!clean.trim()) { resolve(); return; }
             const utt = new SpeechSynthesisUtterance(clean);
             utt.lang = localStorage.getItem('icarus_voiceLang') || 'pt-BR';
@@ -3692,6 +5740,7 @@
     }
 
     function stopTTS() {
+        stopServerTTS();
         if (window.speechSynthesis) speechSynthesis.cancel();
     }
 
@@ -3931,6 +5980,7 @@
     // ── Init ─────────────────────────────────────────────
     checkStatus();
     checkNexus();
+    loadPwrApps();
     initMicEngine(); // detecta Whisper e configura botão 🎤
     loadTasks();
     updateClock();
@@ -3943,5 +5993,781 @@
     setInterval(loadSystemStats, 15000);
     chatInput.focus();
 </script>
+
+<!-- ── Toast Notification System (portado do CfdmNote) ──── -->
+<div id="toastContainer" style="
+    position:fixed; bottom:24px; right:24px;
+    display:flex; flex-direction:column-reverse; gap:8px;
+    z-index:9999; pointer-events:none;
+"></div>
+
+<style>
+.icarus-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 14px;
+    min-width: 260px;
+    max-width: 380px;
+    border-radius: 10px;
+    background: #1a2235;
+    border: 1px solid rgba(0,212,255,0.2);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    color: #c8d8e8;
+    font-size: 12.5px;
+    pointer-events: auto;
+    cursor: pointer;
+    animation: toastIn .22s cubic-bezier(.2,.8,.4,1) forwards;
+    position: relative;
+    overflow: hidden;
+}
+.icarus-toast.closing {
+    animation: toastOut .2s ease forwards;
+}
+.icarus-toast .toast-icon { font-size: 16px; flex-shrink:0; margin-top:1px; }
+.icarus-toast .toast-body { flex:1; }
+.icarus-toast .toast-title { font-weight:600; font-size:12px; color:#e0eaf4; margin-bottom:2px; }
+.icarus-toast .toast-msg   { color:#8aaccc; font-size:11.5px; line-height:1.4; }
+.icarus-toast .toast-cmd   {
+    display: inline-block; margin-top:5px;
+    font-size:10.5px; font-family:monospace;
+    background: rgba(0,212,255,0.1); color: #00d4ff;
+    padding: 2px 7px; border-radius:4px; cursor:pointer;
+    border: 1px solid rgba(0,212,255,0.2);
+}
+.icarus-toast .toast-cmd:hover { background: rgba(0,212,255,0.2); }
+.icarus-toast .toast-progress {
+    position: absolute; bottom:0; left:0; height:2px;
+    background: var(--accent, #00d4ff);
+    animation: toastProgress linear forwards;
+}
+.icarus-toast.t-success { border-color: rgba(0,230,140,0.3); }
+.icarus-toast.t-success .toast-progress { background: #00e68c; }
+.icarus-toast.t-error   { border-color: rgba(255,51,85,0.3); }
+.icarus-toast.t-error   .toast-progress { background: #ff3355; }
+.icarus-toast.t-warn    { border-color: rgba(245,166,35,0.3); }
+.icarus-toast.t-warn    .toast-progress { background: #f5a623; }
+
+@keyframes toastIn {
+    from { opacity:0; transform:translateX(40px) scale(.95); }
+    to   { opacity:1; transform:translateX(0) scale(1); }
+}
+@keyframes toastOut {
+    from { opacity:1; transform:translateX(0); max-height:120px; }
+    to   { opacity:0; transform:translateX(40px); max-height:0; padding:0; margin:0; }
+}
+@keyframes toastProgress {
+    from { width:100%; }
+    to   { width:0%; }
+}
+</style>
+
+<script>
+// ── Toast API (estilo CfdmNote ToastNotification) ──────────
+// Uso: toast('Tarefa criada', 'Reunião às 14h adicionada', 'success', 4000)
+//      toast('Erro', 'Nexus offline', 'error', 0, 'pip install requests')
+function toast(title, msg = '', type = 'info', duration = 4000, cmdText = '') {
+    const container = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = `icarus-toast t-${type}`;
+
+    const icons = { info:'ℹ', success:'✅', error:'❌', warn:'⚠', voice:'🎤', task:'📋', agent:'🤖', nexus:'⚡' };
+    const icon = icons[type] || 'ℹ';
+    const dur = duration || 5000;
+
+    el.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-body">
+            <div class="toast-title">${title}</div>
+            ${msg ? `<div class="toast-msg">${msg}</div>` : ''}
+            ${cmdText ? `<div class="toast-cmd" onclick="navigator.clipboard.writeText('${cmdText}');this.textContent='✓ Copiado!'">📋 ${cmdText}</div>` : ''}
+        </div>
+        <div class="toast-progress" style="animation-duration:${dur}ms"></div>
+    `;
+
+    el.onclick = () => closeToast(el);
+    container.prepend(el);
+
+    // Limita 5 toasts visíveis
+    const all = container.querySelectorAll('.icarus-toast:not(.closing)');
+    if (all.length > 5) closeToast(all[all.length - 1]);
+
+    if (duration > 0) setTimeout(() => closeToast(el), dur);
+    return el;
+}
+
+function closeToast(el) {
+    if (!el || el.classList.contains('closing')) return;
+    el.classList.add('closing');
+    setTimeout(() => el.remove(), 220);
+}
+
+// Integra toasts nos eventos existentes do ICARUS
+document.addEventListener('DOMContentLoaded', () => {
+    // Patch sendMessage para emitir toast quando ICARUS responder via voz
+    const _sm = window.sendMessage;
+    if (typeof _sm === 'function') {
+        // já foi definida inline — o patch fica no wrapper abaixo
+    }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL SKILLS
+// ══════════════════════════════════════════════════════════════
+
+let _allSkills   = [];
+let _skFilter    = 'all';
+let _skSearchQ   = '';
+
+// ── Tabs ──────────────────────────────────────────────────────
+function switchSkTab(tab) {
+    const isList = tab === 'list';
+    document.getElementById('skPageList').style.display = isList ? 'flex' : 'none';
+    document.getElementById('skPageNew').style.display  = isList ? 'none' : 'flex';
+    document.getElementById('skTabList').style.borderBottomColor = isList ? 'var(--accent)' : 'transparent';
+    document.getElementById('skTabNew').style.borderBottomColor  = isList ? 'transparent'   : 'var(--accent)';
+    document.getElementById('skTabList').style.color = isList ? 'var(--text)'      : 'var(--text-faint)';
+    document.getElementById('skTabNew').style.color  = isList ? 'var(--text-faint)' : 'var(--text)';
+}
+
+// ── Carregar lista ────────────────────────────────────────────
+async function loadSkillsModal() {
+    const list = document.getElementById('skList');
+    list.innerHTML = '<div style="color:var(--text-faint);font-size:12px;text-align:center;padding:30px">Carregando...</div>';
+    try {
+        const r = await fetch('/skills');
+        const d = await r.json();
+        _allSkills = d.skills || [];
+        document.getElementById('skillsCountBadge').textContent =
+            `${d.builtin} builtin · ${d.dynamic} criadas`;
+        renderSkills();
+    } catch(e) {
+        list.innerHTML = `<div style="color:var(--red);font-size:12px;padding:20px">Erro: ${e.message}</div>`;
+    }
+}
+
+// ── Filtro e busca ────────────────────────────────────────────
+function setSkFilter(f) {
+    _skFilter = f;
+    document.querySelectorAll('[data-sf]').forEach(b =>
+        b.classList.toggle('active', b.dataset.sf === f));
+    renderSkills();
+}
+function filterSkills(q) {
+    _skSearchQ = q.toLowerCase();
+    renderSkills();
+}
+
+// ── Renderizar cards ──────────────────────────────────────────
+function renderSkills() {
+    const list = document.getElementById('skList');
+    let skills = _allSkills;
+
+    if (_skFilter === 'builtin') skills = skills.filter(s => s.is_builtin);
+    if (_skFilter === 'dynamic') skills = skills.filter(s => s.is_dynamic);
+    if (_skSearchQ) skills = skills.filter(s =>
+        s.label.toLowerCase().includes(_skSearchQ) ||
+        s.skill_name.toLowerCase().includes(_skSearchQ) ||
+        (s.desc || '').toLowerCase().includes(_skSearchQ));
+
+    if (!skills.length) {
+        list.innerHTML = '<div style="color:var(--text-faint);font-size:12px;text-align:center;padding:30px">Nenhuma skill encontrada.</div>';
+        return;
+    }
+
+    list.innerHTML = skills.map(s => {
+        const dynBadge = s.is_dynamic
+            ? `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(0,230,140,0.15);color:#00e68c;font-weight:700">CRIADA</span>`
+            : `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(0,212,255,0.12);color:var(--accent);font-weight:700">BUILTIN</span>`;
+        const loadBadge = s.loaded
+            ? `<span style="font-size:9px;color:#00e68c">● ativa</span>`
+            : `<span style="font-size:9px;color:var(--text-faint)">○ inativa</span>`;
+        const kb = (s.size_bytes / 1024).toFixed(1);
+        const delBtn = s.is_dynamic
+            ? `<button class="btn-sm" style="border-color:var(--red);color:var(--red);font-size:10px" onclick="skDelete('${s.skill_name}')">🗑</button>`
+            : '';
+        return `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+            border:1px solid var(--border);border-radius:var(--radius-lg);
+            background:var(--bg-input);transition:border-color .15s"
+            onmouseenter="this.style.borderColor='var(--border-acc)'"
+            onmouseleave="this.style.borderColor='var(--border)'">
+            <div style="font-size:22px;flex-shrink:0;width:32px;text-align:center">${s.icon}</div>
+            <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">
+                    <span style="font-weight:700;font-size:13px">${s.label}</span>
+                    ${dynBadge}
+                    ${loadBadge}
+                </div>
+                <div style="font-size:11px;color:var(--text-faint);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                    ${s.desc || s.skill_name}
+                </div>
+                <div style="font-size:10px;color:var(--text-faint)">
+                    <code style="background:rgba(255,255,255,0.05);padding:1px 5px;border-radius:3px">${s.file}</code>
+                    &nbsp;·&nbsp; ${s.pattern_count} padrões &nbsp;·&nbsp; ${kb} KB
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+                <button class="btn-sm" style="font-size:10px" onclick="skTest('${s.label}','${s.skill_name}')">▶ Testar</button>
+                <button class="btn-sm" style="font-size:10px" onclick="skViewCode('${s.file}')">👁 Código</button>
+                ${delBtn}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── Ações individuais ─────────────────────────────────────────
+function skTest(label, skillName) {
+    closeModal('modalSkills');
+    const q = `testar skill ${skillName}`;
+    chatInput.value = q;
+    autoResize(chatInput);
+    sendMessage();
+}
+
+async function skViewCode(file) {
+    try {
+        const r = await fetch(`/autocode/preview/${file.replace('_skill.py','').replace('.py','')}`);
+        const d = await r.json();
+        const out = document.getElementById('skCreateOutput');
+        const txt = document.getElementById('skCreateText');
+        switchSkTab('new');
+        out.style.display = 'block';
+        txt.textContent = d.code || d.error || '—';
+    } catch(e) {
+        // fallback: mostra no terminal
+        appendTermLine({time:'', tag:'ERROR', msg:`Erro ao carregar código: ${e.message}`});
+        openTerminal();
+    }
+}
+
+async function skDelete(skillName) {
+    if (!confirm(`Deletar skill "${skillName}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+        const r = await fetch(`/autocode/skills/${skillName}`, {method:'DELETE'});
+        const d = await r.json();
+        toast('Skills', d.result || 'Deletado', 'success');
+        loadSkillsModal();
+    } catch(e) {
+        toast('Skills', `Erro: ${e.message}`, 'error');
+    }
+}
+
+// ── Criar nova skill ──────────────────────────────────────────
+async function skCreate() {
+    const desc = document.getElementById('skNewDesc').value.trim();
+    if (!desc) { toast('Architect', 'Descreva o que a skill deve fazer', 'warn'); return; }
+
+    const btn = document.getElementById('skCreateBtn');
+    const out  = document.getElementById('skCreateOutput');
+    const txt  = document.getElementById('skCreateText');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Gerando com Nexus LLM...';
+    out.style.display = 'block';
+    txt.textContent = 'Aguarde — o Architect está gerando o código da skill...\nIsso pode levar alguns segundos.';
+    toast('Architect', `Criando: "${desc}"`, 'info', 8000);
+
+    try {
+        const r = await fetch('/autocode/create', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({description: desc})
+        });
+        const d = await r.json();
+        txt.textContent = d.result || d.error || 'Sem resposta';
+
+        if ((d.result || '').includes('criada com sucesso')) {
+            toast('Skills', 'Skill criada!', 'success', 3000);
+            document.getElementById('skNewDesc').value = '';
+            // Atualiza lista após 1s
+            setTimeout(() => { switchSkTab('list'); loadSkillsModal(); }, 1200);
+        } else {
+            toast('Architect', 'Verifique o output', 'warn', 4000);
+        }
+    } catch(e) {
+        txt.textContent = `Erro: ${e.message}`;
+        toast('Skills', 'Erro na criação', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Criar Skill com Architect';
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL PROJETOS
+// ══════════════════════════════════════════════════════════════
+
+function switchProjTab(tab) {
+    ['cards','sessoes','log'].forEach(t => {
+        document.getElementById('projPage' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? (t==='log'?'flex':'block') : 'none';
+        const btn = document.getElementById('projTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) {
+            btn.style.borderBottomColor = t === tab ? 'var(--accent)' : 'transparent';
+            btn.style.color = t === tab ? 'var(--text)' : 'var(--text-faint)';
+        }
+    });
+    if (tab === 'sessoes') renderProjSessoes(window._projData);
+}
+
+async function loadProjetos() {
+    try {
+        const r = await fetch('/projects');
+        window._projData = await r.json();
+        renderProjCards(window._projData);
+        const sync = (window._projData._meta?.last_sync || '').substring(0,10);
+        document.getElementById('projSyncLabel').textContent = sync ? `sync: ${sync}` : '';
+    } catch(e) {
+        document.getElementById('projPageCards').innerHTML =
+            `<div style="color:var(--red);padding:20px;text-align:center">Erro: ${e.message}</div>`;
+    }
+}
+
+function renderProjCards(data) {
+    const container = document.getElementById('projPageCards');
+    const projs = data?.projects || {};
+    const statusIcon = {ativo:'🟢', legado:'🟡', pausado:'🔴'};
+    const statusColor = {ativo:'rgba(0,230,140,0.15)', legado:'rgba(255,215,0,0.1)', pausado:'rgba(255,51,85,0.1)'};
+
+    container.innerHTML = Object.entries(projs).map(([key, p]) => {
+        const icon   = statusIcon[p.status] || '⚪';
+        const sbg    = statusColor[p.status] || 'rgba(255,255,255,0.03)';
+        const stack  = (p.stack || []).join(' · ');
+        const porta  = p.porta ? `<span style="font-size:10px;background:rgba(0,212,255,0.1);color:var(--accent);padding:1px 7px;border-radius:8px">:${p.porta}</span>` : '';
+        const changes = (p.ultimas_mudancas || []).slice(0,3).map(c =>
+            `<div style="font-size:11px;color:var(--text-dim);padding:2px 0;border-left:2px solid rgba(0,212,255,0.2);padding-left:8px;margin:2px 0">${c}</div>`
+        ).join('');
+        const steps = (p.proximos_passos || []).slice(0,3).map(s =>
+            `<div style="font-size:11px;color:var(--text-dim);padding:2px 0">→ ${s}</div>`
+        ).join('');
+
+        return `<div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;background:${sbg};transition:border-color .15s"
+            onmouseenter="this.style.borderColor='var(--border-acc)'"
+            onmouseleave="this.style.borderColor='var(--border)'">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span style="font-size:18px">${icon}</span>
+                <div style="flex:1">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <span style="font-weight:700;font-size:14px">${p.nome}</span>
+                        <span style="font-size:10px;color:var(--text-faint)">v${p.versao || '—'}</span>
+                        ${porta}
+                    </div>
+                    <div style="font-size:11px;color:var(--text-dim)">${p.subtitulo || ''}</div>
+                </div>
+                <div style="display:flex;gap:5px;flex-shrink:0">
+                    <button class="btn-sm" style="font-size:10px" onclick="pwrSend('status do projeto ${key}');closeModal('modalProjetos')">💬 Perguntar</button>
+                    <button class="btn-sm" style="font-size:10px" onclick="pwrSend('analisa o projeto ${key} e sugere próximos passos');closeModal('modalProjetos')">🤖 Analisar</button>
+                </div>
+            </div>
+            <div style="font-size:11.5px;color:var(--text);margin-bottom:10px;line-height:1.5">${p.descricao || ''}</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-bottom:8px">Stack: ${stack}</div>
+            ${changes ? `<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:4px">Últimas mudanças</div>${changes}</div>` : ''}
+            ${steps ? `<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:4px">Próximos passos</div>${steps}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function renderProjSessoes(data) {
+    const list = document.getElementById('projSessoesList');
+    if (!list) return;
+    const sessions = (data?.sessoes_recentes || []).slice().reverse();
+    if (!sessions.length) {
+        list.innerHTML = '<div style="color:var(--text-faint);text-align:center;padding:30px">Nenhuma sessão registrada.</div>';
+        return;
+    }
+    list.innerHTML = sessions.map(s => `
+        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;background:var(--bg-input)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:11px;color:var(--accent);font-weight:700">${s.data}</span>
+                <span style="font-size:11px;font-weight:700">${s.projeto}</span>
+                ${s.versao_resultante ? `<span style="font-size:10px;background:rgba(0,212,255,0.1);color:var(--accent);padding:1px 7px;border-radius:8px">v${s.versao_resultante}</span>` : ''}
+            </div>
+            <div style="font-size:12px;color:var(--text);margin-bottom:6px">${s.resumo}</div>
+            ${s.arquivos_modificados?.length ? `<div style="font-size:10px;color:var(--text-faint)">${s.arquivos_modificados.map(f=>`<code style="margin-right:4px">${f}</code>`).join('')}</div>` : ''}
+        </div>`
+    ).join('');
+}
+
+async function projLogSave() {
+    const key     = document.getElementById('projLogKey').value;
+    const resumo  = document.getElementById('projLogResumo').value.trim();
+    const versao  = document.getElementById('projLogVersao').value.trim();
+    const mudText = document.getElementById('projLogMudancas').value.trim();
+    const mudancas = mudText ? mudText.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+    const result  = document.getElementById('projLogResult');
+
+    if (!resumo) { toast('Projetos', 'Preencha o resumo da sessão', 'warn'); return; }
+
+    try {
+        const r = await fetch(`/projects/${key}/log`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({resumo, versao, mudancas, arquivos:[]})
+        });
+        const d = await r.json();
+        result.style.display = 'block';
+        result.style.background = d.ok ? 'rgba(0,230,140,0.1)' : 'rgba(255,51,85,0.1)';
+        result.style.color = d.ok ? 'var(--green)' : 'var(--red)';
+        result.textContent = d.ok ? `✅ Sessão registrada em ${key} v${d.versao}` : `Erro: ${d.error}`;
+        if (d.ok) {
+            toast('Projetos', 'Sessão registrada!', 'success');
+            document.getElementById('projLogResumo').value = '';
+            document.getElementById('projLogMudancas').value = '';
+            document.getElementById('projLogVersao').value = '';
+            loadProjetos();
+        }
+    } catch(e) {
+        result.style.display = 'block';
+        result.textContent = `Erro: ${e.message}`;
+    }
+}
+
+// Toast de boas-vindas ao carregar
+window.addEventListener('load', () => {
+    setTimeout(() => toast('ICARUS online', 'Sistema iniciado e pronto', 'success', 3000), 800);
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     FLOATING TERMINAL DRAWER
+     ══════════════════════════════════════════════════════════ -->
+<style>
+/* ── Terminal drawer ── */
+#termDrawer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 280px;
+    background: #0b0f16;
+    border-top: 1px solid rgba(0,212,255,0.35);
+    box-shadow: 0 -6px 32px rgba(0,0,0,0.7);
+    z-index: 600;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+}
+#termDrawer.open { transform: translateY(0); }
+
+#termDrawer .term-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    height: 36px;
+    background: #080d13;
+    border-bottom: 1px solid rgba(0,212,255,0.18);
+    flex-shrink: 0;
+    user-select: none;
+    cursor: row-resize;
+}
+#termDrawer .term-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #00d4ff;
+    letter-spacing: 0.08em;
+    flex: 1;
+}
+.term-filter-btn {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: transparent;
+    color: #90aabf;
+    cursor: pointer;
+    transition: all .12s;
+    font-family: inherit;
+}
+.term-filter-btn.active {
+    background: rgba(0,212,255,0.15);
+    border-color: rgba(0,212,255,0.5);
+    color: #00d4ff;
+}
+.term-filter-btn:hover:not(.active) { color: #c8dde8; border-color: rgba(255,255,255,0.3); }
+
+#termOutput {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 14px 4px;
+    font-size: 11.5px;
+    line-height: 1.65;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,212,255,0.2) transparent;
+}
+#termOutput::-webkit-scrollbar { width: 4px; }
+#termOutput::-webkit-scrollbar-track { background: transparent; }
+#termOutput::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.2); border-radius: 2px; }
+
+.term-line { display: flex; align-items: baseline; gap: 8px; padding: 1px 0; }
+.term-line:hover { background: rgba(255,255,255,0.025); border-radius: 3px; }
+.term-ts { color: #4a7080; font-size: 10px; flex-shrink: 0; }
+.term-tag {
+    font-size: 9.5px; font-weight: 700; flex-shrink: 0;
+    padding: 1px 5px; border-radius: 3px; letter-spacing: 0.05em;
+}
+.term-msg { color: #d0e4f0; flex: 1; word-break: break-word; }
+
+/* Tag colors */
+.tag-ICARUS  { background: rgba(0,212,255,0.15); color: #00d4ff; }
+.tag-INPUT   { background: rgba(0,230,140,0.15);  color: #00e68c; }
+.tag-OUTPUT  { background: rgba(138,43,226,0.2);  color: #c084fc; }
+.tag-ROUTER  { background: rgba(255,165,0,0.15);  color: #fb923c; }
+.tag-SKILL   { background: rgba(59,130,246,0.2);  color: #60a5fa; }
+.tag-NEXUS   { background: rgba(255,215,0,0.15);  color: #fbbf24; }
+.tag-CUSTOM  { background: rgba(0,230,140,0.12);  color: #34d399; }
+.tag-MODE    { background: rgba(168,85,247,0.15); color: #a78bfa; }
+.tag-AGENT   { background: rgba(239,68,68,0.15);  color: #f87171; }
+.tag-SERVER  { background: rgba(100,116,139,0.2); color: #94a3b8; }
+.tag-ERROR   { background: rgba(239,68,68,0.25);  color: #f87171; }
+.tag-WARNING { background: rgba(234,179,8,0.2);   color: #fde047; }
+.tag-INFO    { background: rgba(100,116,139,0.15); color: #94a3b8; }
+
+#termDrawer .term-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-top: 1px solid rgba(0,212,255,0.12);
+    background: #080d13;
+    flex-shrink: 0;
+}
+.term-prompt { color: #00e68c; font-size: 11.5px; flex-shrink: 0; }
+#termCmdInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #c4cdd8;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11.5px;
+    caret-color: #00d4ff;
+}
+#termCmdInput::placeholder { color: #3a6070; }
+.term-run-btn {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 4px;
+    color: #00d4ff;
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .12s;
+}
+.term-run-btn:hover { background: rgba(0,212,255,0.2); }
+.term-sse-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #354050;
+    flex-shrink: 0;
+    transition: background .3s;
+}
+.term-sse-dot.live { background: #00e68c; animation: pulse 2s infinite; }
+
+/* resize handle area */
+#termResizeHandle {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    cursor: row-resize;
+    z-index: 10;
+}
+</style>
+
+<div id="termDrawer">
+    <div id="termResizeHandle"></div>
+    <div class="term-header" id="termHeader">
+        <div class="term-sse-dot" id="termSseDot"></div>
+        <div class="term-title">▶ ICARUS TERMINAL</div>
+        <!-- Filtros -->
+        <button class="term-filter-btn active" data-filter="ALL"    onclick="setTermFilter('ALL')">TUDO</button>
+        <button class="term-filter-btn" data-filter="INPUT"   onclick="setTermFilter('INPUT')">ENTRADA</button>
+        <button class="term-filter-btn" data-filter="ROUTER"  onclick="setTermFilter('ROUTER')">ROTEADOR</button>
+        <button class="term-filter-btn" data-filter="SKILL"   onclick="setTermFilter('SKILL')">SKILL</button>
+        <button class="term-filter-btn" data-filter="NEXUS"   onclick="setTermFilter('NEXUS')">NEXUS</button>
+        <button class="term-filter-btn" data-filter="ERROR"   onclick="setTermFilter('ERROR')">ERROS</button>
+        <div style="width:1px;height:16px;background:rgba(255,255,255,0.1);margin:0 4px"></div>
+        <button class="term-filter-btn" onclick="clearTermOutput()" title="Limpar">🗑</button>
+        <button class="term-filter-btn" onclick="termScrollBottom()" title="Rolar ao fim">↓</button>
+        <button class="term-filter-btn" onclick="toggleTerminal()" title="Fechar (Ctrl+`)">✕</button>
+    </div>
+    <div id="termOutput"></div>
+    <div class="term-input-row">
+        <span class="term-prompt">ICARUS ❯</span>
+        <input id="termCmdInput" placeholder="Digite um comando e pressione Enter..."
+            onkeydown="if(event.key==='Enter')termSendCmd()">
+        <button class="term-run-btn" onclick="termSendCmd()">▶ Enviar</button>
+    </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  FLOATING TERMINAL — SSE + resize + filter
+// ══════════════════════════════════════════════════════════════
+
+let _termOpen   = false;
+let _sseSource  = null;
+let _termFilter = 'ALL';
+let _termAutoScroll = true;
+let _termEntries = [];   // histórico local
+
+// ── Abrir / fechar ────────────────────────────────────────────
+function openTerminal() {
+    if (_termOpen) return;
+    _termOpen = true;
+    document.getElementById('termDrawer').classList.add('open');
+    const btn = document.getElementById('tbTerminal');
+    if (btn) btn.classList.add('active');
+    startTermSSE();
+}
+function closeTerminal() {
+    _termOpen = false;
+    document.getElementById('termDrawer').classList.remove('open');
+    const btn = document.getElementById('tbTerminal');
+    if (btn) btn.classList.remove('active');
+    stopTermSSE();
+}
+function toggleTerminal() {
+    _termOpen ? closeTerminal() : openTerminal();
+}
+
+// ── SSE ───────────────────────────────────────────────────────
+function startTermSSE() {
+    if (_sseSource) return;
+    _sseSource = new EventSource('/logs/stream');
+    document.getElementById('termSseDot').classList.add('live');
+
+    _sseSource.onmessage = e => {
+        try {
+            const entry = JSON.parse(e.data);
+            _termEntries.push(entry);
+            if (_termEntries.length > 600) _termEntries.shift();
+            appendTermLine(entry);
+        } catch(_) {}
+    };
+    _sseSource.onerror = () => {
+        document.getElementById('termSseDot').classList.remove('live');
+        // Tenta reconectar em 3s
+        _sseSource.close(); _sseSource = null;
+        if (_termOpen) setTimeout(startTermSSE, 3000);
+    };
+}
+function stopTermSSE() {
+    if (_sseSource) { _sseSource.close(); _sseSource = null; }
+    const dot = document.getElementById('termSseDot');
+    if (dot) dot.classList.remove('live');
+}
+
+// ── Renderização ──────────────────────────────────────────────
+function appendTermLine(entry) {
+    const tag = entry.tag || entry.level || 'INFO';
+    if (_termFilter !== 'ALL' && tag !== _termFilter) return;
+
+    const out = document.getElementById('termOutput');
+    if (!out) return;
+
+    const line = document.createElement('div');
+    line.className = 'term-line';
+    line.dataset.tag = tag;
+    line.innerHTML =
+        `<span class="term-ts">${entry.time || ''}</span>` +
+        `<span class="term-tag tag-${tag}">${tag}</span>` +
+        `<span class="term-msg">${escapeHtml(entry.msg || '')}</span>`;
+    out.appendChild(line);
+
+    // Limitar DOM a 300 linhas
+    while (out.children.length > 300) out.removeChild(out.firstChild);
+
+    if (_termAutoScroll) out.scrollTop = out.scrollHeight;
+}
+
+function renderTermAll() {
+    const out = document.getElementById('termOutput');
+    if (!out) return;
+    out.innerHTML = '';
+    _termEntries.forEach(e => appendTermLine(e));
+}
+
+function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Filtro ────────────────────────────────────────────────────
+function setTermFilter(f) {
+    _termFilter = f;
+    document.querySelectorAll('.term-filter-btn[data-filter]').forEach(b =>
+        b.classList.toggle('active', b.dataset.filter === f));
+    renderTermAll();
+}
+
+// ── Controles ─────────────────────────────────────────────────
+function clearTermOutput() {
+    _termEntries = [];
+    document.getElementById('termOutput').innerHTML = '';
+}
+function termScrollBottom() {
+    const out = document.getElementById('termOutput');
+    if (out) out.scrollTop = out.scrollHeight;
+}
+
+// Auto-scroll: pausar se o usuário rolou manualmente para cima
+document.getElementById('termOutput').addEventListener('scroll', function() {
+    const diff = this.scrollHeight - this.scrollTop - this.clientHeight;
+    _termAutoScroll = diff < 30;
+});
+
+// ── Enviar comando pelo terminal ──────────────────────────────
+async function termSendCmd() {
+    const inp = document.getElementById('termCmdInput');
+    const cmd = inp.value.trim();
+    if (!cmd) return;
+    inp.value = '';
+
+    // Mostra o comando digitado
+    appendTermLine({ time: new Date().toLocaleTimeString('pt-BR'), tag: 'INPUT', msg: '❯ ' + cmd });
+
+    try {
+        const r = await fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({message: cmd})
+        });
+        const d = await r.json();
+        // Resposta vai aparecer via SSE automaticamente
+    } catch(e) {
+        appendTermLine({ time: '', tag: 'ERROR', msg: 'Erro: ' + e.message });
+    }
+}
+
+// ── Atalho Ctrl+` ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === '`') { e.preventDefault(); toggleTerminal(); }
+});
+
+// ── Resize por arrasto (drag da borda superior) ───────────────
+(function() {
+    const handle = document.getElementById('termResizeHandle');
+    const drawer = document.getElementById('termDrawer');
+    let dragging = false, startY = 0, startH = 0;
+
+    handle.addEventListener('mousedown', e => {
+        dragging = true;
+        startY = e.clientY;
+        startH = drawer.offsetHeight;
+        document.body.style.userSelect = 'none';
+    });
+    window.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const delta = startY - e.clientY;
+        const newH = Math.max(120, Math.min(window.innerHeight * 0.75, startH + delta));
+        drawer.style.height = newH + 'px';
+    });
+    window.addEventListener('mouseup', () => {
+        dragging = false;
+        document.body.style.userSelect = '';
+    });
+})();
+</script>
+
 </body>
 </html>
